@@ -114,7 +114,7 @@ describe("Register page", () => {
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalledWith("newuser", "new@example.com", "password123");
+      expect(mockRegister).toHaveBeenCalledWith("newuser", "new@example.com", "password123", "password123");
     });
     expect(mockNavigate).toHaveBeenCalledWith("/login");
   });

@@ -18,6 +18,7 @@ interface AuthState {
     username: string,
     email: string,
     password: string,
+    password2: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
@@ -37,8 +38,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().fetchUser();
   },
 
-  register: async (username, email, password) => {
-    await authApi.register({ username, email, password });
+  register: async (username, email, password, password2) => {
+    await authApi.register({ username, email, password, password2 });
   },
 
   logout: async () => {

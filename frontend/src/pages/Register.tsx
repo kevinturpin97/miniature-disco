@@ -56,7 +56,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await register(form.username, form.email, form.password);
+      await register(form.username, form.email, form.password, form.confirmPassword);
       navigate("/login");
     } catch {
       setServerError("Registration failed. Username or email may already be taken.");

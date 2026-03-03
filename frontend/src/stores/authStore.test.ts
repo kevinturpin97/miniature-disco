@@ -72,12 +72,13 @@ describe("authStore", () => {
     it("calls register API", async () => {
       mockedRegister.mockResolvedValue(undefined as never);
 
-      await useAuthStore.getState().register("newuser", "new@example.com", "password123");
+      await useAuthStore.getState().register("newuser", "new@example.com", "password123", "password123");
 
       expect(mockedRegister).toHaveBeenCalledWith({
         username: "newuser",
         email: "new@example.com",
         password: "password123",
+        password2: "password123",
       });
     });
   });
