@@ -617,14 +617,14 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Tests d'ingestion
 
 ### SPRINT 6 — WebSocket Temps Réel
-- [ ] Django Channels configuré avec Redis
-- [ ] Consumer WebSocket pour /ws/sensors/{zone_id}/
-- [ ] Consumer WebSocket pour /ws/alerts/
-- [ ] Push des nouvelles lectures en temps réel lors de l'ingestion MQTT
-- [ ] Push des alertes en temps réel
-- [ ] Tests WebSocket (pytest-asyncio)
+- [x] Django Channels configuré avec Redis
+- [x] Consumer WebSocket pour /ws/sensors/{zone_id}/
+- [x] Consumer WebSocket pour /ws/alerts/
+- [x] Push des nouvelles lectures en temps réel lors de l'ingestion MQTT
+- [x] Push des alertes en temps réel
+- [x] Tests WebSocket (pytest-asyncio)
 
-### SPRINT 7 — Frontend : Dashboard & Auth
+### SPRINT 7 — Frontend : Dashboard & Auth (TailwindCSS)
 - [ ] Pages Login/Register avec Zod validation
 - [ ] Auth store (Zustand) avec JWT + auto-refresh
 - [ ] Axios interceptor pour JWT

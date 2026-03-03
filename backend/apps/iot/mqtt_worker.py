@@ -14,6 +14,8 @@ import time
 from typing import Any
 
 import paho.mqtt.client as mqtt
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.utils import timezone
 
@@ -190,6 +192,9 @@ class MqttWorker:
             )
             created_readings.append(reading)
 
+            # Push to WebSocket channel layer
+            self._push_sensor_reading(zone, sensor, reading)
+
             # Check thresholds and create alerts if needed
             self._check_thresholds(sensor, value, zone)
 
@@ -214,7 +219,7 @@ class MqttWorker:
             zone: The zone containing the sensor.
         """
         if sensor.max_threshold is not None and value > sensor.max_threshold:
-            Alert.objects.create(
+            alert = Alert.objects.create(
                 sensor=sensor,
                 zone=zone,
                 alert_type=Alert.AlertType.THRESHOLD_HIGH,
@@ -225,6 +230,7 @@ class MqttWorker:
                     f"is {value} (above threshold {sensor.max_threshold})"
                 ),
             )
+            self._push_alert(alert, zone)
             logger.info(
                 "Threshold HIGH alert: sensor=%s value=%s max=%s",
                 sensor.pk,
@@ -233,7 +239,7 @@ class MqttWorker:
             )
 
         if sensor.min_threshold is not None and value < sensor.min_threshold:
-            Alert.objects.create(
+            alert = Alert.objects.create(
                 sensor=sensor,
                 zone=zone,
                 alert_type=Alert.AlertType.THRESHOLD_LOW,
@@ -244,9 +250,69 @@ class MqttWorker:
                     f"is {value} (below threshold {sensor.min_threshold})"
                 ),
             )
+            self._push_alert(alert, zone)
             logger.info(
                 "Threshold LOW alert: sensor=%s value=%s min=%s",
                 sensor.pk,
                 value,
                 sensor.min_threshold,
             )
+
+    # ── Channel layer push ───────────────────────────────────────
+
+    def _push_sensor_reading(
+        self,
+        zone: Zone,
+        sensor: Sensor,
+        reading: SensorReading,
+    ) -> None:
+        """Push a sensor reading to the WebSocket channel layer.
+
+        Args:
+            zone: The zone the reading belongs to.
+            sensor: The sensor that produced the reading.
+            reading: The persisted SensorReading instance.
+        """
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        group_name = f"sensors_{zone.pk}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "sensor_reading",
+                "sensor_type": sensor.sensor_type,
+                "value": reading.value,
+                "sensor_id": sensor.pk,
+                "zone_id": zone.pk,
+                "received_at": reading.received_at.isoformat() if reading.received_at else None,
+            },
+        )
+
+    def _push_alert(self, alert: Alert, zone: Zone) -> None:
+        """Push an alert notification to the WebSocket channel layer.
+
+        Sends to ``alerts_{user_id}`` for the greenhouse owner.
+
+        Args:
+            alert: The persisted Alert instance.
+            zone: The zone the alert belongs to.
+        """
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        owner_id = zone.greenhouse.owner_id
+        group_name = f"alerts_{owner_id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "alert_notification",
+                "alert_id": alert.pk,
+                "alert_type": alert.alert_type,
+                "severity": alert.severity,
+                "zone_id": zone.pk,
+                "zone_name": zone.name,
+                "message": alert.message,
+                "created_at": alert.created_at.isoformat() if alert.created_at else None,
+            },
+        )

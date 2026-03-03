@@ -9,7 +9,9 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from asgiref.sync import async_to_sync
 from celery import shared_task
+from channels.layers import get_channel_layer
 from django.utils import timezone
 
 from .models import Alert, Zone
@@ -57,7 +59,7 @@ def detect_offline_relays() -> dict[str, int]:
         if existing:
             continue
 
-        Alert.objects.create(
+        alert = Alert.objects.create(
             zone=zone,
             alert_type=Alert.AlertType.RELAY_OFFLINE,
             severity=Alert.Severity.CRITICAL,
@@ -67,6 +69,7 @@ def detect_offline_relays() -> dict[str, int]:
                 f"last seen {zone.last_seen.isoformat()}"
             ),
         )
+        _push_alert(alert, zone)
         offline += 1
         logger.warning(
             "Relay offline: zone=%s relay_id=%s last_seen=%s",
@@ -77,3 +80,30 @@ def detect_offline_relays() -> dict[str, int]:
 
     logger.info("Offline detection complete: checked=%d offline=%d", checked, offline)
     return {"checked": checked, "offline": offline}
+
+
+def _push_alert(alert: Alert, zone: Zone) -> None:
+    """Push an alert notification to the WebSocket channel layer.
+
+    Args:
+        alert: The persisted Alert instance.
+        zone: The zone the alert belongs to.
+    """
+    channel_layer = get_channel_layer()
+    if channel_layer is None:
+        return
+    owner_id = zone.greenhouse.owner_id
+    group_name = f"alerts_{owner_id}"
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            "type": "alert_notification",
+            "alert_id": alert.pk,
+            "alert_type": alert.alert_type,
+            "severity": alert.severity,
+            "zone_id": zone.pk,
+            "zone_name": zone.name,
+            "message": alert.message,
+            "created_at": alert.created_at.isoformat() if alert.created_at else None,
+        },
+    )
