@@ -587,14 +587,14 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Documentation API (au minimum docstrings DRF)
 
 ### SPRINT 3 — Firmware Relais v1
-- [ ] Projet PlatformIO configuré
-- [ ] Lecture DHT22 (température + humidité air)
-- [ ] Lecture DS18B20 (température sol/eau)
-- [ ] Encodage trame binaire avec CRC8
-- [ ] Envoi LoRa périodique (configurable)
-- [ ] Mode sleep entre transmissions
-- [ ] Réception de commandes LoRa
-- [ ] Code modulaire (sensors.h, lora_protocol.h, config.h)
+- [x] Projet PlatformIO configuré
+- [x] Lecture DHT22 (température + humidité air)
+- [x] Lecture DS18B20 (température sol/eau)
+- [x] Encodage trame binaire avec CRC8
+- [x] Envoi LoRa périodique (configurable)
+- [x] Mode sleep entre transmissions
+- [x] Réception de commandes LoRa
+- [x] Code modulaire (sensors.h, lora_protocol.h, config.h)
 
 ### SPRINT 4 — LoRa Bridge Service
 - [ ] Lecture port série (pyserial)
