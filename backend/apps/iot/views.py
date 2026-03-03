@@ -5,10 +5,12 @@ All ViewSets enforce ownership: a user can only access resources belonging
 to greenhouses they own. Nested resources are filtered through the ownership chain.
 """
 
+import csv
 from datetime import datetime
 
 from django.db.models import Avg
 from django.db.models.functions import TruncDay, TruncHour
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone as django_tz
 from django_filters.rest_framework import DjangoFilterBackend
@@ -111,6 +113,54 @@ class ZoneViewSet(viewsets.ModelViewSet):
         if not greenhouse:
             raise serializers.ValidationError({"greenhouse": "Greenhouse ID is required."})
         serializer.save(greenhouse=greenhouse)
+
+    @action(detail=True, methods=["get"], url_path="export/csv")
+    def export_csv(self, request: Request, pk: int = None, **kwargs) -> HttpResponse:
+        """Export all sensor readings for a zone as a CSV file.
+
+        Query params:
+            from (ISO 8601 datetime): Filter readings after this timestamp.
+            to   (ISO 8601 datetime): Filter readings before this timestamp.
+        """
+        zone = self.get_object()
+        readings = (
+            SensorReading.objects
+            .filter(sensor__zone=zone)
+            .select_related("sensor")
+            .order_by("received_at")
+        )
+
+        from_dt = request.query_params.get("from")
+        to_dt = request.query_params.get("to")
+
+        if from_dt:
+            try:
+                readings = readings.filter(received_at__gte=datetime.fromisoformat(from_dt))
+            except ValueError:
+                raise serializers.ValidationError({"from": "Invalid ISO 8601 datetime."})
+
+        if to_dt:
+            try:
+                readings = readings.filter(received_at__lte=datetime.fromisoformat(to_dt))
+            except ValueError:
+                raise serializers.ValidationError({"to": "Invalid ISO 8601 datetime."})
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="zone_{zone.pk}_readings.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(["sensor_type", "sensor_label", "value", "unit", "received_at"])
+
+        for reading in readings.iterator():
+            writer.writerow([
+                reading.sensor.sensor_type,
+                reading.sensor.label,
+                reading.value,
+                reading.sensor.unit,
+                reading.received_at.isoformat(),
+            ])
+
+        return response
 
 
 class SensorViewSet(viewsets.ModelViewSet):

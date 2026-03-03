@@ -41,3 +41,14 @@ export async function updateZone(
 export async function deleteZone(id: number): Promise<void> {
   await client.delete(`/zones/${id}/`);
 }
+
+export async function exportZoneCsv(
+  zoneId: number,
+  params?: { from?: string; to?: string },
+): Promise<Blob> {
+  const { data } = await client.get<Blob>(`/zones/${zoneId}/export/csv/`, {
+    params,
+    responseType: "blob",
+  });
+  return data;
+}

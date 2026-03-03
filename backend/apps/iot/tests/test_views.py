@@ -120,6 +120,52 @@ class TestZoneViewSet:
         assert response.status_code == 404
 
 
+@pytest.mark.django_db
+class TestZoneExportCsv:
+    """Tests for the GET /api/zones/{id}/export/csv/ endpoint."""
+
+    def export_url(self, pk):
+        return f"/api/zones/{pk}/export/csv/"
+
+    def test_export_csv_returns_csv(self, auth_client, zone, sensor):
+        SensorReadingFactory(sensor=sensor, value=22.5)
+        SensorReadingFactory(sensor=sensor, value=23.1)
+        response = auth_client.get(self.export_url(zone.pk))
+        assert response.status_code == 200
+        assert response["Content-Type"] == "text/csv"
+        assert "attachment" in response["Content-Disposition"]
+        content = response.content.decode()
+        lines = content.strip().splitlines()
+        assert lines[0] == "sensor_type,sensor_label,value,unit,received_at"
+        assert len(lines) == 3  # header + 2 readings
+
+    def test_export_csv_empty(self, auth_client, zone):
+        response = auth_client.get(self.export_url(zone.pk))
+        assert response.status_code == 200
+        content = response.content.decode()
+        lines = content.strip().splitlines()
+        assert len(lines) == 1  # header only
+
+    def test_export_csv_with_time_filter(self, auth_client, zone, sensor):
+        SensorReadingFactory(sensor=sensor, value=20.0)
+        response = auth_client.get(
+            self.export_url(zone.pk),
+            {"from": "2099-01-01T00:00:00+00:00"},
+        )
+        assert response.status_code == 200
+        content = response.content.decode()
+        lines = content.strip().splitlines()
+        assert len(lines) == 1  # header only — future filter excludes all
+
+    def test_export_csv_requires_auth(self, api_client, zone):
+        response = api_client.get(self.export_url(zone.pk))
+        assert response.status_code == 401
+
+    def test_export_csv_isolation(self, other_auth_client, zone):
+        response = other_auth_client.get(self.export_url(zone.pk))
+        assert response.status_code == 404
+
+
 # ---------------------------------------------------------------------------
 # Sensors
 # ---------------------------------------------------------------------------

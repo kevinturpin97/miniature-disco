@@ -636,13 +636,13 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Responsive design (mobile-first)
 
 ### SPRINT 8 — Frontend : Zone Détail & Historique
-- [ ] Page Zone Detail avec graphiques temps réel (Recharts)
-- [ ] Hook useWebSocket pour données live
-- [ ] Sélecteur de période (dernière heure, 24h, 7j, custom)
-- [ ] Graphiques historiques par capteur
-- [ ] Tableau des dernières lectures
-- [ ] Export CSV (appel API + download)
-- [ ] États des actionneurs de la zone
+- [x] Page Zone Detail avec graphiques temps réel (Recharts)
+- [x] Hook useWebSocket pour données live
+- [x] Sélecteur de période (dernière heure, 24h, 7j, custom)
+- [x] Graphiques historiques par capteur
+- [x] Tableau des dernières lectures
+- [x] Export CSV (appel API + download)
+- [x] États des actionneurs de la zone
 
 ### SPRINT 9 — Frontend : Alertes
 - [ ] Configuration des seuils par capteur (formulaire)

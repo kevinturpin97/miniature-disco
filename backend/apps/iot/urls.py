@@ -21,6 +21,7 @@ zone_list = ZoneViewSet.as_view({"get": "list", "post": "create"})
 zone_detail = ZoneViewSet.as_view(
     {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
 )
+zone_export_csv = ZoneViewSet.as_view({"get": "export_csv"})
 
 sensor_list = SensorViewSet.as_view({"get": "list", "post": "create"})
 sensor_detail = SensorViewSet.as_view({"patch": "partial_update"})
@@ -47,6 +48,7 @@ urlpatterns = [
     # Zones — nested under greenhouse + standalone
     path("greenhouses/<int:greenhouse_id>/zones/", zone_list, name="zone-list"),
     path("zones/<int:pk>/", zone_detail, name="zone-detail"),
+    path("zones/<int:pk>/export/csv/", zone_export_csv, name="zone-export-csv"),
     # Sensors — nested under zone + standalone patch
     path("zones/<int:zone_id>/sensors/", sensor_list, name="sensor-list"),
     path("sensors/<int:pk>/", sensor_detail, name="sensor-detail"),
