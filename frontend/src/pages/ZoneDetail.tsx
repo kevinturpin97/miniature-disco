@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { format, subHours, subDays } from "date-fns";
 import { getZone, exportZoneCsv } from "@/api/zones";
-import { listSensors, getSensorReadings } from "@/api/sensors";
+import { listSensors, getSensorReadings, updateSensor } from "@/api/sensors";
 import { listActuators } from "@/api/actuators";
 import { useSensorData } from "@/hooks/useSensorData";
 import { useSensorStore } from "@/stores/sensorStore";
@@ -59,6 +59,11 @@ export default function ZoneDetail() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [exporting, setExporting] = useState(false);
+
+  // Threshold editing state
+  const [editingThresholds, setEditingThresholds] = useState<number | null>(null);
+  const [thresholdForm, setThresholdForm] = useState<{ min: string; max: string }>({ min: "", max: "" });
+  const [savingThresholds, setSavingThresholds] = useState(false);
 
   // Real-time WebSocket data
   const { isConnected } = useSensorData(numericZoneId);
@@ -188,6 +193,32 @@ export default function ZoneDetail() {
       setExporting(false);
     }
   }, [numericZoneId, timeRange]);
+
+  const startEditingThresholds = useCallback((sensor: Sensor) => {
+    setEditingThresholds(sensor.id);
+    setThresholdForm({
+      min: sensor.min_threshold !== null ? String(sensor.min_threshold) : "",
+      max: sensor.max_threshold !== null ? String(sensor.max_threshold) : "",
+    });
+  }, []);
+
+  const saveThresholds = useCallback(async () => {
+    if (editingThresholds === null) return;
+    setSavingThresholds(true);
+    try {
+      const payload: { min_threshold: number | null; max_threshold: number | null } = {
+        min_threshold: thresholdForm.min !== "" ? Number(thresholdForm.min) : null,
+        max_threshold: thresholdForm.max !== "" ? Number(thresholdForm.max) : null,
+      };
+      const updated = await updateSensor(editingThresholds, payload);
+      setSensors((prev) => prev.map((s) => (s.id === editingThresholds ? updated : s)));
+      setEditingThresholds(null);
+    } catch {
+      // Silently fail
+    } finally {
+      setSavingThresholds(false);
+    }
+  }, [editingThresholds, thresholdForm]);
 
   if (loading) {
     return (
@@ -415,6 +446,91 @@ export default function ZoneDetail() {
           </table>
         </div>
       </div>
+
+      {/* Threshold Configuration */}
+      {sensors.length > 0 && (
+        <div className="rounded-xl border bg-white shadow-sm">
+          <div className="border-b px-4 py-3">
+            <h2 className="text-lg font-semibold text-gray-900">Alert Thresholds</h2>
+            <p className="text-xs text-gray-500">Set min/max thresholds per sensor to trigger alerts.</p>
+          </div>
+          <div className="divide-y">
+            {sensors.map((sensor) => {
+              const label = SENSOR_TYPE_LABELS[sensor.sensor_type] ?? sensor.sensor_type;
+              const unit = SENSOR_TYPE_UNITS[sensor.sensor_type] ?? sensor.unit;
+              const isEditing = editingThresholds === sensor.id;
+
+              return (
+                <div key={sensor.id} className="flex flex-wrap items-center gap-4 px-4 py-3">
+                  <div className="w-32 flex-shrink-0">
+                    <p className="text-sm font-medium text-gray-900">{label}</p>
+                    {unit && <p className="text-xs text-gray-500">{unit}</p>}
+                  </div>
+
+                  {isEditing ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500">Min:</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={thresholdForm.min}
+                          onChange={(e) => setThresholdForm((f) => ({ ...f, min: e.target.value }))}
+                          className="w-24 rounded-md border border-gray-300 px-2 py-1 text-sm"
+                          placeholder="--"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500">Max:</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={thresholdForm.max}
+                          onChange={(e) => setThresholdForm((f) => ({ ...f, max: e.target.value }))}
+                          className="w-24 rounded-md border border-gray-300 px-2 py-1 text-sm"
+                          placeholder="--"
+                        />
+                      </div>
+                      <button
+                        onClick={saveThresholds}
+                        disabled={savingThresholds}
+                        className="rounded-md bg-primary-600 px-3 py-1 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                      >
+                        {savingThresholds ? "..." : "Save"}
+                      </button>
+                      <button
+                        onClick={() => setEditingThresholds(null)}
+                        className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm text-gray-600">
+                        {sensor.min_threshold !== null || sensor.max_threshold !== null ? (
+                          <>
+                            {sensor.min_threshold ?? "--"} — {sensor.max_threshold ?? "--"}
+                            {unit ? ` ${unit}` : ""}
+                          </>
+                        ) : (
+                          <span className="text-gray-400">Not configured</span>
+                        )}
+                      </span>
+                      <button
+                        onClick={() => startEditingThresholds(sensor)}
+                        className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Actuators */}
       <div className="rounded-xl border bg-white shadow-sm">

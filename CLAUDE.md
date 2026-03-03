@@ -645,13 +645,13 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] États des actionneurs de la zone
 
 ### SPRINT 9 — Frontend : Alertes
-- [ ] Configuration des seuils par capteur (formulaire)
-- [ ] Backend : Celery task évaluation seuils à chaque reading
-- [ ] Création d'alertes automatiques
-- [ ] Page liste des alertes avec filtres
-- [ ] Badge notification dans le header
-- [ ] Acknowledge d'une alerte
-- [ ] WebSocket pour alertes temps réel
+- [x] Configuration des seuils par capteur (formulaire)
+- [x] Backend : Celery task évaluation seuils à chaque reading
+- [x] Création d'alertes automatiques
+- [x] Page liste des alertes avec filtres
+- [x] Badge notification dans le header
+- [x] Acknowledge d'une alerte
+- [x] WebSocket pour alertes temps réel
 
 ### SPRINT 10 — Commandes & Actionneurs
 - [ ] Page commandes : interface par zone

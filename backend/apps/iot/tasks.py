@@ -14,7 +14,7 @@ from celery import shared_task
 from channels.layers import get_channel_layer
 from django.utils import timezone
 
-from .models import Alert, Zone
+from .models import Alert, Sensor, SensorReading, Zone
 
 logger = logging.getLogger(__name__)
 
@@ -107,3 +107,79 @@ def _push_alert(alert: Alert, zone: Zone) -> None:
             "created_at": alert.created_at.isoformat() if alert.created_at else None,
         },
     )
+
+
+@shared_task(name="iot.evaluate_sensor_thresholds")
+def evaluate_sensor_thresholds(reading_id: int) -> dict[str, bool]:
+    """Evaluate sensor thresholds for a newly created reading.
+
+    Called after each :class:`~SensorReading` is persisted.  Creates
+    :data:`~Alert.AlertType.THRESHOLD_HIGH` or
+    :data:`~Alert.AlertType.THRESHOLD_LOW` alerts when the value exceeds
+    the configured sensor thresholds.
+
+    Args:
+        reading_id: Primary key of the SensorReading to evaluate.
+
+    Returns:
+        Dict with ``high`` and ``low`` booleans indicating whether alerts
+        were created.
+    """
+    try:
+        reading = (
+            SensorReading.objects
+            .select_related("sensor", "sensor__zone", "sensor__zone__greenhouse")
+            .get(pk=reading_id)
+        )
+    except SensorReading.DoesNotExist:
+        logger.warning("SensorReading %s not found — skipping threshold check", reading_id)
+        return {"high": False, "low": False}
+
+    sensor = reading.sensor
+    zone = sensor.zone
+    value = reading.value
+    result = {"high": False, "low": False}
+
+    if sensor.max_threshold is not None and value > sensor.max_threshold:
+        alert = Alert.objects.create(
+            sensor=sensor,
+            zone=zone,
+            alert_type=Alert.AlertType.THRESHOLD_HIGH,
+            severity=Alert.Severity.WARNING,
+            value=value,
+            message=(
+                f"{sensor.get_sensor_type_display()} in {zone.name} "
+                f"is {value} (above threshold {sensor.max_threshold})"
+            ),
+        )
+        _push_alert(alert, zone)
+        result["high"] = True
+        logger.info(
+            "Threshold HIGH alert: sensor=%s value=%s max=%s",
+            sensor.pk,
+            value,
+            sensor.max_threshold,
+        )
+
+    if sensor.min_threshold is not None and value < sensor.min_threshold:
+        alert = Alert.objects.create(
+            sensor=sensor,
+            zone=zone,
+            alert_type=Alert.AlertType.THRESHOLD_LOW,
+            severity=Alert.Severity.WARNING,
+            value=value,
+            message=(
+                f"{sensor.get_sensor_type_display()} in {zone.name} "
+                f"is {value} (below threshold {sensor.min_threshold})"
+            ),
+        )
+        _push_alert(alert, zone)
+        result["low"] = True
+        logger.info(
+            "Threshold LOW alert: sensor=%s value=%s min=%s",
+            sensor.pk,
+            value,
+            sensor.min_threshold,
+        )
+
+    return result

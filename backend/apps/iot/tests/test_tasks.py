@@ -8,8 +8,8 @@ import pytest
 from django.utils import timezone
 
 from apps.iot.models import Alert
-from apps.iot.tasks import detect_offline_relays
-from conftest import GreenhouseFactory, ZoneFactory
+from apps.iot.tasks import detect_offline_relays, evaluate_sensor_thresholds
+from conftest import GreenhouseFactory, SensorFactory, SensorReadingFactory, ZoneFactory
 
 
 @pytest.mark.django_db
@@ -141,3 +141,100 @@ class TestDetectOfflineRelays:
         assert result["checked"] == 3
         assert result["offline"] == 2
         assert Alert.objects.count() == 2
+
+
+@pytest.mark.django_db
+class TestEvaluateSensorThresholds:
+    """Tests for the evaluate_sensor_thresholds Celery task."""
+
+    def test_no_alert_when_within_range(self):
+        """No alert when reading is within thresholds."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        sensor = SensorFactory(zone=zone, min_threshold=10.0, max_threshold=30.0)
+        reading = SensorReadingFactory(sensor=sensor, value=22.0)
+
+        result = evaluate_sensor_thresholds(reading.pk)
+
+        assert result == {"high": False, "low": False}
+        assert Alert.objects.count() == 0
+
+    def test_high_threshold_alert(self):
+        """Alert created when value exceeds max_threshold."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        sensor = SensorFactory(zone=zone, max_threshold=30.0)
+        reading = SensorReadingFactory(sensor=sensor, value=35.0)
+
+        result = evaluate_sensor_thresholds(reading.pk)
+
+        assert result["high"] is True
+        assert result["low"] is False
+        assert Alert.objects.count() == 1
+        alert = Alert.objects.first()
+        assert alert.alert_type == Alert.AlertType.THRESHOLD_HIGH
+        assert alert.severity == Alert.Severity.WARNING
+        assert alert.sensor == sensor
+        assert alert.zone == zone
+        assert alert.value == 35.0
+
+    def test_low_threshold_alert(self):
+        """Alert created when value falls below min_threshold."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        sensor = SensorFactory(zone=zone, min_threshold=10.0)
+        reading = SensorReadingFactory(sensor=sensor, value=5.0)
+
+        result = evaluate_sensor_thresholds(reading.pk)
+
+        assert result["high"] is False
+        assert result["low"] is True
+        assert Alert.objects.count() == 1
+        alert = Alert.objects.first()
+        assert alert.alert_type == Alert.AlertType.THRESHOLD_LOW
+        assert alert.value == 5.0
+
+    def test_both_thresholds_can_trigger(self):
+        """Both high and low alerts created for a value below min when max is set too."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        sensor = SensorFactory(zone=zone, min_threshold=10.0, max_threshold=5.0)
+        reading = SensorReadingFactory(sensor=sensor, value=7.0)
+
+        result = evaluate_sensor_thresholds(reading.pk)
+
+        # value=7 is above max_threshold=5 and below min_threshold=10
+        assert result["high"] is True
+        assert result["low"] is True
+        assert Alert.objects.count() == 2
+
+    def test_no_threshold_configured(self):
+        """No alert when sensor has no thresholds set."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        sensor = SensorFactory(zone=zone, min_threshold=None, max_threshold=None)
+        reading = SensorReadingFactory(sensor=sensor, value=999.0)
+
+        result = evaluate_sensor_thresholds(reading.pk)
+
+        assert result == {"high": False, "low": False}
+        assert Alert.objects.count() == 0
+
+    def test_nonexistent_reading(self):
+        """Gracefully handles a missing SensorReading."""
+        result = evaluate_sensor_thresholds(999999)
+
+        assert result == {"high": False, "low": False}
+        assert Alert.objects.count() == 0
+
+    def test_exact_threshold_no_alert(self):
+        """Value exactly at threshold does not trigger alert."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        sensor = SensorFactory(zone=zone, min_threshold=10.0, max_threshold=30.0)
+        reading = SensorReadingFactory(sensor=sensor, value=30.0)
+
+        result = evaluate_sensor_thresholds(reading.pk)
+
+        assert result == {"high": False, "low": False}
+        assert Alert.objects.count() == 0
