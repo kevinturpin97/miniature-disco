@@ -1,0 +1,142 @@
+/**
+ * Login page with Zod-validated form.
+ */
+
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { useAuthStore } from "@/stores/authStore";
+
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
+export default function Login() {
+  const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
+  const [form, setForm] = useState<LoginForm>({ username: "", password: "" });
+  const [errors, setErrors] = useState<Partial<Record<keyof LoginForm, string>>>({});
+  const [serverError, setServerError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: undefined });
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setServerError("");
+
+    const result = loginSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: typeof errors = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof LoginForm;
+        fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login(form.username, form.password);
+      navigate("/");
+    } catch {
+      setServerError("Invalid username or password.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white text-xl font-bold">
+            G
+          </div>
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">
+            Greenhouse SaaS
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Sign in to your account
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-xl border bg-white p-6 shadow-sm"
+        >
+          {serverError && (
+            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+              {serverError}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={form.username}
+                onChange={handleChange}
+                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 ${
+                  errors.username ? "border-red-300" : "border-gray-300"
+                }`}
+              />
+              {errors.username && (
+                <p className="mt-1 text-xs text-red-600">{errors.username}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={form.password}
+                onChange={handleChange}
+                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 ${
+                  errors.password ? "border-red-300" : "border-gray-300"
+                }`}
+              />
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-6 w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+          >
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+
+          <p className="mt-4 text-center text-sm text-gray-500">
+            Don't have an account?{" "}
+            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-700">
+              Register
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}

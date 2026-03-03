@@ -18,6 +18,7 @@ export interface Greenhouse {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  zone_count: number;
 }
 
 export interface Zone {
@@ -27,6 +28,7 @@ export interface Zone {
   relay_id: number;
   description: string;
   is_active: boolean;
+  is_online: boolean;
   last_seen: string | null;
   transmission_interval: number;
   created_at: string;

@@ -1,20 +1,115 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+/**
+ * Root application component with routing and auth protection.
+ */
+
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
+import { Spinner } from "@/components/ui/Spinner";
+import { AppLayout } from "@/components/layout/AppLayout";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Dashboard from "@/pages/Dashboard";
+import ZoneDetail from "@/pages/ZoneDetail";
+import History from "@/pages/History";
+import Alerts from "@/pages/Alerts";
+import Commands from "@/pages/Commands";
+import Automations from "@/pages/Automations";
+import Settings from "@/pages/Settings";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Spinner className="h-10 w-10" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Spinner className="h-10 w-10" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppInit({ children }: { children: React.ReactNode }) {
+  const initialize = useAuthStore((s) => s.initialize);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  return <>{children}</>;
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div className="flex min-h-screen items-center justify-center bg-green-50">
-              <h1 className="text-4xl font-bold text-primary-700">
-                Greenhouse SaaS
-              </h1>
-            </div>
-          }
-        />
-      </Routes>
+      <AppInit>
+        <Routes>
+          {/* Public routes */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            }
+          />
+
+          {/* Protected routes with layout */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="zones/:zoneId" element={<ZoneDetail />} />
+            <Route path="history" element={<History />} />
+            <Route path="alerts" element={<Alerts />} />
+            <Route path="commands" element={<Commands />} />
+            <Route path="automations" element={<Automations />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AppInit>
     </BrowserRouter>
   );
 }
