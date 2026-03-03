@@ -105,6 +105,23 @@ services:
     # devices:
     #   - /dev/ttyUSB0:/dev/ttyUSB0
 
+  mqtt-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python manage.py run_mqtt_worker
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+
   frontend:
     build:
       context: ./frontend

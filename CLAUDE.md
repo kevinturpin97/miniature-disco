@@ -608,13 +608,13 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Tests unitaires protocol + décodage — 29 tests, 0 failures
 
 ### SPRINT 5 — Ingestion Données & Stockage
-- [ ] MQTT worker Django (management command ou Celery)
-- [ ] Parse des messages MQTT → création SensorReading
-- [ ] Update last_seen sur Zone à chaque réception
-- [ ] API lecture données avec filtres temporels
-- [ ] Agrégation (moyenne horaire/journalière) via endpoint
-- [ ] Détection relais offline (Celery periodic task)
-- [ ] Tests d'ingestion
+- [x] MQTT worker Django (management command ou Celery)
+- [x] Parse des messages MQTT → création SensorReading
+- [x] Update last_seen sur Zone à chaque réception
+- [x] API lecture données avec filtres temporels
+- [x] Agrégation (moyenne horaire/journalière) via endpoint
+- [x] Détection relais offline (Celery periodic task)
+- [x] Tests d'ingestion
 
 ### SPRINT 6 — WebSocket Temps Réel
 - [ ] Django Channels configuré avec Redis

@@ -175,6 +175,32 @@ class TestSensorViewSet:
         response = auth_client.get(self.readings_url(sensor.pk), {"from": from_dt})
         assert response.status_code == 200
 
+    def test_readings_interval_hour(self, auth_client, sensor):
+        """Aggregation with interval=hour returns avg_value and period."""
+        SensorReadingFactory(sensor=sensor, value=20.0)
+        SensorReadingFactory(sensor=sensor, value=24.0)
+        response = auth_client.get(self.readings_url(sensor.pk), {"interval": "hour"})
+        assert response.status_code == 200
+        results = response.data["results"]
+        assert len(results) >= 1
+        assert "avg_value" in results[0]
+        assert "period" in results[0]
+
+    def test_readings_interval_day(self, auth_client, sensor):
+        """Aggregation with interval=day returns avg_value."""
+        SensorReadingFactory(sensor=sensor, value=10.0)
+        SensorReadingFactory(sensor=sensor, value=30.0)
+        response = auth_client.get(self.readings_url(sensor.pk), {"interval": "day"})
+        assert response.status_code == 200
+        results = response.data["results"]
+        assert len(results) >= 1
+        assert results[0]["avg_value"] == pytest.approx(20.0)
+
+    def test_readings_interval_invalid(self, auth_client, sensor):
+        """Invalid interval value returns 400."""
+        response = auth_client.get(self.readings_url(sensor.pk), {"interval": "week"})
+        assert response.status_code == 400
+
     def test_isolation_sensor_list(self, other_auth_client, zone):
         response = other_auth_client.get(self.list_url(zone.pk))
         assert response.status_code == 404

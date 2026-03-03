@@ -7,6 +7,8 @@ to greenhouses they own. Nested resources are filtered through the ownership cha
 
 from datetime import datetime
 
+from django.db.models import Avg
+from django.db.models.functions import TruncDay, TruncHour
 from django.shortcuts import get_object_or_404
 from django.utils import timezone as django_tz
 from django_filters.rest_framework import DjangoFilterBackend
@@ -158,17 +160,20 @@ class SensorViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="readings")
     def readings(self, request: Request, pk: int = None, **kwargs) -> Response:
-        """List sensor readings with optional time range filters.
+        """List sensor readings with optional time range and aggregation.
 
         Query params:
             from (ISO 8601 datetime): Filter readings after this timestamp.
             to   (ISO 8601 datetime): Filter readings before this timestamp.
+            interval (str): Aggregate readings — ``hour`` or ``day``.
+                Returns ``{"period", "avg_value"}`` instead of raw readings.
         """
         sensor = self.get_object()
         qs = SensorReading.objects.filter(sensor=sensor).order_by("-received_at")
 
         from_dt = request.query_params.get("from")
         to_dt = request.query_params.get("to")
+        interval = request.query_params.get("interval")
 
         if from_dt:
             try:
@@ -181,6 +186,24 @@ class SensorViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(received_at__lte=datetime.fromisoformat(to_dt))
             except ValueError:
                 raise serializers.ValidationError({"to": "Invalid ISO 8601 datetime."})
+
+        # Aggregation mode
+        if interval in ("hour", "day"):
+            trunc_fn = TruncHour if interval == "hour" else TruncDay
+            aggregated = (
+                qs.annotate(period=trunc_fn("received_at"))
+                .values("period")
+                .annotate(avg_value=Avg("value"))
+                .order_by("-period")
+            )
+            page = self.paginate_queryset(list(aggregated))
+            if page is not None:
+                return self.get_paginated_response(page)
+            return Response(list(aggregated))
+        elif interval is not None:
+            raise serializers.ValidationError(
+                {"interval": "Must be 'hour' or 'day'."}
+            )
 
         page = self.paginate_queryset(qs)
         if page is not None:
