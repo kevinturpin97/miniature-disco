@@ -597,15 +597,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Code modulaire (sensors.h, lora_protocol.h, config.h)
 
 ### SPRINT 4 — LoRa Bridge Service
-- [ ] Lecture port série (pyserial)
-- [ ] Décodage du protocole binaire
-- [ ] Validation CRC8
-- [ ] Publication MQTT (paho-mqtt)
-- [ ] Souscription aux commandes
-- [ ] Envoi de commandes via LoRa
-- [ ] Logging structuré (structlog)
-- [ ] Gestion reconnexion série/MQTT
-- [ ] Tests unitaires protocol + décodage
+- [x] Lecture port série (pyserial)
+- [x] Décodage du protocole binaire
+- [x] Validation CRC8
+- [x] Publication MQTT (paho-mqtt)
+- [x] Souscription aux commandes
+- [x] Envoi de commandes via LoRa
+- [x] Logging structuré (structlog)
+- [x] Gestion reconnexion série/MQTT
+- [x] Tests unitaires protocol + décodage — 29 tests, 0 failures
 
 ### SPRINT 5 — Ingestion Données & Stockage
 - [ ] MQTT worker Django (management command ou Celery)
