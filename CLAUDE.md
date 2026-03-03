@@ -625,15 +625,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Tests WebSocket (pytest-asyncio)
 
 ### SPRINT 7 — Frontend : Dashboard & Auth (TailwindCSS)
-- [ ] Pages Login/Register avec Zod validation
-- [ ] Auth store (Zustand) avec JWT + auto-refresh
-- [ ] Axios interceptor pour JWT
-- [ ] Protected routes (React Router)
-- [ ] Layout principal (sidebar, header, content)
-- [ ] Dashboard : liste des serres, cartes zones
-- [ ] Dashboard : dernières valeurs par capteur
-- [ ] Dashboard : indicateur online/offline par zone
-- [ ] Responsive design (mobile-first)
+- [x] Pages Login/Register avec Zod validation
+- [x] Auth store (Zustand) avec JWT + auto-refresh
+- [x] Axios interceptor pour JWT
+- [x] Protected routes (React Router)
+- [x] Layout principal (sidebar, header, content)
+- [x] Dashboard : liste des serres, cartes zones
+- [x] Dashboard : dernières valeurs par capteur
+- [x] Dashboard : indicateur online/offline par zone
+- [x] Responsive design (mobile-first)
 
 ### SPRINT 8 — Frontend : Zone Détail & Historique
 - [ ] Page Zone Detail avec graphiques temps réel (Recharts)
