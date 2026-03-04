@@ -717,16 +717,16 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 14 — Notifications & Alerting Avancé
 **Objectif : sortir des alertes de l'interface et toucher les utilisateurs là où ils sont**
 
-- [ ] Modèle `NotificationChannel` : EMAIL, WEBHOOK, TELEGRAM, PUSH
-- [ ] Modèle `NotificationRule` : lier une alerte (severity + type) à un channel
-- [ ] Backend email : Django email + template HTML (threshold dépassé, relais offline)
-- [ ] Webhook générique : POST JSON configurable (compatible n8n, Zapier, Make)
-- [ ] Telegram bot : envoi via Bot API (token configurable par org)
-- [ ] Celery task : `dispatch_notifications` déclenché par signal post-save Alert
-- [ ] Digest quotidien (Celery beat, 8h du matin) : résumé des alertes non acquittées
-- [ ] Frontend : page "Notifications" avec config des channels par org
-- [ ] Tests : mock des envois email/webhook/telegram
-- [ ] Rate-limiting des notifications (max 1 notif / 5min par règle)
+- [x] Modèle `NotificationChannel` : EMAIL, WEBHOOK, TELEGRAM, PUSH
+- [x] Modèle `NotificationRule` : lier une alerte (severity + type) à un channel
+- [x] Backend email : Django email + template HTML (threshold dépassé, relais offline)
+- [x] Webhook générique : POST JSON configurable (compatible n8n, Zapier, Make)
+- [x] Telegram bot : envoi via Bot API (token configurable par org)
+- [x] Celery task : `dispatch_notifications` déclenché par signal post-save Alert
+- [x] Digest quotidien (Celery beat, 8h du matin) : résumé des alertes non acquittées
+- [x] Frontend : page "Notifications" avec config des channels par org
+- [x] Tests : mock des envois email/webhook/telegram
+- [x] Rate-limiting des notifications (max 1 notif / 5min par règle)
 
 ---
 

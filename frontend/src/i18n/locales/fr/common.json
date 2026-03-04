@@ -6,7 +6,8 @@
     "automations": "Automatisations",
     "settings": "Paramètres",
     "history": "Historique",
-    "team": "Équipe"
+    "team": "Équipe",
+    "notifications": "Notifications"
   },
   "actions": {
     "save": "Enregistrer",

@@ -1,7 +1,7 @@
 """Celery tasks for the IoT app.
 
-Includes periodic tasks for relay offline detection and
-threshold-based alert generation.
+Includes periodic tasks for relay offline detection,
+threshold-based alert generation, and notification dispatch.
 """
 
 from __future__ import annotations
@@ -15,9 +15,22 @@ from celery import shared_task
 from channels.layers import get_channel_layer
 import paho.mqtt.client as mqtt
 from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.html import strip_tags
 
-from .models import Actuator, Alert, Command, Sensor, SensorReading, Zone
+from .models import (
+    Actuator,
+    Alert,
+    Command,
+    NotificationChannel,
+    NotificationLog,
+    NotificationRule,
+    Sensor,
+    SensorReading,
+    Zone,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -355,3 +368,191 @@ def evaluate_automation_rules(reading_id: int) -> dict[str, int]:
 
     command_ids = evaluate_rules_for_reading(reading)
     return {"triggered": len(command_ids)}
+
+
+@shared_task(name="iot.dispatch_notifications")
+def dispatch_notifications(alert_id: int) -> dict[str, int]:
+    """Dispatch notifications for a newly created alert.
+
+    Finds all active NotificationRules whose organization matches the
+    alert's zone→greenhouse→organization.  Respects cooldown, filters
+    by alert_type and severity, then calls the appropriate dispatcher.
+
+    Args:
+        alert_id: Primary key of the Alert to notify about.
+
+    Returns:
+        Dict with ``sent`` and ``failed`` counts.
+    """
+    try:
+        alert = (
+            Alert.objects
+            .select_related("zone__greenhouse__organization", "sensor")
+            .get(pk=alert_id)
+        )
+    except Alert.DoesNotExist:
+        logger.warning("Alert %s not found — skipping notification dispatch", alert_id)
+        return {"sent": 0, "failed": 0}
+
+    org = alert.zone.greenhouse.organization
+    if org is None:
+        return {"sent": 0, "failed": 0}
+
+    rules = (
+        NotificationRule.objects
+        .filter(organization=org, is_active=True, channel__is_active=True)
+        .select_related("channel")
+    )
+
+    from .notification_dispatchers import DISPATCHERS
+
+    now = timezone.now()
+    sent = 0
+    failed = 0
+
+    for rule in rules:
+        # Filter by alert type
+        if rule.alert_types and alert.alert_type not in rule.alert_types:
+            continue
+
+        # Filter by severity
+        if rule.severities and alert.severity not in rule.severities:
+            continue
+
+        # Cooldown check
+        if rule.last_notified:
+            cooldown = timedelta(seconds=rule.cooldown_seconds)
+            if (now - rule.last_notified) < cooldown:
+                logger.debug(
+                    "Skipping rule %s — cooldown not elapsed (%ss)",
+                    rule.pk,
+                    rule.cooldown_seconds,
+                )
+                continue
+
+        dispatcher = DISPATCHERS.get(rule.channel.channel_type)
+        if not dispatcher:
+            logger.warning("No dispatcher for channel type %s", rule.channel.channel_type)
+            continue
+
+        try:
+            dispatcher(alert, rule.channel)
+            rule.last_notified = now
+            rule.save(update_fields=["last_notified"])
+            NotificationLog.objects.create(
+                rule=rule,
+                channel=rule.channel,
+                alert=alert,
+                status=NotificationLog.Status.SENT,
+            )
+            sent += 1
+        except Exception as exc:
+            NotificationLog.objects.create(
+                rule=rule,
+                channel=rule.channel,
+                alert=alert,
+                status=NotificationLog.Status.FAILED,
+                error_message=str(exc),
+            )
+            failed += 1
+            logger.error(
+                "Notification dispatch failed: rule=%s channel=%s error=%s",
+                rule.pk,
+                rule.channel.pk,
+                exc,
+            )
+
+    logger.info(
+        "Notification dispatch for alert %s: sent=%d failed=%d",
+        alert_id,
+        sent,
+        failed,
+    )
+    return {"sent": sent, "failed": failed}
+
+
+@shared_task(name="iot.send_daily_digest")
+def send_daily_digest() -> dict[str, int]:
+    """Send daily digest emails summarizing unacknowledged alerts.
+
+    Iterates over all organizations that have at least one EMAIL
+    notification channel and sends a summary of unacknowledged alerts
+    from the last 24 hours.
+
+    Returns:
+        Dict with ``organizations`` and ``emails_sent`` counts.
+    """
+    from apps.api.models import Organization
+
+    now = timezone.now()
+    since = now - timedelta(hours=24)
+    orgs_notified = 0
+    emails_sent = 0
+
+    # Find all orgs with active EMAIL channels
+    org_ids = (
+        NotificationChannel.objects
+        .filter(channel_type=NotificationChannel.ChannelType.EMAIL, is_active=True)
+        .values_list("organization_id", flat=True)
+        .distinct()
+    )
+
+    for org in Organization.objects.filter(pk__in=org_ids):
+        alerts = (
+            Alert.objects
+            .filter(
+                zone__greenhouse__organization=org,
+                is_acknowledged=False,
+                created_at__gte=since,
+            )
+            .select_related("zone")
+            .order_by("-created_at")[:50]
+        )
+
+        alert_count = alerts.count()
+        if alert_count == 0:
+            continue
+
+        # Collect all EMAIL channel recipients for this org
+        channels = NotificationChannel.objects.filter(
+            organization=org,
+            channel_type=NotificationChannel.ChannelType.EMAIL,
+            is_active=True,
+        )
+
+        all_recipients: set[str] = set()
+        for ch in channels:
+            for addr in ch.email_recipients.split(","):
+                addr = addr.strip()
+                if addr:
+                    all_recipients.add(addr)
+
+        if not all_recipients:
+            continue
+
+        context = {
+            "organization_name": org.name,
+            "date": now.strftime("%Y-%m-%d"),
+            "alert_count": alert_count,
+            "alerts": list(alerts),
+        }
+        html_body = render_to_string("notifications/daily_digest_email.html", context)
+        text_body = strip_tags(html_body)
+
+        try:
+            send_mail(
+                subject=f"[Greenhouse] Daily Alert Digest — {org.name} ({alert_count} alert{'s' if alert_count != 1 else ''})",
+                message=text_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=list(all_recipients),
+                html_message=html_body,
+                fail_silently=False,
+            )
+            emails_sent += 1
+            orgs_notified += 1
+            logger.info("Daily digest sent for org %s to %d recipients", org.slug, len(all_recipients))
+        except Exception as exc:
+            logger.error("Failed to send daily digest for org %s: %s", org.slug, exc)
+
+    logger.info("Daily digest complete: orgs=%d emails=%d", orgs_notified, emails_sent)
+    return {"organizations": orgs_notified, "emails_sent": emails_sent}

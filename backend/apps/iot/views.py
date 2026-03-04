@@ -28,6 +28,9 @@ from .models import (
     AutomationRule,
     Command,
     Greenhouse,
+    NotificationChannel,
+    NotificationLog,
+    NotificationRule,
     Sensor,
     SensorReading,
     Zone,
@@ -38,6 +41,9 @@ from .serializers import (
     AutomationRuleSerializer,
     CommandSerializer,
     GreenhouseSerializer,
+    NotificationChannelSerializer,
+    NotificationLogSerializer,
+    NotificationRuleSerializer,
     SensorReadingSerializer,
     SensorSerializer,
     ZoneSerializer,
@@ -518,3 +524,146 @@ class AlertViewSet(
             update_fields=["is_acknowledged", "acknowledged_by", "acknowledged_at"]
         )
         return Response(AlertSerializer(alert).data)
+
+
+def _resolve_org_from_slug(request, slug: str) -> Organization:
+    """Resolve an org by slug, verifying the user is a member.
+
+    Args:
+        request: The current DRF request.
+        slug: The organization slug from the URL path.
+
+    Returns:
+        The Organization instance.
+
+    Raises:
+        Http404 if not found or user is not a member.
+    """
+    return get_object_or_404(
+        Organization,
+        slug=slug,
+        memberships__user=request.user,
+    )
+
+
+class NotificationChannelViewSet(viewsets.ModelViewSet):
+    """CRUD operations for notification channels scoped to an organization.
+
+    Endpoints:
+        GET    /api/orgs/{slug}/notifications/channels/       - List channels.
+        POST   /api/orgs/{slug}/notifications/channels/       - Create a channel.
+        GET    /api/orgs/{slug}/notifications/channels/{id}/  - Retrieve.
+        PATCH  /api/orgs/{slug}/notifications/channels/{id}/  - Update.
+        DELETE /api/orgs/{slug}/notifications/channels/{id}/  - Delete.
+    """
+
+    serializer_class = NotificationChannelSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def _get_org(self) -> Organization:
+        return _resolve_org_from_slug(self.request, self.kwargs["slug"])
+
+    def get_queryset(self):
+        org = self._get_org()
+        return NotificationChannel.objects.filter(organization=org)
+
+    def perform_create(self, serializer):
+        org = self._get_org()
+        # Only ADMIN+ can manage channels
+        membership = Membership.objects.filter(user=self.request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage notification channels.")
+        serializer.save(organization=org)
+
+    def perform_update(self, serializer):
+        org = self._get_org()
+        membership = Membership.objects.filter(user=self.request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage notification channels.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        org = self._get_org()
+        membership = Membership.objects.filter(user=self.request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage notification channels.")
+        instance.delete()
+
+
+class NotificationRuleViewSet(viewsets.ModelViewSet):
+    """CRUD operations for notification rules scoped to an organization.
+
+    Endpoints:
+        GET    /api/orgs/{slug}/notifications/rules/       - List rules.
+        POST   /api/orgs/{slug}/notifications/rules/       - Create a rule.
+        GET    /api/orgs/{slug}/notifications/rules/{id}/  - Retrieve.
+        PATCH  /api/orgs/{slug}/notifications/rules/{id}/  - Update.
+        DELETE /api/orgs/{slug}/notifications/rules/{id}/  - Delete.
+    """
+
+    serializer_class = NotificationRuleSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def _get_org(self) -> Organization:
+        return _resolve_org_from_slug(self.request, self.kwargs["slug"])
+
+    def get_queryset(self):
+        org = self._get_org()
+        return NotificationRule.objects.filter(organization=org).select_related("channel")
+
+    def perform_create(self, serializer):
+        org = self._get_org()
+        membership = Membership.objects.filter(user=self.request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage notification rules.")
+        self.request._org = org
+        serializer.save(organization=org)
+
+    def perform_update(self, serializer):
+        org = self._get_org()
+        membership = Membership.objects.filter(user=self.request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage notification rules.")
+        self.request._org = org
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        org = self._get_org()
+        membership = Membership.objects.filter(user=self.request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage notification rules.")
+        instance.delete()
+
+
+class NotificationLogViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Read-only list of notification logs for an organization.
+
+    Endpoints:
+        GET /api/orgs/{slug}/notifications/logs/  - List notification logs.
+    """
+
+    serializer_class = NotificationLogSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["status"]
+    ordering_fields = ["created_at"]
+    http_method_names = ["get", "head", "options"]
+
+    def get_queryset(self):
+        org = _resolve_org_from_slug(self.request, self.kwargs["slug"])
+        return (
+            NotificationLog.objects
+            .filter(channel__organization=org)
+            .select_related("rule", "channel", "alert")
+        )

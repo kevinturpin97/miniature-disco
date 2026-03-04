@@ -17,6 +17,7 @@ import Commands from "@/pages/Commands";
 import Automations from "@/pages/Automations";
 import Settings from "@/pages/Settings";
 import Team from "@/pages/Team";
+import Notifications from "@/pages/Notifications";
 import AcceptInvitation from "@/pages/AcceptInvitation";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -116,6 +117,7 @@ function App() {
             <Route path="commands" element={<Commands />} />
             <Route path="automations" element={<Automations />} />
             <Route path="team" element={<Team />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

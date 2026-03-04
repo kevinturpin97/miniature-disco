@@ -5,6 +5,7 @@ Celery configuration for Greenhouse SaaS.
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.development")
 
@@ -21,5 +22,9 @@ app.conf.beat_schedule = {
     "timeout-pending-commands": {
         "task": "iot.timeout_pending_commands",
         "schedule": 30.0,  # Every 30 seconds
+    },
+    "daily-alert-digest": {
+        "task": "iot.send_daily_digest",
+        "schedule": crontab(hour=8, minute=0),  # Every day at 08:00 UTC
     },
 }

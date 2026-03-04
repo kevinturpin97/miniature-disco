@@ -12,6 +12,9 @@ from .models import (
     AutomationRule,
     Command,
     Greenhouse,
+    NotificationChannel,
+    NotificationLog,
+    NotificationRule,
     Sensor,
     SensorReading,
     Zone,
@@ -254,3 +257,156 @@ class AlertSerializer(serializers.ModelSerializer):
             "acknowledged_at",
             "created_at",
         )
+
+
+class NotificationChannelSerializer(serializers.ModelSerializer):
+    """Serializer for the NotificationChannel model.
+
+    Fields:
+        id, organization, channel_type, name, is_active,
+        email_recipients, webhook_url, webhook_secret,
+        telegram_bot_token, telegram_chat_id,
+        created_at, updated_at.
+    """
+
+    class Meta:
+        model = NotificationChannel
+        fields = (
+            "id",
+            "organization",
+            "channel_type",
+            "name",
+            "is_active",
+            "email_recipients",
+            "webhook_url",
+            "webhook_secret",
+            "telegram_bot_token",
+            "telegram_chat_id",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "organization", "created_at", "updated_at")
+        extra_kwargs = {
+            "webhook_secret": {"write_only": True},
+            "telegram_bot_token": {"write_only": True},
+        }
+
+    def validate(self, attrs: dict) -> dict:
+        """Validate channel-type-specific required fields."""
+        channel_type = attrs.get("channel_type", getattr(self.instance, "channel_type", None))
+
+        if channel_type == NotificationChannel.ChannelType.EMAIL:
+            recipients = attrs.get("email_recipients", getattr(self.instance, "email_recipients", ""))
+            if not recipients or not recipients.strip():
+                raise serializers.ValidationError(
+                    {"email_recipients": "Email recipients are required for EMAIL channels."}
+                )
+
+        elif channel_type == NotificationChannel.ChannelType.WEBHOOK:
+            url = attrs.get("webhook_url", getattr(self.instance, "webhook_url", ""))
+            if not url or not url.strip():
+                raise serializers.ValidationError(
+                    {"webhook_url": "Webhook URL is required for WEBHOOK channels."}
+                )
+
+        elif channel_type == NotificationChannel.ChannelType.TELEGRAM:
+            token = attrs.get("telegram_bot_token", getattr(self.instance, "telegram_bot_token", ""))
+            chat_id = attrs.get("telegram_chat_id", getattr(self.instance, "telegram_chat_id", ""))
+            if not token or not token.strip():
+                raise serializers.ValidationError(
+                    {"telegram_bot_token": "Bot token is required for TELEGRAM channels."}
+                )
+            if not chat_id or not chat_id.strip():
+                raise serializers.ValidationError(
+                    {"telegram_chat_id": "Chat ID is required for TELEGRAM channels."}
+                )
+
+        return attrs
+
+    def to_representation(self, instance: NotificationChannel) -> dict:
+        """Mask sensitive fields in responses."""
+        data = super().to_representation(instance)
+        # Show whether secrets are configured without revealing values
+        data["has_webhook_secret"] = bool(instance.webhook_secret)
+        data["has_telegram_bot_token"] = bool(instance.telegram_bot_token)
+        return data
+
+
+class NotificationRuleSerializer(serializers.ModelSerializer):
+    """Serializer for the NotificationRule model.
+
+    Fields:
+        id, organization, name, channel, channel_name,
+        alert_types, severities, is_active, cooldown_seconds,
+        last_notified, created_at, updated_at.
+    """
+
+    channel_name = serializers.CharField(source="channel.name", read_only=True)
+
+    class Meta:
+        model = NotificationRule
+        fields = (
+            "id",
+            "organization",
+            "name",
+            "channel",
+            "channel_name",
+            "alert_types",
+            "severities",
+            "is_active",
+            "cooldown_seconds",
+            "last_notified",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "organization", "last_notified", "created_at", "updated_at")
+
+    def validate_alert_types(self, value: list) -> list:
+        """Ensure all alert types are valid choices."""
+        valid = {c[0] for c in Alert.AlertType.choices}
+        for t in value:
+            if t not in valid:
+                raise serializers.ValidationError(f"Invalid alert type: {t}")
+        return value
+
+    def validate_severities(self, value: list) -> list:
+        """Ensure all severities are valid choices."""
+        valid = {c[0] for c in Alert.Severity.choices}
+        for s in value:
+            if s not in valid:
+                raise serializers.ValidationError(f"Invalid severity: {s}")
+        return value
+
+    def validate_channel(self, value: NotificationChannel) -> NotificationChannel:
+        """Ensure the channel belongs to the same organization."""
+        request = self.context.get("request")
+        if request and hasattr(request, "_org"):
+            if value.organization_id != request._org.pk:
+                raise serializers.ValidationError("Channel must belong to the same organization.")
+        return value
+
+
+class NotificationLogSerializer(serializers.ModelSerializer):
+    """Serializer for the NotificationLog model (read-only).
+
+    Fields:
+        id, rule, channel, alert, status, error_message, created_at.
+    """
+
+    rule_name = serializers.CharField(source="rule.name", read_only=True, default="")
+    channel_name = serializers.CharField(source="channel.name", read_only=True, default="")
+
+    class Meta:
+        model = NotificationLog
+        fields = (
+            "id",
+            "rule",
+            "rule_name",
+            "channel",
+            "channel_name",
+            "alert",
+            "status",
+            "error_message",
+            "created_at",
+        )
+        read_only_fields = fields

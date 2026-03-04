@@ -200,5 +200,49 @@
     "acceptingInvite": "Accepting invitation...",
     "redirecting": "Redirecting to team page...",
     "backToDashboard": "Back to Dashboard"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Configure notification channels and rules for {{org}}.",
+    "tabs": {
+      "channels": "Channels",
+      "rules": "Rules",
+      "logs": "Logs"
+    },
+    "addChannel": "Add Channel",
+    "editChannel": "Edit Channel",
+    "noChannels": "No notification channels configured.",
+    "channelType": "Channel type",
+    "channelTypes": {
+      "EMAIL": "Email",
+      "WEBHOOK": "Webhook",
+      "TELEGRAM": "Telegram"
+    },
+    "emailRecipients": "Email recipients (comma-separated)",
+    "webhookUrl": "Webhook URL",
+    "webhookSecret": "Webhook secret (HMAC)",
+    "telegramBotToken": "Telegram bot token",
+    "telegramChatId": "Telegram chat ID",
+    "secretUnchanged": "Leave blank to keep current",
+    "secretOptional": "Optional",
+    "active": "Active",
+    "inactive": "Inactive",
+    "addRule": "Add Rule",
+    "editRule": "Edit Rule",
+    "noRules": "No notification rules configured.",
+    "ruleChannel": "Channel",
+    "ruleAlertTypes": "Alert types",
+    "ruleAlertTypesHint": "Select which alert types trigger this rule. Leave empty for all.",
+    "ruleSeverities": "Severities",
+    "ruleSeveritiesHint": "Select which severities trigger this rule. Leave empty for all.",
+    "ruleCooldown": "Cooldown (seconds)",
+    "allTypes": "All types",
+    "allSeverities": "All severities",
+    "confirmDelete": "Are you sure you want to delete \"{{name}}\"?",
+    "noLogs": "No notification logs yet.",
+    "logDate": "Date",
+    "logRule": "Rule",
+    "logChannel": "Channel",
+    "logError": "Error"
   }
 }

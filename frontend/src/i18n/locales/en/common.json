@@ -6,7 +6,8 @@
     "automations": "Automations",
     "settings": "Settings",
     "history": "History",
-    "team": "Team"
+    "team": "Team",
+    "notifications": "Notifications"
   },
   "actions": {
     "save": "Save",

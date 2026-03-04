@@ -8,6 +8,9 @@ from .models import (
     AutomationRule,
     Command,
     Greenhouse,
+    NotificationChannel,
+    NotificationLog,
+    NotificationRule,
     Sensor,
     SensorReading,
     Zone,
@@ -90,5 +93,29 @@ class AlertAdmin(admin.ModelAdmin):
     )
     list_filter = ("alert_type", "severity", "is_acknowledged")
     search_fields = ("message", "zone__name")
+    readonly_fields = ("created_at",)
+    date_hierarchy = "created_at"
+
+
+@admin.register(NotificationChannel)
+class NotificationChannelAdmin(admin.ModelAdmin):
+    list_display = ("name", "organization", "channel_type", "is_active", "created_at")
+    list_filter = ("channel_type", "is_active", "organization")
+    search_fields = ("name", "organization__name")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(NotificationRule)
+class NotificationRuleAdmin(admin.ModelAdmin):
+    list_display = ("name", "organization", "channel", "is_active", "last_notified")
+    list_filter = ("is_active", "organization")
+    search_fields = ("name",)
+    readonly_fields = ("created_at", "updated_at", "last_notified")
+
+
+@admin.register(NotificationLog)
+class NotificationLogAdmin(admin.ModelAdmin):
+    list_display = ("rule", "channel", "alert", "status", "created_at")
+    list_filter = ("status",)
     readonly_fields = ("created_at",)
     date_hierarchy = "created_at"

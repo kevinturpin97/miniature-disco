@@ -8,6 +8,9 @@ from .views import (
     AutomationRuleViewSet,
     CommandViewSet,
     GreenhouseViewSet,
+    NotificationChannelViewSet,
+    NotificationLogViewSet,
+    NotificationRuleViewSet,
     SensorViewSet,
     ZoneViewSet,
 )
@@ -41,6 +44,21 @@ automation_detail = AutomationRuleViewSet.as_view(
 alert_list = AlertViewSet.as_view({"get": "list"})
 alert_acknowledge = AlertViewSet.as_view({"patch": "acknowledge"})
 
+# Notification channels
+notif_channel_list = NotificationChannelViewSet.as_view({"get": "list", "post": "create"})
+notif_channel_detail = NotificationChannelViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+
+# Notification rules
+notif_rule_list = NotificationRuleViewSet.as_view({"get": "list", "post": "create"})
+notif_rule_detail = NotificationRuleViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+
+# Notification logs
+notif_log_list = NotificationLogViewSet.as_view({"get": "list"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -65,4 +83,12 @@ urlpatterns = [
     # Alerts
     path("alerts/", alert_list, name="alert-list"),
     path("alerts/<int:pk>/acknowledge/", alert_acknowledge, name="alert-acknowledge"),
+    # Notification channels — nested under org
+    path("orgs/<slug:slug>/notifications/channels/", notif_channel_list, name="notif-channel-list"),
+    path("orgs/<slug:slug>/notifications/channels/<int:pk>/", notif_channel_detail, name="notif-channel-detail"),
+    # Notification rules — nested under org
+    path("orgs/<slug:slug>/notifications/rules/", notif_rule_list, name="notif-rule-list"),
+    path("orgs/<slug:slug>/notifications/rules/<int:pk>/", notif_rule_detail, name="notif-rule-detail"),
+    # Notification logs — nested under org
+    path("orgs/<slug:slug>/notifications/logs/", notif_log_list, name="notif-log-list"),
 ]

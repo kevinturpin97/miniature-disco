@@ -180,6 +180,69 @@ export interface AutomationRule {
   created_at: string;
 }
 
+export type ChannelType = "EMAIL" | "WEBHOOK" | "TELEGRAM";
+
+export interface NotificationChannel {
+  id: number;
+  organization: number;
+  channel_type: ChannelType;
+  name: string;
+  is_active: boolean;
+  email_recipients: string;
+  webhook_url: string;
+  has_webhook_secret: boolean;
+  telegram_chat_id: string;
+  has_telegram_bot_token: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationChannelPayload {
+  channel_type: ChannelType;
+  name: string;
+  is_active?: boolean;
+  email_recipients?: string;
+  webhook_url?: string;
+  webhook_secret?: string;
+  telegram_bot_token?: string;
+  telegram_chat_id?: string;
+}
+
+export interface NotificationRule {
+  id: number;
+  organization: number;
+  name: string;
+  channel: number;
+  channel_name: string;
+  alert_types: AlertType[];
+  severities: Severity[];
+  cooldown_seconds: number;
+  is_active: boolean;
+  last_notified: string | null;
+  created_at: string;
+}
+
+export interface NotificationRulePayload {
+  name: string;
+  channel: number;
+  alert_types: AlertType[];
+  severities: Severity[];
+  cooldown_seconds: number;
+  is_active?: boolean;
+}
+
+export interface NotificationLog {
+  id: number;
+  rule: number;
+  rule_name: string;
+  channel: number;
+  channel_name: string;
+  alert: number;
+  status: "SENT" | "FAILED";
+  error_message: string;
+  created_at: string;
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

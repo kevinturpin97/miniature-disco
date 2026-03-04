@@ -200,5 +200,49 @@
     "acceptingInvite": "Acceptation de l'invitation...",
     "redirecting": "Redirection vers la page d'équipe...",
     "backToDashboard": "Retour au tableau de bord"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Configurez les canaux et règles de notification pour {{org}}.",
+    "tabs": {
+      "channels": "Canaux",
+      "rules": "Règles",
+      "logs": "Journaux"
+    },
+    "addChannel": "Ajouter un canal",
+    "editChannel": "Modifier le canal",
+    "noChannels": "Aucun canal de notification configuré.",
+    "channelType": "Type de canal",
+    "channelTypes": {
+      "EMAIL": "Email",
+      "WEBHOOK": "Webhook",
+      "TELEGRAM": "Telegram"
+    },
+    "emailRecipients": "Destinataires email (séparés par des virgules)",
+    "webhookUrl": "URL du webhook",
+    "webhookSecret": "Secret du webhook (HMAC)",
+    "telegramBotToken": "Token du bot Telegram",
+    "telegramChatId": "ID du chat Telegram",
+    "secretUnchanged": "Laisser vide pour conserver l'actuel",
+    "secretOptional": "Optionnel",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "addRule": "Ajouter une règle",
+    "editRule": "Modifier la règle",
+    "noRules": "Aucune règle de notification configurée.",
+    "ruleChannel": "Canal",
+    "ruleAlertTypes": "Types d'alerte",
+    "ruleAlertTypesHint": "Sélectionnez les types d'alerte qui déclenchent cette règle. Vide = tous.",
+    "ruleSeverities": "Sévérités",
+    "ruleSeveritiesHint": "Sélectionnez les sévérités qui déclenchent cette règle. Vide = toutes.",
+    "ruleCooldown": "Délai de récupération (secondes)",
+    "allTypes": "Tous les types",
+    "allSeverities": "Toutes les sévérités",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer « {{name}} » ?",
+    "noLogs": "Aucun journal de notification.",
+    "logDate": "Date",
+    "logRule": "Règle",
+    "logChannel": "Canal",
+    "logError": "Erreur"
   }
 }
