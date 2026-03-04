@@ -451,3 +451,30 @@ class NotificationLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.status} via {self.channel} @ {self.created_at}"
+
+
+class SensorReadingHourly(models.Model):
+    """Pre-aggregated hourly sensor readings for fast analytics queries."""
+
+    sensor = models.ForeignKey(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name="hourly_readings",
+    )
+    hour = models.DateTimeField(help_text="Start of the hour bucket")
+    avg_value = models.FloatField()
+    min_value = models.FloatField()
+    max_value = models.FloatField()
+    stddev_value = models.FloatField(default=0.0)
+    count = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["sensor", "hour"]
+        ordering = ["-hour"]
+        indexes = [
+            models.Index(fields=["sensor", "-hour"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.sensor} @ {self.hour}: avg={self.avg_value:.2f} ({self.count} readings)"

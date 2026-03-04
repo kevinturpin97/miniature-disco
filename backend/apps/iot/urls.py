@@ -11,7 +11,10 @@ from .views import (
     NotificationChannelViewSet,
     NotificationLogViewSet,
     NotificationRuleViewSet,
+    OrgAnalyticsSummaryView,
     SensorViewSet,
+    ZoneAnalyticsView,
+    ZoneReportPDFView,
     ZoneViewSet,
 )
 
@@ -59,6 +62,11 @@ notif_rule_detail = NotificationRuleViewSet.as_view(
 # Notification logs
 notif_log_list = NotificationLogViewSet.as_view({"get": "list"})
 
+# Analytics
+zone_analytics = ZoneAnalyticsView.as_view({"get": "retrieve"})
+zone_report_pdf = ZoneReportPDFView.as_view({"get": "retrieve"})
+org_analytics_summary = OrgAnalyticsSummaryView.as_view({"get": "list"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -91,4 +99,9 @@ urlpatterns = [
     path("orgs/<slug:slug>/notifications/rules/<int:pk>/", notif_rule_detail, name="notif-rule-detail"),
     # Notification logs — nested under org
     path("orgs/<slug:slug>/notifications/logs/", notif_log_list, name="notif-log-list"),
+    # Analytics — zone-level
+    path("zones/<int:pk>/analytics/", zone_analytics, name="zone-analytics"),
+    path("zones/<int:pk>/report/pdf/", zone_report_pdf, name="zone-report-pdf"),
+    # Analytics — org-level
+    path("orgs/<slug:slug>/analytics/summary/", org_analytics_summary, name="org-analytics-summary"),
 ]

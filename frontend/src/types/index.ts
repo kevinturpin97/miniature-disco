@@ -243,6 +243,45 @@ export interface NotificationLog {
   created_at: string;
 }
 
+export interface SensorStat {
+  sensor_id: number;
+  sensor_type: SensorType;
+  label: string;
+  unit: string;
+  count: number;
+  min: number | null;
+  max: number | null;
+  avg: number | null;
+  stddev: number | null;
+  trend: "rising" | "falling" | "stable" | null;
+  daily_averages: { date: string; avg: number | null }[];
+}
+
+export interface ZoneAnalytics {
+  zone_id: number;
+  zone_name: string;
+  period_days: number;
+  since: string;
+  sensors: SensorStat[];
+}
+
+export interface GreenhouseSummary {
+  greenhouse_id: number;
+  greenhouse_name: string;
+  zone_count: number;
+  readings_7d: number;
+  active_alerts: number;
+}
+
+export interface OrgAnalyticsSummary {
+  greenhouse_count: number;
+  zone_count: number;
+  zones_online: number;
+  total_readings_7d: number;
+  active_alerts: number;
+  greenhouses: GreenhouseSummary[];
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

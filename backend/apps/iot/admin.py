@@ -13,6 +13,7 @@ from .models import (
     NotificationRule,
     Sensor,
     SensorReading,
+    SensorReadingHourly,
     Zone,
 )
 
@@ -119,3 +120,11 @@ class NotificationLogAdmin(admin.ModelAdmin):
     list_filter = ("status",)
     readonly_fields = ("created_at",)
     date_hierarchy = "created_at"
+
+
+@admin.register(SensorReadingHourly)
+class SensorReadingHourlyAdmin(admin.ModelAdmin):
+    list_display = ("sensor", "hour", "avg_value", "min_value", "max_value", "count")
+    list_filter = ("sensor__sensor_type",)
+    readonly_fields = ("created_at",)
+    date_hierarchy = "hour"

@@ -667,3 +667,89 @@ class NotificationLogViewSet(
             .filter(channel__organization=org)
             .select_related("rule", "channel", "alert")
         )
+
+
+class ZoneAnalyticsView(viewsets.ViewSet):
+    """Analytics endpoint for a specific zone.
+
+    Endpoints:
+        GET /api/zones/{id}/analytics/?days=7  - Zone analytics (7 or 30 days).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> Response:
+        """Return analytics for a zone."""
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        days = request.query_params.get("days", "7")
+        try:
+            days = int(days)
+        except ValueError:
+            days = 7
+        if days not in (7, 30):
+            days = 7
+
+        from .analytics import compute_zone_analytics
+
+        data = compute_zone_analytics(zone, days=days)
+        return Response(data)
+
+
+class ZoneReportPDFView(viewsets.ViewSet):
+    """PDF report download for a zone.
+
+    Endpoints:
+        GET /api/zones/{id}/report/pdf/?days=7  - Download PDF report.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> HttpResponse:
+        """Generate and return a PDF report for a zone."""
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        days = request.query_params.get("days", "7")
+        try:
+            days = int(days)
+        except ValueError:
+            days = 7
+        if days not in (7, 30):
+            days = 7
+
+        from .analytics import compute_zone_analytics
+        from .pdf_report import generate_zone_report_pdf
+
+        data = compute_zone_analytics(zone, days=days)
+        pdf_buffer = generate_zone_report_pdf(data)
+
+        response = HttpResponse(pdf_buffer.read(), content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'attachment; filename="zone_{zone.pk}_report_{days}d.pdf"'
+        )
+        return response
+
+
+class OrgAnalyticsSummaryView(viewsets.ViewSet):
+    """Organization-level analytics summary.
+
+    Endpoints:
+        GET /api/orgs/{slug}/analytics/summary/  - Org analytics overview.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request, slug: str = None) -> Response:
+        """Return analytics summary for an organization."""
+        org = _resolve_org_from_slug(request, slug)
+
+        from .analytics import compute_org_analytics_summary
+
+        data = compute_org_analytics_summary(org.pk)
+        return Response(data)

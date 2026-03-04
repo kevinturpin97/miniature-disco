@@ -7,7 +7,8 @@
     "settings": "Settings",
     "history": "History",
     "team": "Team",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "analytics": "Analytics"
   },
   "actions": {
     "save": "Save",

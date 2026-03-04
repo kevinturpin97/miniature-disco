@@ -733,15 +733,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 15 — Analytics & Rapports
 **Objectif : transformer les données brutes en insights actionnables**
 
-- [ ] Endpoint `/api/zones/{id}/analytics/` : stats 7j/30j (min, max, moyenne, écart-type, tendance)
-- [ ] Détection d'anomalies basique : z-score > 3σ → alerte `SENSOR_ERROR`
-- [ ] Endpoint export PDF (reportlab ou WeasyPrint) : rapport hebdomadaire par zone
-- [ ] Agrégation time-series : table `SensorReadingHourly` (materialized via Celery beat)
-- [ ] Frontend : page "Analytics" avec heatmap calendrier (jours × valeur moyenne)
-- [ ] Frontend : carte de corrélation entre capteurs (ex : T° vs HUM_AIR)
-- [ ] Frontend : rapport PDF téléchargeable avec sélecteur de période
-- [ ] API `/api/orgs/{slug}/analytics/summary/` : vue globale multi-serres
-- [ ] Tests : calculs stat, génération PDF, perf requêtes agrégation
+- [x] Endpoint `/api/zones/{id}/analytics/` : stats 7j/30j (min, max, moyenne, écart-type, tendance)
+- [x] Détection d'anomalies basique : z-score > 3σ → alerte `SENSOR_ERROR`
+- [x] Endpoint export PDF (reportlab ou WeasyPrint) : rapport hebdomadaire par zone
+- [x] Agrégation time-series : table `SensorReadingHourly` (materialized via Celery beat)
+- [x] Frontend : page "Analytics" avec heatmap calendrier (jours × valeur moyenne)
+- [x] Frontend : carte de corrélation entre capteurs (ex : T° vs HUM_AIR)
+- [x] Frontend : rapport PDF téléchargeable avec sélecteur de période
+- [x] API `/api/orgs/{slug}/analytics/summary/` : vue globale multi-serres
+- [x] Tests : calculs stat, génération PDF, perf requêtes agrégation
 
 ---
 

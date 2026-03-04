@@ -244,5 +244,40 @@
     "logRule": "Règle",
     "logChannel": "Canal",
     "logError": "Erreur"
+  },
+  "analytics": {
+    "title": "Analytique",
+    "subtitle": "Statistiques et tendances de vos données capteurs.",
+    "period": "Période",
+    "periods": {
+      "7d": "7 derniers jours",
+      "30d": "30 derniers jours"
+    },
+    "downloadPdf": "Télécharger PDF",
+    "noData": "Aucune donnée disponible.",
+    "dailyAverages": "Moyennes journalières",
+    "heatmap": "Carte thermique",
+    "correlation": "Corrélation capteurs",
+    "readings": "lectures",
+    "low": "Bas",
+    "high": "Haut",
+    "stats": {
+      "min": "Min",
+      "max": "Max",
+      "avg": "Moy",
+      "stddev": "Écart-type"
+    },
+    "trends": {
+      "rising": "En hausse",
+      "falling": "En baisse",
+      "stable": "Stable"
+    },
+    "orgSummary": {
+      "greenhouses": "Serres",
+      "zones": "Zones",
+      "zonesOnline": "En ligne",
+      "readings7d": "Lectures (7j)",
+      "activeAlerts": "Alertes actives"
+    }
   }
 }

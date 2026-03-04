@@ -18,6 +18,7 @@ import Automations from "@/pages/Automations";
 import Settings from "@/pages/Settings";
 import Team from "@/pages/Team";
 import Notifications from "@/pages/Notifications";
+import Analytics from "@/pages/Analytics";
 import AcceptInvitation from "@/pages/AcceptInvitation";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -118,6 +119,7 @@ function App() {
             <Route path="automations" element={<Automations />} />
             <Route path="team" element={<Team />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

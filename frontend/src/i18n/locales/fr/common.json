@@ -7,7 +7,8 @@
     "settings": "Paramètres",
     "history": "Historique",
     "team": "Équipe",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "analytics": "Analytique"
   },
   "actions": {
     "save": "Enregistrer",

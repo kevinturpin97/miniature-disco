@@ -29,6 +29,7 @@ from .models import (
     NotificationRule,
     Sensor,
     SensorReading,
+    SensorReadingHourly,
     Zone,
 )
 
@@ -556,3 +557,55 @@ def send_daily_digest() -> dict[str, int]:
 
     logger.info("Daily digest complete: orgs=%d emails=%d", orgs_notified, emails_sent)
     return {"organizations": orgs_notified, "emails_sent": emails_sent}
+
+
+@shared_task(name="iot.aggregate_hourly_readings")
+def aggregate_hourly_readings_task() -> dict[str, int]:
+    """Aggregate raw sensor readings into hourly buckets.
+
+    Runs periodically via Celery beat to maintain the
+    ``SensorReadingHourly`` materialized aggregation table.
+
+    Returns:
+        Dict with ``sensors_processed`` and ``buckets_created`` counts.
+    """
+    from .analytics import aggregate_hourly_readings
+
+    result = aggregate_hourly_readings()
+    logger.info(
+        "Hourly aggregation complete: sensors=%d buckets=%d",
+        result["sensors_processed"],
+        result["buckets_created"],
+    )
+    return result
+
+
+@shared_task(name="iot.detect_anomalies")
+def detect_anomalies_task(reading_id: int) -> dict[str, bool]:
+    """Detect anomalous sensor readings using z-score analysis.
+
+    Called after each SensorReading is persisted, alongside
+    threshold evaluation and automation rules.
+
+    Args:
+        reading_id: Primary key of the SensorReading to evaluate.
+
+    Returns:
+        Dict with ``anomaly`` boolean.
+    """
+    try:
+        reading = (
+            SensorReading.objects
+            .select_related("sensor", "sensor__zone")
+            .get(pk=reading_id)
+        )
+    except SensorReading.DoesNotExist:
+        logger.warning("SensorReading %s not found — skipping anomaly detection", reading_id)
+        return {"anomaly": False}
+
+    from .analytics import detect_anomalies
+
+    is_anomaly = detect_anomalies(reading)
+    if is_anomaly:
+        logger.info("Anomaly detected: reading=%s sensor=%s", reading_id, reading.sensor_id)
+    return {"anomaly": is_anomaly}

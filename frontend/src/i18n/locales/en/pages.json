@@ -244,5 +244,40 @@
     "logRule": "Rule",
     "logChannel": "Channel",
     "logError": "Error"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Insights and statistics from your sensor data.",
+    "period": "Period",
+    "periods": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days"
+    },
+    "downloadPdf": "Download PDF",
+    "noData": "No data available.",
+    "dailyAverages": "Daily Averages",
+    "heatmap": "Heatmap",
+    "correlation": "Sensor Correlation",
+    "readings": "readings",
+    "low": "Low",
+    "high": "High",
+    "stats": {
+      "min": "Min",
+      "max": "Max",
+      "avg": "Avg",
+      "stddev": "Std Dev"
+    },
+    "trends": {
+      "rising": "Rising",
+      "falling": "Falling",
+      "stable": "Stable"
+    },
+    "orgSummary": {
+      "greenhouses": "Greenhouses",
+      "zones": "Zones",
+      "zonesOnline": "Online",
+      "readings7d": "Readings (7d)",
+      "activeAlerts": "Active Alerts"
+    }
   }
 }

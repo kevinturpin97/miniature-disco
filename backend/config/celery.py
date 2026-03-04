@@ -27,4 +27,8 @@ app.conf.beat_schedule = {
         "task": "iot.send_daily_digest",
         "schedule": crontab(hour=8, minute=0),  # Every day at 08:00 UTC
     },
+    "aggregate-hourly-readings": {
+        "task": "iot.aggregate_hourly_readings",
+        "schedule": crontab(minute=5),  # Every hour at :05
+    },
 }
