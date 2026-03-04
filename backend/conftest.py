@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.api.models import Membership, Organization
 from apps.iot.models import (
     Actuator,
     AutomationRule,
@@ -43,6 +44,28 @@ class UserFactory(factory.django.DjangoModelFactory):
             self.save(update_fields=["password"])
 
 
+class OrganizationFactory(factory.django.DjangoModelFactory):
+    """Factory for creating Organization instances."""
+
+    class Meta:
+        model = Organization
+
+    name = factory.Sequence(lambda n: f"Organization {n}")
+    slug = factory.Sequence(lambda n: f"org-{n}")
+    plan = Organization.Plan.FREE
+
+
+class MembershipFactory(factory.django.DjangoModelFactory):
+    """Factory for creating Membership instances."""
+
+    class Meta:
+        model = Membership
+
+    user = factory.SubFactory(UserFactory)
+    organization = factory.SubFactory(OrganizationFactory)
+    role = Membership.Role.OWNER
+
+
 class GreenhouseFactory(factory.django.DjangoModelFactory):
     """Factory for creating Greenhouse instances."""
 
@@ -54,6 +77,23 @@ class GreenhouseFactory(factory.django.DjangoModelFactory):
     location = "Test Location"
     description = "Test greenhouse"
     is_active = True
+
+    @factory.lazy_attribute
+    def organization(self):
+        """Auto-resolve organization from owner's membership, creating one if needed."""
+        membership = Membership.objects.filter(
+            user=self.owner, role=Membership.Role.OWNER
+        ).select_related("organization").first()
+        if membership:
+            return membership.organization
+        org = Organization.objects.create(
+            name=f"{self.owner.username}'s Org",
+            slug=f"auto-org-{self.owner.pk}",
+        )
+        Membership.objects.create(
+            user=self.owner, organization=org, role=Membership.Role.OWNER
+        )
+        return org
 
 
 class ZoneFactory(factory.django.DjangoModelFactory):
@@ -147,14 +187,20 @@ def api_client():
 
 @pytest.fixture
 def user(db):
-    """Return a standard test user."""
-    return UserFactory()
+    """Return a standard test user with a personal organization and OWNER membership."""
+    u = UserFactory()
+    org = OrganizationFactory(name=f"{u.username}'s Org", slug=f"user-org-{u.pk}")
+    MembershipFactory(user=u, organization=org, role=Membership.Role.OWNER)
+    return u
 
 
 @pytest.fixture
 def other_user(db):
-    """Return a second test user (for isolation tests)."""
-    return UserFactory()
+    """Return a second test user (for isolation tests) with their own organization."""
+    u = UserFactory()
+    org = OrganizationFactory(name=f"{u.username}'s Org", slug=f"user-org-{u.pk}")
+    MembershipFactory(user=u, organization=org, role=Membership.Role.OWNER)
+    return u
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-"""Tests for IoT serializers: validation, computed fields, ownership injection."""
+"""Tests for IoT serializers: validation, computed fields, organization injection."""
 
 from datetime import timedelta
 from unittest.mock import MagicMock
@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 from django.utils import timezone
 
+from apps.api.models import Membership, Organization
 from apps.iot.models import Sensor
 from apps.iot.serializers import (
     GreenhouseSerializer,
@@ -24,14 +25,16 @@ def _make_request(user):
 
 @pytest.mark.django_db
 class TestGreenhouseSerializer:
-    """GreenhouseSerializer — owner injection, validation."""
+    """GreenhouseSerializer — organization injection, validation."""
 
-    def test_create_injects_owner(self, user):
+    def test_create_sets_organization(self, user):
+        org = Membership.objects.filter(user=user, role=Membership.Role.OWNER).first().organization
         request = _make_request(user)
         data = {"name": "My Greenhouse", "location": "Paris"}
         serializer = GreenhouseSerializer(data=data, context={"request": request})
         assert serializer.is_valid(), serializer.errors
-        greenhouse = serializer.save()
+        greenhouse = serializer.save(organization=org, owner=user)
+        assert greenhouse.organization == org
         assert greenhouse.owner == user
 
     def test_zone_count_field(self, user, greenhouse, zone):

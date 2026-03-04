@@ -5,7 +5,8 @@
     "commands": "Commandes",
     "automations": "Automatisations",
     "settings": "Paramètres",
-    "history": "Historique"
+    "history": "Historique",
+    "team": "Équipe"
   },
   "actions": {
     "save": "Enregistrer",

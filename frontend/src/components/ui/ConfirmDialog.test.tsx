@@ -14,7 +14,7 @@ const defaultProps = {
   message: "Are you sure you want to delete this item?",
 };
 
-function renderDialog(overrides: Partial<typeof defaultProps> = {}) {
+function renderDialog(overrides: Partial<typeof defaultProps & { loading: boolean }> = {}) {
   const props = { ...defaultProps, ...overrides };
   return render(<ConfirmDialog {...props} />);
 }

@@ -16,9 +16,9 @@ from .models import (
 
 @admin.register(Greenhouse)
 class GreenhouseAdmin(admin.ModelAdmin):
-    list_display = ("name", "owner", "location", "is_active", "created_at")
-    list_filter = ("is_active", "created_at")
-    search_fields = ("name", "location", "owner__username")
+    list_display = ("name", "organization", "owner", "location", "is_active", "created_at")
+    list_filter = ("is_active", "organization", "created_at")
+    search_fields = ("name", "location", "organization__name")
     readonly_fields = ("created_at", "updated_at")
 
 

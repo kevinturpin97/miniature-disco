@@ -1,16 +1,9 @@
 """
-Authentication views for the Greenhouse SaaS API.
-
-Endpoints:
-    POST  /api/auth/register/   - Create a new user account.
-    POST  /api/auth/login/      - Obtain JWT access + refresh tokens.
-    POST  /api/auth/refresh/    - Refresh the access token.
-    POST  /api/auth/logout/     - Blacklist the refresh token.
-    GET   /api/auth/me/         - Retrieve the authenticated user's profile.
-    PATCH /api/auth/me/         - Partially update the authenticated user's profile.
+Authentication and organization views for the Greenhouse SaaS API.
 """
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -20,23 +13,26 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer
+from .models import Invitation, Membership, Organization
+from .serializers import (
+    ChangePasswordSerializer,
+    InvitationCreateSerializer,
+    InvitationSerializer,
+    MembershipSerializer,
+    OrganizationSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
 
 User = get_user_model()
 
 
+# ---------------------------------------------------------------------------
+# Auth views
+# ---------------------------------------------------------------------------
+
 class RegisterView(generics.CreateAPIView):
-    """Create a new user account and return JWT tokens.
-
-    Args:
-        username: Unique username.
-        email: User email address.
-        password: Password.
-        password2: Password confirmation.
-
-    Returns:
-        User details with access and refresh tokens (HTTP 201).
-    """
+    """Create a new user account, personal org, and return JWT tokens."""
 
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
@@ -57,43 +53,19 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LoginView(TokenObtainPairView):
-    """Obtain JWT access and refresh tokens.
-
-    Args:
-        username: Username.
-        password: Password.
-
-    Returns:
-        access: JWT access token.
-        refresh: JWT refresh token.
-    """
+    """Obtain JWT access and refresh tokens."""
 
     permission_classes = [AllowAny]
 
 
 class RefreshView(TokenRefreshView):
-    """Refresh the JWT access token using a valid refresh token.
-
-    Args:
-        refresh: Valid refresh token.
-
-    Returns:
-        access: New JWT access token.
-        refresh: Rotated refresh token (ROTATE_REFRESH_TOKENS=True).
-    """
+    """Refresh the JWT access token."""
 
     permission_classes = [AllowAny]
 
 
 class LogoutView(APIView):
-    """Blacklist the refresh token to invalidate the session.
-
-    Args:
-        refresh: The refresh token to blacklist.
-
-    Returns:
-        204 No Content on success, 400 on invalid or missing token.
-    """
+    """Blacklist the refresh token to invalidate the session."""
 
     permission_classes = [IsAuthenticated]
 
@@ -113,11 +85,7 @@ class LogoutView(APIView):
 
 
 class MeView(generics.RetrieveUpdateAPIView):
-    """Retrieve or partially update the authenticated user's profile.
-
-    Returns:
-        User profile data.
-    """
+    """Retrieve or partially update the authenticated user's profile."""
 
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
@@ -129,15 +97,7 @@ class MeView(generics.RetrieveUpdateAPIView):
 
 
 class ChangePasswordView(APIView):
-    """Change the authenticated user's password.
-
-    Args:
-        current_password: The user's current password.
-        new_password: The new password.
-
-    Returns:
-        200 on success, 400 on validation error.
-    """
+    """Change the authenticated user's password."""
 
     permission_classes = [IsAuthenticated]
 
@@ -147,3 +107,194 @@ class ChangePasswordView(APIView):
         request.user.set_password(serializer.validated_data["new_password"])
         request.user.save()
         return Response({"detail": "Password changed successfully."})
+
+
+# ---------------------------------------------------------------------------
+# Organization views
+# ---------------------------------------------------------------------------
+
+class OrganizationListCreateView(generics.ListCreateAPIView):
+    """List the user's organizations or create a new one.
+
+    GET  /api/orgs/   — List organizations for the authenticated user.
+    POST /api/orgs/   — Create a new organization (user becomes OWNER).
+    """
+
+    serializer_class = OrganizationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Organization.objects.filter(
+            memberships__user=self.request.user,
+        ).distinct()
+
+
+class OrganizationDetailView(generics.RetrieveUpdateAPIView):
+    """Retrieve or update an organization by slug.
+
+    GET   /api/orgs/{slug}/
+    PATCH /api/orgs/{slug}/
+    """
+
+    serializer_class = OrganizationSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = "slug"
+    http_method_names = ["get", "patch", "head", "options"]
+
+    def get_queryset(self):
+        return Organization.objects.filter(memberships__user=self.request.user).distinct()
+
+
+class MemberListView(generics.ListAPIView):
+    """List members of an organization.
+
+    GET /api/orgs/{slug}/members/
+    """
+
+    serializer_class = MembershipSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        org = get_object_or_404(
+            Organization,
+            slug=self.kwargs["slug"],
+            memberships__user=self.request.user,
+        )
+        return Membership.objects.filter(organization=org).select_related("user")
+
+
+class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Update role or remove a member from an organization.
+
+    PATCH  /api/orgs/{slug}/members/{id}/   — Update role.
+    DELETE /api/orgs/{slug}/members/{id}/   — Remove member.
+    """
+
+    serializer_class = MembershipSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "patch", "delete", "head", "options"]
+
+    def get_queryset(self):
+        org = get_object_or_404(
+            Organization,
+            slug=self.kwargs["slug"],
+            memberships__user=self.request.user,
+        )
+        return Membership.objects.filter(organization=org).select_related("user")
+
+    def perform_update(self, serializer):
+        """Only ADMIN+ can change roles. Cannot change OWNER role."""
+        membership = serializer.instance
+        requesting = Membership.objects.filter(
+            user=self.request.user, organization=membership.organization
+        ).first()
+        if not requesting or requesting.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can change member roles.")
+        new_role = serializer.validated_data.get("role", membership.role)
+        if new_role == Membership.Role.OWNER:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot assign OWNER role via update.")
+        if membership.role == Membership.Role.OWNER:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot change the owner's role.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """Only ADMIN+ can remove members. Cannot remove OWNER."""
+        requesting = Membership.objects.filter(
+            user=self.request.user, organization=instance.organization
+        ).first()
+        if not requesting or requesting.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can remove members.")
+        if instance.role == Membership.Role.OWNER:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot remove the organization owner.")
+        instance.delete()
+
+
+class InviteView(APIView):
+    """Send an invitation to join an organization.
+
+    POST /api/orgs/{slug}/invite/
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, slug: str) -> Response:
+        org = get_object_or_404(Organization, slug=slug)
+        membership = Membership.objects.filter(user=request.user, organization=org).first()
+        if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
+            return Response(
+                {"detail": "Only admins can send invitations."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        serializer = InvitationCreateSerializer(
+            data=request.data,
+            context={"request": request, "organization": org},
+        )
+        serializer.is_valid(raise_exception=True)
+        invitation = serializer.save()
+        return Response(InvitationSerializer(invitation).data, status=status.HTTP_201_CREATED)
+
+    def get(self, request: Request, slug: str) -> Response:
+        """List pending invitations for the organization."""
+        org = get_object_or_404(Organization, slug=slug)
+        membership = Membership.objects.filter(user=request.user, organization=org).first()
+        if not membership:
+            return Response({"detail": "Not a member."}, status=status.HTTP_403_FORBIDDEN)
+        invitations = Invitation.objects.filter(organization=org).select_related("invited_by")
+        return Response(InvitationSerializer(invitations, many=True).data)
+
+
+class AcceptInvitationView(APIView):
+    """Accept an invitation using the token.
+
+    POST /api/invitations/{token}/accept/
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, token: str) -> Response:
+        invitation = get_object_or_404(Invitation, token=token)
+
+        if not invitation.is_valid:
+            if invitation.accepted:
+                return Response(
+                    {"detail": "Invitation already accepted."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                {"detail": "Invitation has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if invitation.email != request.user.email:
+            return Response(
+                {"detail": "This invitation was sent to a different email address."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if Membership.objects.filter(
+            user=request.user, organization=invitation.organization
+        ).exists():
+            invitation.accepted = True
+            invitation.save(update_fields=["accepted"])
+            return Response(
+                {"detail": "You are already a member of this organization."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        Membership.objects.create(
+            user=request.user,
+            organization=invitation.organization,
+            role=invitation.role,
+        )
+        invitation.accepted = True
+        invitation.save(update_fields=["accepted"])
+
+        return Response(
+            {"detail": f"You have joined {invitation.organization.name} as {invitation.role}."},
+            status=status.HTTP_200_OK,
+        )

@@ -36,14 +36,9 @@ vi.mock("@/components/ui/Spinner", () => ({
 
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
-import { listActuators } from "@/api/actuators";
-import { createCommand, listCommands } from "@/api/commands";
 
 const mockListGreenhouses = listGreenhouses as ReturnType<typeof vi.fn>;
 const mockListZones = listZones as ReturnType<typeof vi.fn>;
-const mockListActuators = listActuators as ReturnType<typeof vi.fn>;
-const mockListCommands = listCommands as ReturnType<typeof vi.fn>;
-const mockCreateCommand = createCommand as ReturnType<typeof vi.fn>;
 
 function renderCommands() {
   return render(

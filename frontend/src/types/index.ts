@@ -10,8 +10,53 @@ export interface User {
   last_name: string;
 }
 
+export type OrgPlan = "FREE" | "PRO" | "ENTERPRISE";
+
+export type MemberRole = "OWNER" | "ADMIN" | "OPERATOR" | "VIEWER";
+
+export interface Organization {
+  id: number;
+  name: string;
+  slug: string;
+  plan: OrgPlan;
+  max_greenhouses: number;
+  max_zones: number;
+  member_count: number;
+  greenhouse_count: number;
+  my_role: MemberRole | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Membership {
+  id: number;
+  user: number;
+  username: string;
+  email: string;
+  organization: number;
+  role: MemberRole;
+  joined_at: string;
+}
+
+export interface Invitation {
+  id: number;
+  organization: number;
+  organization_name: string;
+  email: string;
+  role: MemberRole;
+  token: string;
+  invited_by: number;
+  invited_by_username: string;
+  accepted: boolean;
+  is_expired: boolean;
+  is_valid: boolean;
+  expires_at: string;
+  created_at: string;
+}
+
 export interface Greenhouse {
   id: number;
+  organization: number | null;
   name: string;
   location: string;
   description: string;

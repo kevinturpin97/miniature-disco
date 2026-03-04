@@ -6,12 +6,22 @@ from django.db import models
 
 
 class Greenhouse(models.Model):
-    """Represents a physical greenhouse owned by a user."""
+    """Represents a physical greenhouse belonging to an organization."""
 
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    organization = models.ForeignKey(
+        "api.Organization",
         on_delete=models.CASCADE,
         related_name="greenhouses",
+        null=True,
+        blank=True,
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="greenhouses",
+        help_text="Legacy field — kept for audit. Use organization instead.",
     )
     name = models.CharField(max_length=100)
     location = models.CharField(max_length=255, blank=True)

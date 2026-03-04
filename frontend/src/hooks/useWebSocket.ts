@@ -31,9 +31,19 @@ export function useWebSocket({ url, onMessage, enabled = true }: UseWebSocketOpt
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsHost = window.location.host;
-    const fullUrl = `${wsProtocol}//${wsHost}${url}?token=${token}`;
+    let fullUrl: string;
+    const wsBaseUrl = import.meta.env.VITE_WS_URL as string | undefined;
+    if (wsBaseUrl) {
+      // Use explicit WS base URL (e.g. ws://localhost:8000/ws)
+      const base = wsBaseUrl.replace(/\/+$/, "");
+      const path = url.startsWith("/ws") ? url.slice(3) : url;
+      fullUrl = `${base}${path}?token=${token}`;
+    } else {
+      // Fallback: connect via current host (relies on proxy / Nginx)
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsHost = window.location.host;
+      fullUrl = `${wsProtocol}//${wsHost}${url}?token=${token}`;
+    }
 
     const ws = new WebSocket(fullUrl);
     wsRef.current = ws;

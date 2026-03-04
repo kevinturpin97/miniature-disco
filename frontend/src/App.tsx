@@ -16,6 +16,8 @@ import Alerts from "@/pages/Alerts";
 import Commands from "@/pages/Commands";
 import Automations from "@/pages/Automations";
 import Settings from "@/pages/Settings";
+import Team from "@/pages/Team";
+import AcceptInvitation from "@/pages/AcceptInvitation";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -89,6 +91,16 @@ function App() {
             }
           />
 
+          {/* Invitation acceptance (requires auth but no layout) */}
+          <Route
+            path="/invite/:token"
+            element={
+              <ProtectedRoute>
+                <AcceptInvitation />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Protected routes with layout */}
           <Route
             element={
@@ -103,6 +115,7 @@ function App() {
             <Route path="alerts" element={<Alerts />} />
             <Route path="commands" element={<Commands />} />
             <Route path="automations" element={<Automations />} />
+            <Route path="team" element={<Team />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

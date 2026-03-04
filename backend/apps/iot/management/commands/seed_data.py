@@ -8,7 +8,9 @@ Usage::
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from django.utils.text import slugify
 
+from apps.api.models import Membership, Organization
 from apps.iot.models import Actuator, AutomationRule, Greenhouse, Sensor, Zone
 
 User = get_user_model()
@@ -52,18 +54,31 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f"  User '{SEED_USERNAME}' already exists — skipping.")
 
+        # Ensure demo user has an organization
+        membership = Membership.objects.filter(user=user, role=Membership.Role.OWNER).first()
+        if membership:
+            org = membership.organization
+        else:
+            slug = slugify(SEED_USERNAME) or f"user-{user.pk}"
+            org, _ = Organization.objects.get_or_create(
+                slug=slug,
+                defaults={"name": f"{SEED_USERNAME}'s Organization", "plan": Organization.Plan.FREE},
+            )
+            Membership.objects.get_or_create(user=user, organization=org, defaults={"role": Membership.Role.OWNER})
+        self.stdout.write(f"  Organization: {org.name} ({org.slug})")
+
         # Greenhouse 1: Tomato greenhouse
         gh1, _ = Greenhouse.objects.get_or_create(
-            owner=user,
+            organization=org,
             name="Tomato Greenhouse",
-            defaults={"location": "Building A — South Wing", "description": "Main production greenhouse for tomatoes."},
+            defaults={"owner": user, "location": "Building A — South Wing", "description": "Main production greenhouse for tomatoes."},
         )
 
         # Greenhouse 2: Herb garden
         gh2, _ = Greenhouse.objects.get_or_create(
-            owner=user,
+            organization=org,
             name="Herb Garden",
-            defaults={"location": "Building B — Rooftop", "description": "Indoor herb production."},
+            defaults={"owner": user, "location": "Building B — Rooftop", "description": "Indoor herb production."},
         )
 
         # Zones for greenhouse 1
@@ -185,9 +200,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"\nSeed data created:\n"
             f"  User: {SEED_USERNAME} / {SEED_PASSWORD}\n"
-            f"  Greenhouses: {Greenhouse.objects.filter(owner=user).count()}\n"
-            f"  Zones: {Zone.objects.filter(greenhouse__owner=user).count()}\n"
-            f"  Sensors: {Sensor.objects.filter(zone__greenhouse__owner=user).count()}\n"
-            f"  Actuators: {Actuator.objects.filter(zone__greenhouse__owner=user).count()}\n"
-            f"  Automation Rules: {AutomationRule.objects.filter(zone__greenhouse__owner=user).count()}"
+            f"  Organization: {org.name}\n"
+            f"  Greenhouses: {Greenhouse.objects.filter(organization=org).count()}\n"
+            f"  Zones: {Zone.objects.filter(greenhouse__organization=org).count()}\n"
+            f"  Sensors: {Sensor.objects.filter(zone__greenhouse__organization=org).count()}\n"
+            f"  Actuators: {Actuator.objects.filter(zone__greenhouse__organization=org).count()}\n"
+            f"  Automation Rules: {AutomationRule.objects.filter(zone__greenhouse__organization=org).count()}"
         ))

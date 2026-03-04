@@ -168,5 +168,37 @@
       "commandTypeRequired": "Le type de commande est requis",
       "cooldownMin": "Le délai doit être d'au moins 10 secondes"
     }
+  },
+  "team": {
+    "title": "Gestion de l'équipe",
+    "subtitle": "Gérez les membres et les invitations pour {{org}}.",
+    "noOrg": "Aucune organisation sélectionnée",
+    "organizations": "Organisations",
+    "members": "Membres",
+    "memberCount": "{{count}} membre",
+    "memberCount_plural": "{{count}} membres",
+    "greenhouseCount": "{{count}} serre",
+    "greenhouseCount_plural": "{{count}} serres",
+    "role": "Rôle",
+    "roles": {
+      "OWNER": "Propriétaire",
+      "ADMIN": "Administrateur",
+      "OPERATOR": "Opérateur",
+      "VIEWER": "Observateur"
+    },
+    "inviteTitle": "Inviter un membre",
+    "sendInvite": "Envoyer l'invitation",
+    "inviteSent": "Invitation envoyée avec succès.",
+    "inviteError": "Échec du traitement de l'invitation.",
+    "pendingInvitations": "Invitations en attente",
+    "pending": "En attente",
+    "invitedBy": "Invité par {{name}}",
+    "removeMember": "Retirer le membre",
+    "confirmRemove": "Êtes-vous sûr de vouloir retirer ce membre ?",
+    "loginToAccept": "Veuillez vous connecter pour accepter cette invitation.",
+    "goToLogin": "Aller à la connexion",
+    "acceptingInvite": "Acceptation de l'invitation...",
+    "redirecting": "Redirection vers la page d'équipe...",
+    "backToDashboard": "Retour au tableau de bord"
   }
 }

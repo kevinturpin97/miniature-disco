@@ -21,21 +21,20 @@ from .models import (
 class GreenhouseSerializer(serializers.ModelSerializer):
     """Serializer for the Greenhouse model.
 
-    The ``owner`` field is automatically set to the authenticated user on creation.
+    The ``organization`` field is set from the view context.
 
     Fields:
-        id, owner (hidden), name, location, description, is_active,
+        id, organization, name, location, description, is_active,
         created_at, updated_at, zone_count.
     """
 
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     zone_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Greenhouse
         fields = (
             "id",
-            "owner",
+            "organization",
             "name",
             "location",
             "description",
@@ -44,7 +43,7 @@ class GreenhouseSerializer(serializers.ModelSerializer):
             "updated_at",
             "zone_count",
         )
-        read_only_fields = ("id", "created_at", "updated_at", "zone_count")
+        read_only_fields = ("id", "organization", "created_at", "updated_at", "zone_count")
 
     def get_zone_count(self, obj: Greenhouse) -> int:
         """Return the total number of zones in this greenhouse."""
