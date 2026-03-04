@@ -1,0 +1,122 @@
+{
+  "login": {
+    "title": "Greenhouse SaaS",
+    "subtitle": "Sign in to your account",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Register"
+  },
+  "register": {
+    "title": "Create account",
+    "subtitle": "Get started with Greenhouse SaaS",
+    "hasAccount": "Already have an account?",
+    "signInLink": "Sign in",
+    "validation": {
+      "usernameMin": "Username must be at least 3 characters",
+      "emailInvalid": "Invalid email address",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of all your greenhouses and zones.",
+    "noGreenhouses": "No greenhouses",
+    "noGreenhousesHint": "Create your first greenhouse to get started.",
+    "addGreenhouse": "Add Greenhouse",
+    "addZone": "Add Zone",
+    "editGreenhouse": "Edit Greenhouse",
+    "editZone": "Edit Zone",
+    "zoneCount": "{{count}} zone",
+    "zoneCount_plural": "{{count}} zones",
+    "noZones": "No zones configured.",
+    "noSensors": "No sensors configured.",
+    "relay": "Relay #{{id}}"
+  },
+  "zoneDetail": {
+    "sensorHistory": "Sensor History",
+    "noReadings": "No readings for the selected period.",
+    "latestReadings": "Latest Readings",
+    "alertThresholds": "Alert Thresholds",
+    "alertThresholdsHint": "Set min/max thresholds per sensor to trigger alerts.",
+    "notConfigured": "Not configured",
+    "notSet": "Not set",
+    "noSensorsConfigured": "No sensors configured for this zone.",
+    "actuators": "Actuators",
+    "noActuators": "No actuators configured for this zone.",
+    "lastSeen": "Last seen {{time}}",
+    "exporting": "Exporting...",
+    "exportCsv": "Export CSV",
+    "periods": {
+      "1h": "Last hour",
+      "24h": "Last 24h",
+      "7d": "Last 7 days",
+      "custom": "Custom"
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "Monitor threshold breaches, relay status, and system events.",
+    "noAlerts": "No alerts match your filters.",
+    "types": {
+      "HIGH": "Threshold High",
+      "LOW": "Threshold Low",
+      "OFFLINE": "Relay Offline",
+      "ERROR": "Sensor Error",
+      "CMD_FAIL": "Command Failed"
+    }
+  },
+  "commands": {
+    "title": "Commands",
+    "subtitle": "Send commands to actuators and view command history.",
+    "selectZone": "Select a zone to manage actuators.",
+    "noActuators": "No actuators in this zone.",
+    "actuatorControls": "Actuator Controls",
+    "commandHistory": "Command History",
+    "noCommands": "No commands sent yet.",
+    "sendingCommand": "Sending..."
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "Compare sensor data across multiple zones.",
+    "selectZones": "Select zones to compare",
+    "sensorType": "Sensor type",
+    "period": "Period",
+    "noData": "No data available for the selected filters.",
+    "noZonesSelected": "Select at least one zone to view historical data.",
+    "periods": {
+      "1h": "Last hour",
+      "24h": "Last 24h",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "profile": "Profile",
+      "resources": "Resources"
+    },
+    "profile": {
+      "title": "User Profile",
+      "subtitle": "Update your personal information.",
+      "saveSuccess": "Profile updated successfully.",
+      "passwordTitle": "Change Password",
+      "passwordSubtitle": "Update your account password.",
+      "passwordSuccess": "Password changed successfully.",
+      "passwordMismatch": "New passwords do not match.",
+      "passwordTooShort": "Password must be at least 8 characters."
+    },
+    "resources": {
+      "title": "Resource Management",
+      "subtitle": "Manage your greenhouses, zones, sensors, and actuators.",
+      "addSensor": "Add Sensor",
+      "addActuator": "Add Actuator",
+      "noSensors": "No sensors.",
+      "noActuators": "No actuators."
+    }
+  },
+  "automations": {
+    "title": "Automations",
+    "subtitle": "Coming in Sprint 11."
+  }
+}

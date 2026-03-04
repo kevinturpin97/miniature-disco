@@ -14,6 +14,18 @@ export async function listActuators(
   return data;
 }
 
+export async function createActuator(
+  zoneId: number,
+  payload: Pick<Actuator, "actuator_type" | "name"> & Partial<Pick<Actuator, "gpio_pin">>,
+): Promise<Actuator> {
+  const { data } = await client.post<Actuator>(`/zones/${zoneId}/actuators/`, payload);
+  return data;
+}
+
+export async function deleteActuator(id: number): Promise<void> {
+  await client.delete(`/actuators/${id}/`);
+}
+
 export async function updateActuator(
   id: number,
   payload: Partial<Pick<Actuator, "name" | "is_active">>,

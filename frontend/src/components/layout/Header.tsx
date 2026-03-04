@@ -4,8 +4,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useAlerts } from "@/hooks/useAlerts";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -14,6 +16,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const { unacknowledgedCount } = useAlerts();
+  const { t } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -41,8 +44,11 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       <div className="hidden lg:block" />
 
-      {/* Right side: alert badge + user dropdown */}
+      {/* Right side: lang switcher + alert badge + user dropdown */}
       <div className="flex items-center gap-3">
+        {/* Language switcher */}
+        <LanguageSwitcher />
+
         {/* Alert notification badge */}
         <Link
           to="/alerts"
@@ -91,7 +97,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 }}
                 className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
               >
-                Logout
+                {t("actions.logout")}
               </button>
             </div>
           )}

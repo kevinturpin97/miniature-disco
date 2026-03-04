@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
 import {
   LineChart,
@@ -35,18 +36,15 @@ interface ChartDataPoint {
   [key: string]: string | number;
 }
 
-const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: "1h", label: "Last hour" },
-  { value: "24h", label: "Last 24h" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "custom", label: "Custom" },
-];
+const PERIOD_VALUES: Period[] = ["1h", "24h", "7d", "custom"];
 
 const CHART_COLORS = ["#16a34a", "#2563eb", "#d97706", "#dc2626", "#7c3aed", "#0891b2"];
 
 export default function ZoneDetail() {
   const { zoneId } = useParams<{ zoneId: string }>();
   const numericZoneId = zoneId ? Number(zoneId) : null;
+  const { t } = useTranslation();
+  const { t: tp } = useTranslation("pages");
 
   const [zone, setZone] = useState<Zone | null>(null);
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -242,7 +240,7 @@ export default function ZoneDetail() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Link to="/" className="hover:text-primary-600">Dashboard</Link>
+            <Link to="/" className="hover:text-primary-600">{t("nav.dashboard")}</Link>
             <span>/</span>
             <span>{zone.name}</span>
           </div>
@@ -253,7 +251,7 @@ export default function ZoneDetail() {
             {isConnected && (
               <span className="flex items-center gap-1 text-xs text-green-600">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-                Live
+                {t("status.live")}
               </span>
             )}
           </div>
@@ -271,24 +269,24 @@ export default function ZoneDetail() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          {exporting ? "Exporting..." : "Export CSV"}
+          {exporting ? tp("zoneDetail.exporting") : tp("zoneDetail.exportCsv")}
         </button>
       </div>
 
       {/* Period Selector */}
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex gap-1 rounded-lg border bg-white p-1">
-          {PERIOD_OPTIONS.map((opt) => (
+          {PERIOD_VALUES.map((val) => (
             <button
-              key={opt.value}
-              onClick={() => setPeriod(opt.value)}
+              key={val}
+              onClick={() => setPeriod(val)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                period === opt.value
+                period === val
                   ? "bg-primary-600 text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              {opt.label}
+              {tp(`zoneDetail.periods.${val}`)}
             </button>
           ))}
         </div>
@@ -314,7 +312,7 @@ export default function ZoneDetail() {
       {/* Combined Chart */}
       {sensors.length > 0 && chartData.length > 0 ? (
         <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Sensor History</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">{tp("zoneDetail.sensorHistory")}</h2>
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -338,7 +336,7 @@ export default function ZoneDetail() {
         </div>
       ) : sensors.length > 0 ? (
         <div className="rounded-xl border bg-white p-8 text-center text-sm text-gray-400">
-          No readings for the selected period.
+          {tp("zoneDetail.noReadings")}
         </div>
       ) : null}
 
@@ -386,16 +384,16 @@ export default function ZoneDetail() {
       {/* Latest Readings Table */}
       <div className="rounded-xl border bg-white shadow-sm">
         <div className="border-b px-4 py-3">
-          <h2 className="text-lg font-semibold text-gray-900">Latest Readings</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{tp("zoneDetail.latestReadings")}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                <th className="px-4 py-3">Sensor</th>
-                <th className="px-4 py-3">Value</th>
-                <th className="px-4 py-3">Thresholds</th>
-                <th className="px-4 py-3">Last Updated</th>
+                <th className="px-4 py-3">{t("labels.sensor")}</th>
+                <th className="px-4 py-3">{t("labels.value")}</th>
+                <th className="px-4 py-3">{t("labels.thresholds")}</th>
+                <th className="px-4 py-3">{t("labels.lastUpdated")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -426,7 +424,7 @@ export default function ZoneDetail() {
                           {unit ? ` ${unit}` : ""}
                         </>
                       ) : (
-                        <span className="text-gray-300">Not set</span>
+                        <span className="text-gray-300">{tp("zoneDetail.notSet")}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
@@ -438,7 +436,7 @@ export default function ZoneDetail() {
               {sensors.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-4 py-8 text-center text-gray-400">
-                    No sensors configured for this zone.
+                    {tp("zoneDetail.noSensorsConfigured")}
                   </td>
                 </tr>
               )}
@@ -451,8 +449,8 @@ export default function ZoneDetail() {
       {sensors.length > 0 && (
         <div className="rounded-xl border bg-white shadow-sm">
           <div className="border-b px-4 py-3">
-            <h2 className="text-lg font-semibold text-gray-900">Alert Thresholds</h2>
-            <p className="text-xs text-gray-500">Set min/max thresholds per sensor to trigger alerts.</p>
+            <h2 className="text-lg font-semibold text-gray-900">{tp("zoneDetail.alertThresholds")}</h2>
+            <p className="text-xs text-gray-500">{tp("zoneDetail.alertThresholdsHint")}</p>
           </div>
           <div className="divide-y">
             {sensors.map((sensor) => {
@@ -470,7 +468,7 @@ export default function ZoneDetail() {
                   {isEditing ? (
                     <>
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-gray-500">Min:</label>
+                        <label className="text-xs text-gray-500">{t("labels.minThreshold")}:</label>
                         <input
                           type="number"
                           step="any"
@@ -481,7 +479,7 @@ export default function ZoneDetail() {
                         />
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-gray-500">Max:</label>
+                        <label className="text-xs text-gray-500">{t("labels.maxThreshold")}:</label>
                         <input
                           type="number"
                           step="any"
@@ -496,13 +494,13 @@ export default function ZoneDetail() {
                         disabled={savingThresholds}
                         className="rounded-md bg-primary-600 px-3 py-1 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
                       >
-                        {savingThresholds ? "..." : "Save"}
+                        {savingThresholds ? "..." : t("actions.save")}
                       </button>
                       <button
                         onClick={() => setEditingThresholds(null)}
                         className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50"
                       >
-                        Cancel
+                        {t("actions.cancel")}
                       </button>
                     </>
                   ) : (
@@ -514,14 +512,14 @@ export default function ZoneDetail() {
                             {unit ? ` ${unit}` : ""}
                           </>
                         ) : (
-                          <span className="text-gray-400">Not configured</span>
+                          <span className="text-gray-400">{tp("zoneDetail.notConfigured")}</span>
                         )}
                       </span>
                       <button
                         onClick={() => startEditingThresholds(sensor)}
                         className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50"
                       >
-                        Edit
+                        {t("actions.edit")}
                       </button>
                     </>
                   )}
@@ -535,7 +533,7 @@ export default function ZoneDetail() {
       {/* Actuators */}
       <div className="rounded-xl border bg-white shadow-sm">
         <div className="border-b px-4 py-3">
-          <h2 className="text-lg font-semibold text-gray-900">Actuators</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{tp("zoneDetail.actuators")}</h2>
         </div>
         {actuators.length > 0 ? (
           <div className="divide-y">
@@ -559,7 +557,7 @@ export default function ZoneDetail() {
                         actuator.state ? "bg-green-500" : "bg-gray-400"
                       }`}
                     />
-                    {actuator.state ? "ON" : "OFF"}
+                    {actuator.state ? t("status.on") : t("status.off")}
                   </span>
                 </div>
               );
@@ -567,7 +565,7 @@ export default function ZoneDetail() {
           </div>
         ) : (
           <p className="px-4 py-8 text-center text-sm text-gray-400">
-            No actuators configured for this zone.
+            {tp("zoneDetail.noActuators")}
           </p>
         )}
       </div>

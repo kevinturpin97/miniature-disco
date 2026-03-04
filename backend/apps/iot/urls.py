@@ -24,11 +24,11 @@ zone_detail = ZoneViewSet.as_view(
 zone_export_csv = ZoneViewSet.as_view({"get": "export_csv"})
 
 sensor_list = SensorViewSet.as_view({"get": "list", "post": "create"})
-sensor_detail = SensorViewSet.as_view({"patch": "partial_update"})
+sensor_detail = SensorViewSet.as_view({"patch": "partial_update", "delete": "destroy"})
 sensor_readings = SensorViewSet.as_view({"get": "readings"})
 
 actuator_list = ActuatorViewSet.as_view({"get": "list", "post": "create"})
-actuator_detail = ActuatorViewSet.as_view({"patch": "partial_update"})
+actuator_detail = ActuatorViewSet.as_view({"patch": "partial_update", "delete": "destroy"})
 
 command_create = CommandViewSet.as_view({"post": "create"})
 command_list_by_zone = CommandViewSet.as_view({"get": "list"})

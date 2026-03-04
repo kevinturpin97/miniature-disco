@@ -63,7 +63,7 @@ describe("Alerts page", () => {
     mockListAlerts.mockRejectedValueOnce(new Error("Network error"));
     renderAlerts();
     await waitFor(() => {
-      expect(screen.getByText("Failed to load alerts.")).toBeInTheDocument();
+      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
     });
   });
 
@@ -123,7 +123,8 @@ describe("Alerts page", () => {
     expect(screen.getByText("Relay Offline")).toBeInTheDocument();
 
     // Acknowledged badge on second alert
-    expect(screen.getByText("Acknowledged")).toBeInTheDocument();
+    const ackBadges = screen.getAllByText("Acknowledged");
+    expect(ackBadges.length).toBeGreaterThanOrEqual(1);
 
     // Acknowledge button only on unacknowledged alert
     const ackButtons = screen.getAllByRole("button", { name: "Acknowledge" });
@@ -197,9 +198,9 @@ describe("Alerts page", () => {
       expect(screen.getByText("No alerts match your filters.")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: "all" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "unacknowledged" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "acknowledged" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "All" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Unacknowledged" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Acknowledged" })).toBeInTheDocument();
   });
 
   it("calls listAlerts with filter params when filter changes", async () => {
@@ -210,8 +211,8 @@ describe("Alerts page", () => {
       expect(mockListAlerts).toHaveBeenCalledTimes(1);
     });
 
-    // Click "unacknowledged" filter
-    fireEvent.click(screen.getByRole("button", { name: "unacknowledged" }));
+    // Click "Unacknowledged" filter
+    fireEvent.click(screen.getByRole("button", { name: "Unacknowledged" }));
 
     await waitFor(() => {
       expect(mockListAlerts).toHaveBeenCalledTimes(2);

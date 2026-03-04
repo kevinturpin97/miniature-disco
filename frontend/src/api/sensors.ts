@@ -14,6 +14,18 @@ export async function listSensors(
   return data;
 }
 
+export async function createSensor(
+  zoneId: number,
+  payload: Pick<Sensor, "sensor_type" | "unit"> & Partial<Pick<Sensor, "label" | "min_threshold" | "max_threshold">>,
+): Promise<Sensor> {
+  const { data } = await client.post<Sensor>(`/zones/${zoneId}/sensors/`, payload);
+  return data;
+}
+
+export async function deleteSensor(id: number): Promise<void> {
+  await client.delete(`/sensors/${id}/`);
+}
+
 export async function updateSensor(
   id: number,
   payload: Partial<Pick<Sensor, "label" | "min_threshold" | "max_threshold" | "is_active">>,

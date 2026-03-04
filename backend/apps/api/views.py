@@ -20,7 +20,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -126,3 +126,24 @@ class MeView(generics.RetrieveUpdateAPIView):
 
     def get_object(self) -> User:
         return self.request.user
+
+
+class ChangePasswordView(APIView):
+    """Change the authenticated user's password.
+
+    Args:
+        current_password: The user's current password.
+        new_password: The new password.
+
+    Returns:
+        200 on success, 400 on validation error.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data["new_password"])
+        request.user.save()
+        return Response({"detail": "Password changed successfully."})

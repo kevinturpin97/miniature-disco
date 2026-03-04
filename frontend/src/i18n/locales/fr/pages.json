@@ -1,0 +1,122 @@
+{
+  "login": {
+    "title": "Greenhouse SaaS",
+    "subtitle": "Connectez-vous à votre compte",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "registerLink": "S'inscrire"
+  },
+  "register": {
+    "title": "Créer un compte",
+    "subtitle": "Commencez avec Greenhouse SaaS",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "signInLink": "Se connecter",
+    "validation": {
+      "usernameMin": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+      "emailInvalid": "Adresse email invalide",
+      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordMismatch": "Les mots de passe ne correspondent pas"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Vue d'ensemble de toutes vos serres et zones.",
+    "noGreenhouses": "Aucune serre",
+    "noGreenhousesHint": "Créez votre première serre pour commencer.",
+    "addGreenhouse": "Ajouter une serre",
+    "addZone": "Ajouter une zone",
+    "editGreenhouse": "Modifier la serre",
+    "editZone": "Modifier la zone",
+    "zoneCount": "{{count}} zone",
+    "zoneCount_plural": "{{count}} zones",
+    "noZones": "Aucune zone configurée.",
+    "noSensors": "Aucun capteur configuré.",
+    "relay": "Relais #{{id}}"
+  },
+  "zoneDetail": {
+    "sensorHistory": "Historique des capteurs",
+    "noReadings": "Aucune lecture pour la période sélectionnée.",
+    "latestReadings": "Dernières lectures",
+    "alertThresholds": "Seuils d'alerte",
+    "alertThresholdsHint": "Définissez les seuils min/max par capteur pour déclencher des alertes.",
+    "notConfigured": "Non configuré",
+    "notSet": "Non défini",
+    "noSensorsConfigured": "Aucun capteur configuré pour cette zone.",
+    "actuators": "Actionneurs",
+    "noActuators": "Aucun actionneur configuré pour cette zone.",
+    "lastSeen": "Vu il y a {{time}}",
+    "exporting": "Export en cours...",
+    "exportCsv": "Exporter CSV",
+    "periods": {
+      "1h": "Dernière heure",
+      "24h": "Dernières 24h",
+      "7d": "7 derniers jours",
+      "custom": "Personnalisé"
+    }
+  },
+  "alerts": {
+    "title": "Alertes",
+    "subtitle": "Surveillez les dépassements de seuils, l'état des relais et les événements système.",
+    "noAlerts": "Aucune alerte ne correspond à vos filtres.",
+    "types": {
+      "HIGH": "Seuil haut",
+      "LOW": "Seuil bas",
+      "OFFLINE": "Relais hors ligne",
+      "ERROR": "Erreur capteur",
+      "CMD_FAIL": "Commande échouée"
+    }
+  },
+  "commands": {
+    "title": "Commandes",
+    "subtitle": "Envoyez des commandes aux actionneurs et consultez l'historique.",
+    "selectZone": "Sélectionnez une zone pour gérer les actionneurs.",
+    "noActuators": "Aucun actionneur dans cette zone.",
+    "actuatorControls": "Contrôle des actionneurs",
+    "commandHistory": "Historique des commandes",
+    "noCommands": "Aucune commande envoyée.",
+    "sendingCommand": "Envoi..."
+  },
+  "history": {
+    "title": "Historique",
+    "subtitle": "Comparez les données capteurs entre plusieurs zones.",
+    "selectZones": "Sélectionnez les zones à comparer",
+    "sensorType": "Type de capteur",
+    "period": "Période",
+    "noData": "Aucune donnée disponible pour les filtres sélectionnés.",
+    "noZonesSelected": "Sélectionnez au moins une zone pour voir les données historiques.",
+    "periods": {
+      "1h": "Dernière heure",
+      "24h": "Dernières 24h",
+      "7d": "7 derniers jours",
+      "30d": "30 derniers jours"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "tabs": {
+      "profile": "Profil",
+      "resources": "Ressources"
+    },
+    "profile": {
+      "title": "Profil utilisateur",
+      "subtitle": "Mettez à jour vos informations personnelles.",
+      "saveSuccess": "Profil mis à jour avec succès.",
+      "passwordTitle": "Changer le mot de passe",
+      "passwordSubtitle": "Mettez à jour le mot de passe de votre compte.",
+      "passwordSuccess": "Mot de passe changé avec succès.",
+      "passwordMismatch": "Les nouveaux mots de passe ne correspondent pas.",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères."
+    },
+    "resources": {
+      "title": "Gestion des ressources",
+      "subtitle": "Gérez vos serres, zones, capteurs et actionneurs.",
+      "addSensor": "Ajouter un capteur",
+      "addActuator": "Ajouter un actionneur",
+      "noSensors": "Aucun capteur.",
+      "noActuators": "Aucun actionneur."
+    }
+  },
+  "automations": {
+    "title": "Automatisations",
+    "subtitle": "Disponible au Sprint 11."
+  }
+}

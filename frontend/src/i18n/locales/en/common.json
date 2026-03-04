@@ -1,0 +1,96 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "alerts": "Alerts",
+    "commands": "Commands",
+    "automations": "Automations",
+    "settings": "Settings",
+    "history": "History"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "acknowledge": "Acknowledge",
+    "export": "Export CSV",
+    "logout": "Logout",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "createAccount": "Create account",
+    "creatingAccount": "Creating account...",
+    "register": "Register"
+  },
+  "status": {
+    "online": "Online",
+    "offline": "Offline",
+    "on": "ON",
+    "off": "OFF",
+    "loading": "Loading...",
+    "live": "Live",
+    "pending": "Pending",
+    "sent": "Sent",
+    "acknowledged": "Acknowledged",
+    "failed": "Failed",
+    "timeout": "Timeout"
+  },
+  "filters": {
+    "all": "All",
+    "allSeverities": "All severities",
+    "critical": "Critical",
+    "warning": "Warning",
+    "info": "Info",
+    "unacknowledged": "Unacknowledged",
+    "acknowledged": "Acknowledged",
+    "filterBySeverity": "Filter by severity"
+  },
+  "errors": {
+    "generic": "An error occurred.",
+    "loadFailed": "Failed to load data.",
+    "networkError": "Network error. Please try again.",
+    "invalidCredentials": "Invalid username or password.",
+    "registrationFailed": "Registration failed. Username or email may already be taken."
+  },
+  "labels": {
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "name": "Name",
+    "location": "Location",
+    "description": "Description",
+    "relayId": "Relay ID",
+    "transmissionInterval": "Transmission interval (s)",
+    "sensorType": "Sensor type",
+    "unit": "Unit",
+    "minThreshold": "Min threshold",
+    "maxThreshold": "Max threshold",
+    "actuatorType": "Actuator type",
+    "gpioPin": "GPIO pin",
+    "value": "Value",
+    "zone": "Zone",
+    "greenhouse": "Greenhouse",
+    "sensor": "Sensor",
+    "actuator": "Actuator",
+    "thresholds": "Thresholds",
+    "lastUpdated": "Last Updated"
+  },
+  "confirm": {
+    "deleteTitle": "Confirm deletion",
+    "deleteGreenhouse": "Are you sure you want to delete this greenhouse? All zones, sensors, and data will be permanently lost.",
+    "deleteZone": "Are you sure you want to delete this zone? All sensors, actuators, and data will be permanently lost.",
+    "deleteSensor": "Are you sure you want to delete this sensor? All readings will be permanently lost.",
+    "deleteActuator": "Are you sure you want to delete this actuator?"
+  },
+  "language": {
+    "en": "English",
+    "fr": "French"
+  }
+}

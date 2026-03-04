@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -23,6 +24,8 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { t: tp } = useTranslation("pages");
   const register = useAuthStore((s) => s.register);
   const [form, setForm] = useState<RegisterForm>({
     username: "",
@@ -59,7 +62,7 @@ export default function Register() {
       await register(form.username, form.email, form.password, form.confirmPassword);
       navigate("/login");
     } catch {
-      setServerError("Registration failed. Username or email may already be taken.");
+      setServerError(t("errors.registrationFailed"));
     } finally {
       setLoading(false);
     }
@@ -73,10 +76,10 @@ export default function Register() {
             G
           </div>
           <h1 className="mt-4 text-2xl font-bold text-gray-900">
-            Create account
+            {tp("register.title")}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Get started with Greenhouse SaaS
+            {tp("register.subtitle")}
           </p>
         </div>
 
@@ -93,7 +96,7 @@ export default function Register() {
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
-                Username
+                {t("labels.username")}
               </label>
               <input
                 id="username"
@@ -113,7 +116,7 @@ export default function Register() {
 
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-                Email
+                {t("labels.email")}
               </label>
               <input
                 id="email"
@@ -133,7 +136,7 @@ export default function Register() {
 
             <div>
               <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-                Password
+                {t("labels.password")}
               </label>
               <input
                 id="password"
@@ -153,7 +156,7 @@ export default function Register() {
 
             <div>
               <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium text-gray-700">
-                Confirm password
+                {t("labels.confirmPassword")}
               </label>
               <input
                 id="confirmPassword"
@@ -177,13 +180,13 @@ export default function Register() {
             disabled={loading}
             className="mt-6 w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
           >
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? t("actions.creatingAccount") : t("actions.createAccount")}
           </button>
 
           <p className="mt-4 text-center text-sm text-gray-500">
-            Already have an account?{" "}
+            {tp("register.hasAccount")}{" "}
             <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
-              Sign in
+              {tp("register.signInLink")}
             </Link>
           </p>
         </form>

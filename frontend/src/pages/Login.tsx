@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -16,6 +17,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { t: tp } = useTranslation("pages");
   const login = useAuthStore((s) => s.login);
   const [form, setForm] = useState<LoginForm>({ username: "", password: "" });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginForm, string>>>({});
@@ -47,7 +50,7 @@ export default function Login() {
       await login(form.username, form.password);
       navigate("/");
     } catch {
-      setServerError("Invalid username or password.");
+      setServerError(t("errors.invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -62,10 +65,10 @@ export default function Login() {
             G
           </div>
           <h1 className="mt-4 text-2xl font-bold text-gray-900">
-            Greenhouse SaaS
+            {tp("login.title")}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Sign in to your account
+            {tp("login.subtitle")}
           </p>
         </div>
 
@@ -82,7 +85,7 @@ export default function Login() {
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
-                Username
+                {t("labels.username")}
               </label>
               <input
                 id="username"
@@ -102,7 +105,7 @@ export default function Login() {
 
             <div>
               <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-                Password
+                {t("labels.password")}
               </label>
               <input
                 id="password"
@@ -126,13 +129,13 @@ export default function Login() {
             disabled={loading}
             className="mt-6 w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? t("actions.signingIn") : t("actions.signIn")}
           </button>
 
           <p className="mt-4 text-center text-sm text-gray-500">
-            Don't have an account?{" "}
+            {tp("login.noAccount")}{" "}
             <Link to="/register" className="font-medium text-primary-600 hover:text-primary-700">
-              Register
+              {tp("login.registerLink")}
             </Link>
           </p>
         </form>

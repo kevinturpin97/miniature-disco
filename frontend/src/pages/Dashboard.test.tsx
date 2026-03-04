@@ -10,9 +10,15 @@ import Dashboard from "./Dashboard";
 // Mock the API modules
 vi.mock("@/api/greenhouses", () => ({
   listGreenhouses: vi.fn(),
+  createGreenhouse: vi.fn(),
+  updateGreenhouse: vi.fn(),
+  deleteGreenhouse: vi.fn(),
 }));
 vi.mock("@/api/zones", () => ({
   listZones: vi.fn(),
+  createZone: vi.fn(),
+  updateZone: vi.fn(),
+  deleteZone: vi.fn(),
 }));
 vi.mock("@/api/sensors", () => ({
   listSensors: vi.fn(),
@@ -139,7 +145,7 @@ describe("Dashboard page", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load dashboard data.")).toBeInTheDocument();
+      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
     });
   });
 });

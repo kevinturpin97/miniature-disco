@@ -152,3 +152,44 @@ class TestMe:
     def test_patch_me_unauthenticated(self, api_client):
         response = api_client.patch(self.url, {"first_name": "Bob"})
         assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestChangePassword:
+    """POST /api/auth/change-password/"""
+
+    url = "/api/auth/change-password/"
+
+    def test_change_password_success(self, auth_client, user):
+        payload = {
+            "current_password": "testpass123!",
+            "new_password": "NewStrongPass456!",
+        }
+        response = auth_client.post(self.url, payload)
+        assert response.status_code == 200
+        user.refresh_from_db()
+        assert user.check_password("NewStrongPass456!")
+
+    def test_change_password_wrong_current(self, auth_client):
+        payload = {
+            "current_password": "wrongpassword",
+            "new_password": "NewStrongPass456!",
+        }
+        response = auth_client.post(self.url, payload)
+        assert response.status_code == 400
+
+    def test_change_password_weak_new(self, auth_client):
+        payload = {
+            "current_password": "testpass123!",
+            "new_password": "123",
+        }
+        response = auth_client.post(self.url, payload)
+        assert response.status_code == 400
+
+    def test_change_password_unauthenticated(self, api_client):
+        payload = {
+            "current_password": "testpass123!",
+            "new_password": "NewStrongPass456!",
+        }
+        response = api_client.post(self.url, payload)
+        assert response.status_code == 401

@@ -653,6 +653,24 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Acknowledge d'une alerte
 - [x] WebSocket pour alertes temps réel
 
+### SPRINT INTERMÉDIAIRE — i18n + Pages Fonctionnelles
+- [x] i18n infrastructure (react-i18next, i18next-browser-languagedetector, EN/FR)
+- [x] Translation files: common.json + pages.json (EN + FR)
+- [x] LanguageSwitcher component in Header
+- [x] All existing pages migrated to i18n (Login, Register, Dashboard, ZoneDetail, Alerts, Automations)
+- [x] Sidebar + Header i18n
+- [x] Backend: ChangePasswordView (POST /api/auth/change-password/)
+- [x] Backend: DELETE wiring for sensors + actuators
+- [x] Frontend API: createSensor, deleteSensor, createActuator, deleteActuator, changePassword
+- [x] Reusable UI: Modal, ConfirmDialog, FormField, SelectField
+- [x] Dashboard: full CRUD greenhouses + zones via modals with Zod validation
+- [x] Settings: Profile tab (user info + password change) + Resources tab (accordion CRUD tree)
+- [x] History: cross-zone comparison charts (multi-zone overlay LineChart, period selector)
+- [x] Commands: zone selector, actuator ON/OFF controls, command history with 5s auto-refresh
+- [x] Tests: Modal, ConfirmDialog, Settings, History, Commands (frontend) + change-password (backend)
+- [x] All tests pass: 83 frontend (vitest), 134 backend (pytest)
+- [x] Docker build: all 6 containers built successfully
+
 ### SPRINT 10 — Commandes & Actionneurs
 - [ ] Page commandes : interface par zone
 - [ ] Boutons ON/OFF par actionneur

@@ -1,0 +1,96 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "alerts": "Alertes",
+    "commands": "Commandes",
+    "automations": "Automatisations",
+    "settings": "Paramètres",
+    "history": "Historique"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "add": "Ajouter",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "acknowledge": "Acquitter",
+    "export": "Exporter CSV",
+    "logout": "Déconnexion",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion en cours...",
+    "createAccount": "Créer un compte",
+    "creatingAccount": "Création en cours...",
+    "register": "S'inscrire"
+  },
+  "status": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "on": "ON",
+    "off": "OFF",
+    "loading": "Chargement...",
+    "live": "En direct",
+    "pending": "En attente",
+    "sent": "Envoyé",
+    "acknowledged": "Acquitté",
+    "failed": "Échoué",
+    "timeout": "Délai dépassé"
+  },
+  "filters": {
+    "all": "Tous",
+    "allSeverities": "Toutes les sévérités",
+    "critical": "Critique",
+    "warning": "Avertissement",
+    "info": "Info",
+    "unacknowledged": "Non acquittées",
+    "acknowledged": "Acquittées",
+    "filterBySeverity": "Filtrer par sévérité"
+  },
+  "errors": {
+    "generic": "Une erreur est survenue.",
+    "loadFailed": "Échec du chargement des données.",
+    "networkError": "Erreur réseau. Veuillez réessayer.",
+    "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide.",
+    "registrationFailed": "Échec de l'inscription. Le nom d'utilisateur ou l'email est peut-être déjà utilisé."
+  },
+  "labels": {
+    "username": "Nom d'utilisateur",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmNewPassword": "Confirmer le nouveau mot de passe",
+    "name": "Nom",
+    "location": "Emplacement",
+    "description": "Description",
+    "relayId": "ID relais",
+    "transmissionInterval": "Intervalle de transmission (s)",
+    "sensorType": "Type de capteur",
+    "unit": "Unité",
+    "minThreshold": "Seuil minimum",
+    "maxThreshold": "Seuil maximum",
+    "actuatorType": "Type d'actionneur",
+    "gpioPin": "Pin GPIO",
+    "value": "Valeur",
+    "zone": "Zone",
+    "greenhouse": "Serre",
+    "sensor": "Capteur",
+    "actuator": "Actionneur",
+    "thresholds": "Seuils",
+    "lastUpdated": "Dernière mise à jour"
+  },
+  "confirm": {
+    "deleteTitle": "Confirmer la suppression",
+    "deleteGreenhouse": "Êtes-vous sûr de vouloir supprimer cette serre ? Toutes les zones, capteurs et données seront définitivement perdus.",
+    "deleteZone": "Êtes-vous sûr de vouloir supprimer cette zone ? Tous les capteurs, actionneurs et données seront définitivement perdus.",
+    "deleteSensor": "Êtes-vous sûr de vouloir supprimer ce capteur ? Toutes les lectures seront définitivement perdues.",
+    "deleteActuator": "Êtes-vous sûr de vouloir supprimer cet actionneur ?"
+  },
+  "language": {
+    "en": "Anglais",
+    "fr": "Français"
+  }
+}

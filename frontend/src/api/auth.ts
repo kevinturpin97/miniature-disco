@@ -49,3 +49,10 @@ export async function updateMe(
   const { data } = await client.patch<User>("/auth/me/", payload);
   return data;
 }
+
+export async function changePassword(payload: {
+  current_password: string;
+  new_password: string;
+}): Promise<void> {
+  await client.post("/auth/change-password/", payload);
+}

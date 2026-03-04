@@ -4,11 +4,12 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { listAlerts, acknowledgeAlert } from "@/api/alerts";
 import { useAlertStore } from "@/stores/alertStore";
 import { Spinner } from "@/components/ui/Spinner";
 import { formatDate, formatRelativeTime } from "@/utils/formatters";
-import type { Alert, Severity, AlertType } from "@/types";
+import type { Alert, Severity } from "@/types";
 
 const SEVERITY_STYLES: Record<Severity, { bg: string; text: string; dot: string }> = {
   CRITICAL: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
@@ -16,17 +17,18 @@ const SEVERITY_STYLES: Record<Severity, { bg: string; text: string; dot: string 
   INFO: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
 };
 
-const ALERT_TYPE_LABELS: Record<AlertType, string> = {
-  HIGH: "Threshold High",
-  LOW: "Threshold Low",
-  OFFLINE: "Relay Offline",
-  ERROR: "Sensor Error",
-  CMD_FAIL: "Command Failed",
-};
-
 type AcknowledgedFilter = "all" | "unacknowledged" | "acknowledged";
 
+const ACK_FILTER_KEYS: Record<AcknowledgedFilter, string> = {
+  all: "filters.all",
+  unacknowledged: "filters.unacknowledged",
+  acknowledged: "filters.acknowledged",
+};
+
 export default function Alerts() {
+  const { t } = useTranslation();
+  const { t: tp } = useTranslation("pages");
+
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,11 +51,11 @@ export default function Alerts() {
       const data = await listAlerts(params as Parameters<typeof listAlerts>[0]);
       setAlerts(data.results);
     } catch {
-      setError("Failed to load alerts.");
+      setError(t("errors.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [severityFilter, ackFilter]);
+  }, [severityFilter, ackFilter, t]);
 
   useEffect(() => {
     setLoading(true);
@@ -98,9 +100,9 @@ export default function Alerts() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Alerts</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{tp("alerts.title")}</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Monitor threshold breaches, relay status, and system events.
+          {tp("alerts.subtitle")}
         </p>
       </div>
 
@@ -111,12 +113,12 @@ export default function Alerts() {
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value as Severity | "")}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
-          aria-label="Filter by severity"
+          aria-label={t("filters.filterBySeverity")}
         >
-          <option value="">All severities</option>
-          <option value="CRITICAL">Critical</option>
-          <option value="WARNING">Warning</option>
-          <option value="INFO">Info</option>
+          <option value="">{t("filters.allSeverities")}</option>
+          <option value="CRITICAL">{t("filters.critical")}</option>
+          <option value="WARNING">{t("filters.warning")}</option>
+          <option value="INFO">{t("filters.info")}</option>
         </select>
 
         {/* Acknowledged filter */}
@@ -125,13 +127,13 @@ export default function Alerts() {
             <button
               key={val}
               onClick={() => setAckFilter(val)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 ackFilter === val
                   ? "bg-primary-600 text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              {val}
+              {t(ACK_FILTER_KEYS[val])}
             </button>
           ))}
         </div>
@@ -153,7 +155,7 @@ export default function Alerts() {
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />
           </svg>
-          <p className="mt-4 text-sm text-gray-500">No alerts match your filters.</p>
+          <p className="mt-4 text-sm text-gray-500">{tp("alerts.noAlerts")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -177,11 +179,11 @@ export default function Alerts() {
                         {alert.severity}
                       </span>
                       <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                        {ALERT_TYPE_LABELS[alert.alert_type] ?? alert.alert_type}
+                        {tp(`alerts.types.${alert.alert_type}`) ?? alert.alert_type}
                       </span>
                       {alert.is_acknowledged && (
                         <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                          Acknowledged
+                          {t("status.acknowledged")}
                         </span>
                       )}
                     </div>
@@ -195,11 +197,11 @@ export default function Alerts() {
                         {formatRelativeTime(alert.created_at)}
                       </span>
                       {alert.value !== null && (
-                        <span>Value: {alert.value}</span>
+                        <span>{t("labels.value")}: {alert.value}</span>
                       )}
                       {alert.acknowledged_at && (
                         <span>
-                          Ack: {formatRelativeTime(alert.acknowledged_at)}
+                          {t("status.acknowledged")}: {formatRelativeTime(alert.acknowledged_at)}
                         </span>
                       )}
                     </div>
@@ -212,7 +214,7 @@ export default function Alerts() {
                       disabled={acknowledging === alert.id}
                       className="flex-shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
                     >
-                      {acknowledging === alert.id ? "..." : "Acknowledge"}
+                      {acknowledging === alert.id ? "..." : t("actions.acknowledge")}
                     </button>
                   )}
                 </div>

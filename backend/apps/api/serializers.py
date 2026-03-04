@@ -54,3 +54,22 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ("id", "username", "email", "first_name", "last_name", "date_joined")
         read_only_fields = ("id", "date_joined")
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """Serializer for password change endpoint.
+
+    Args:
+        current_password: The user's current password.
+        new_password: The new password (validated against Django validators).
+    """
+
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+
+    def validate_current_password(self, value: str) -> str:
+        """Verify the current password is correct."""
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value
