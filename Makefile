@@ -1,4 +1,4 @@
-.PHONY: help up down build logs restart migrate makemigrations shell test test-backend test-frontend lint format superuser
+.PHONY: help up down build logs restart migrate makemigrations shell test test-backend test-frontend lint format superuser seed simulate prod-up prod-down prod-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -90,3 +90,29 @@ npm-install: ## Install frontend dependencies
 # Status
 ps: ## Show running containers
 	docker compose ps
+
+# Data
+seed: ## Create demo seed data
+	docker compose exec backend python manage.py seed_data
+
+simulate: ## Simulate sensor data (Ctrl+C to stop)
+	docker compose exec backend python manage.py simulate_data --backfill 24
+
+simulate-live: ## Run live sensor simulation only
+	docker compose exec backend python manage.py simulate_data --interval 10
+
+# Production
+prod-build: ## Build production Docker images
+	docker compose -f docker-compose.prod.yml build
+
+prod-up: ## Start production services
+	docker compose -f docker-compose.prod.yml up -d
+
+prod-down: ## Stop production services
+	docker compose -f docker-compose.prod.yml down
+
+prod-logs: ## Show production logs
+	docker compose -f docker-compose.prod.yml logs -f
+
+ssl: ## Generate self-signed SSL certificates
+	./scripts/generate-ssl.sh

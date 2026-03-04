@@ -688,15 +688,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Activation/désactivation des règles
 
 ### SPRINT 12 — Intégration & Production
-- [ ] docker-compose.prod.yml optimisé (images ARM64, healthchecks)
-- [ ] Nginx HTTPS (auto-signé ou Let's Encrypt)
-- [ ] Tests E2E du pipeline complet (capteur simulé → dashboard)
-- [ ] Script de simulation de données (pour démo sans matériel)
-- [ ] Optimisation des requêtes Django (select_related, prefetch)
-- [ ] Documentation complète (docs/)
-- [ ] Monitoring basique (healthcheck endpoints)
-- [ ] Seed data pour démo
-- [ ] Review sécurité (CORS, CSRF, rate limiting)
+- [x] docker-compose.prod.yml optimisé (images ARM64, healthchecks)
+- [x] Nginx HTTPS (auto-signé ou Let's Encrypt)
+- [x] Tests E2E du pipeline complet (capteur simulé → dashboard)
+- [x] Script de simulation de données (pour démo sans matériel)
+- [x] Optimisation des requêtes Django (select_related, prefetch)
+- [x] Documentation complète (docs/)
+- [x] Monitoring basique (healthcheck endpoints)
+- [x] Seed data pour démo
+- [x] Review sécurité (CORS, CSRF, rate limiting)
 
 ---
 

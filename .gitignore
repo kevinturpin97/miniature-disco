@@ -64,3 +64,6 @@ pgdata/
 
 # Redis data
 redis-data/
+
+# SSL certificates (generated, not committed)
+nginx/ssl/
