@@ -8,7 +8,8 @@
     "history": "History",
     "team": "Team",
     "notifications": "Notifications",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "scenarios": "Scenarios"
   },
   "actions": {
     "save": "Save",

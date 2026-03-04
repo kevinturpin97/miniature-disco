@@ -31,6 +31,8 @@ from .models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    Scenario,
+    Schedule,
     Sensor,
     SensorReading,
     Zone,
@@ -44,6 +46,8 @@ from .serializers import (
     NotificationChannelSerializer,
     NotificationLogSerializer,
     NotificationRuleSerializer,
+    ScenarioSerializer,
+    ScheduleSerializer,
     SensorReadingSerializer,
     SensorSerializer,
     ZoneSerializer,
@@ -753,3 +757,151 @@ class OrgAnalyticsSummaryView(viewsets.ViewSet):
 
         data = compute_org_analytics_summary(org.pk)
         return Response(data)
+
+
+class ScenarioViewSet(viewsets.ModelViewSet):
+    """CRUD operations for Scenario resources, nested under a Zone.
+
+    Endpoints:
+        GET    /api/zones/{zone_id}/scenarios/       - List scenarios.
+        POST   /api/zones/{zone_id}/scenarios/       - Create a scenario.
+        GET    /api/scenarios/{id}/                    - Retrieve a scenario.
+        PATCH  /api/scenarios/{id}/                    - Update a scenario.
+        DELETE /api/scenarios/{id}/                    - Delete a scenario.
+        POST   /api/scenarios/{id}/run/                - Run a scenario now.
+    """
+
+    serializer_class = ScenarioSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["name"]
+    ordering_fields = ["name", "created_at"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def _get_zone(self):
+        """Return the parent Zone for nested routes, verifying membership."""
+        zone_id = self.kwargs.get("zone_id")
+        if zone_id:
+            org_ids = _user_org_ids(self.request.user)
+            return get_object_or_404(
+                Zone, pk=zone_id, greenhouse__organization_id__in=org_ids
+            )
+        return None
+
+    def get_queryset(self):
+        """Return scenarios filtered by parent zone or by membership chain."""
+        zone = self._get_zone()
+        if zone:
+            return Scenario.objects.filter(zone=zone).select_related("zone").prefetch_related("steps")
+        org_ids = _user_org_ids(self.request.user)
+        return (
+            Scenario.objects
+            .filter(zone__greenhouse__organization_id__in=org_ids)
+            .select_related("zone")
+            .prefetch_related("steps")
+        )
+
+    def perform_create(self, serializer: ScenarioSerializer) -> None:
+        """Inject the parent zone before saving."""
+        zone = self._get_zone()
+        if not zone:
+            raise serializers.ValidationError({"zone": "Zone ID is required."})
+        serializer.save(zone=zone)
+
+    @action(detail=True, methods=["post"], url_path="run")
+    def run_now(self, request: Request, pk: int = None, **kwargs) -> Response:
+        """Trigger immediate execution of a scenario.
+
+        Returns 409 if the scenario is already running or if there is an
+        actuator conflict with another running scenario in the same zone.
+        """
+        scenario = self.get_object()
+
+        if scenario.status == Scenario.Status.RUNNING:
+            return Response(
+                {"detail": "Scenario is already running."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # Check for actuator conflicts
+        actuator_ids = set(scenario.steps.values_list("actuator_id", flat=True))
+        conflicting = (
+            Scenario.objects
+            .filter(
+                zone=scenario.zone,
+                status=Scenario.Status.RUNNING,
+                steps__actuator_id__in=actuator_ids,
+            )
+            .exclude(pk=scenario.pk)
+            .distinct()
+        )
+        if conflicting.exists():
+            names = ", ".join(conflicting.values_list("name", flat=True))
+            return Response(
+                {"detail": f"Actuator conflict with running scenario(s): {names}"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        from .tasks import execute_scenario_task
+
+        execute_scenario_task.delay(scenario.pk, request.user.pk)
+        return Response(
+            {"detail": "Scenario execution started.", "scenario_id": scenario.pk},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+
+class ScheduleViewSet(viewsets.ModelViewSet):
+    """CRUD operations for Schedule resources, nested under a Zone.
+
+    Endpoints:
+        GET    /api/zones/{zone_id}/schedules/       - List schedules.
+        POST   /api/zones/{zone_id}/schedules/       - Create a schedule.
+        GET    /api/schedules/{id}/                    - Retrieve.
+        PATCH  /api/schedules/{id}/                    - Update.
+        DELETE /api/schedules/{id}/                    - Delete.
+    """
+
+    serializer_class = ScheduleSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["name"]
+    ordering_fields = ["name", "created_at"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def _get_zone(self):
+        """Return the parent Zone for nested routes, verifying membership."""
+        zone_id = self.kwargs.get("zone_id")
+        if zone_id:
+            org_ids = _user_org_ids(self.request.user)
+            return get_object_or_404(
+                Zone, pk=zone_id, greenhouse__organization_id__in=org_ids
+            )
+        return None
+
+    def get_queryset(self):
+        """Return schedules filtered by parent zone or by membership chain."""
+        zone = self._get_zone()
+        if zone:
+            return (
+                Schedule.objects
+                .filter(scenario__zone=zone)
+                .select_related("scenario")
+            )
+        org_ids = _user_org_ids(self.request.user)
+        return (
+            Schedule.objects
+            .filter(scenario__zone__greenhouse__organization_id__in=org_ids)
+            .select_related("scenario")
+        )
+
+    def perform_create(self, serializer: ScheduleSerializer) -> None:
+        """Verify the scenario belongs to a zone in the user's orgs."""
+        scenario = serializer.validated_data.get("scenario")
+        if scenario:
+            org_ids = _user_org_ids(self.request.user)
+            if scenario.zone.greenhouse.organization_id not in org_ids:
+                raise serializers.ValidationError(
+                    {"scenario": "Scenario does not belong to your organization."}
+                )
+        serializer.save()

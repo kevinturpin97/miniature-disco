@@ -609,3 +609,231 @@ def detect_anomalies_task(reading_id: int) -> dict[str, bool]:
     if is_anomaly:
         logger.info("Anomaly detected: reading=%s sensor=%s", reading_id, reading.sensor_id)
     return {"anomaly": is_anomaly}
+
+
+@shared_task(name="iot.execute_scenario")
+def execute_scenario_task(scenario_id: int, user_id: int | None = None) -> dict[str, str]:
+    """Execute a scenario by creating commands for each step in order.
+
+    Sets the scenario status to RUNNING, iterates steps sorted by order,
+    creates Command objects (respecting delay_seconds via ``countdown``),
+    and marks the scenario as COMPLETED or FAILED.
+
+    Args:
+        scenario_id: Primary key of the Scenario to execute.
+        user_id: Optional user ID to assign as command creator.
+
+    Returns:
+        Dict with ``status`` and ``commands_created`` count.
+    """
+    from .models import Scenario, ScenarioStep
+
+    try:
+        scenario = Scenario.objects.select_related("zone").get(pk=scenario_id)
+    except Scenario.DoesNotExist:
+        logger.warning("Scenario %s not found", scenario_id)
+        return {"status": "not_found", "commands_created": 0}
+
+    scenario.status = Scenario.Status.RUNNING
+    scenario.save(update_fields=["status"])
+
+    steps = scenario.steps.select_related("actuator").order_by("order")
+    commands_created = 0
+
+    try:
+        for step in steps:
+            # If delay, schedule the command creation with countdown
+            if step.delay_seconds > 0:
+                _execute_scenario_step.apply_async(
+                    args=[step.pk, user_id],
+                    countdown=step.delay_seconds,
+                )
+            else:
+                _create_step_command(step, user_id)
+            commands_created += 1
+
+            # If duration_seconds is set, schedule a reverse command
+            if step.duration_seconds:
+                reverse_action = "OFF" if step.action in ("ON", "SET") else "ON"
+                total_delay = step.delay_seconds + step.duration_seconds
+                _execute_reverse_step.apply_async(
+                    args=[step.actuator_id, reverse_action, user_id],
+                    countdown=total_delay,
+                )
+
+        scenario.status = Scenario.Status.COMPLETED
+        scenario.last_run_at = timezone.now()
+        scenario.save(update_fields=["status", "last_run_at"])
+        logger.info("Scenario %s completed: %d commands created", scenario_id, commands_created)
+
+    except Exception as exc:
+        scenario.status = Scenario.Status.FAILED
+        scenario.save(update_fields=["status"])
+        logger.error("Scenario %s failed: %s", scenario_id, exc)
+        return {"status": "failed", "commands_created": commands_created}
+
+    return {"status": "completed", "commands_created": commands_created}
+
+
+def _create_step_command(step, user_id: int | None = None) -> Command:
+    """Create a Command from a ScenarioStep.
+
+    Args:
+        step: The ScenarioStep instance.
+        user_id: Optional user ID for command creator.
+
+    Returns:
+        The created Command.
+    """
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    user = None
+    if user_id:
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            pass
+
+    return Command.objects.create(
+        actuator=step.actuator,
+        command_type=step.action,
+        value=step.action_value,
+        created_by=user,
+    )
+
+
+@shared_task(name="iot.execute_scenario_step")
+def _execute_scenario_step(step_id: int, user_id: int | None = None) -> None:
+    """Execute a single delayed scenario step by creating its command.
+
+    Args:
+        step_id: Primary key of the ScenarioStep to execute.
+        user_id: Optional user ID for command creator.
+    """
+    from .models import ScenarioStep
+
+    try:
+        step = ScenarioStep.objects.select_related("actuator").get(pk=step_id)
+    except ScenarioStep.DoesNotExist:
+        logger.warning("ScenarioStep %s not found", step_id)
+        return
+    _create_step_command(step, user_id)
+
+
+@shared_task(name="iot.execute_reverse_step")
+def _execute_reverse_step(actuator_id: int, action: str, user_id: int | None = None) -> None:
+    """Execute the reverse action of a step after its duration expires.
+
+    Args:
+        actuator_id: Primary key of the Actuator to control.
+        action: The reverse action (ON or OFF).
+        user_id: Optional user ID for command creator.
+    """
+    from django.contrib.auth import get_user_model
+
+    try:
+        actuator = Actuator.objects.get(pk=actuator_id)
+    except Actuator.DoesNotExist:
+        logger.warning("Actuator %s not found for reverse step", actuator_id)
+        return
+
+    User = get_user_model()
+    user = None
+    if user_id:
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            pass
+
+    Command.objects.create(
+        actuator=actuator,
+        command_type=action,
+        created_by=user,
+    )
+
+
+@shared_task(name="iot.check_schedules")
+def check_schedules_task() -> dict[str, int]:
+    """Check all active schedules and trigger matching scenarios.
+
+    Runs every minute via Celery beat. For CRON schedules, matches
+    against current time. For TIME_RANGE schedules, triggers at
+    start_time on matching days.
+
+    Returns:
+        Dict with ``checked`` and ``triggered`` counts.
+    """
+    import datetime as dt
+
+    from .models import Schedule, Scenario
+
+    now = timezone.now()
+    current_minute = now.minute
+    current_hour = now.hour
+    current_dow = now.weekday()  # 0=Monday
+
+    schedules = (
+        Schedule.objects
+        .filter(is_active=True, scenario__is_active=True)
+        .exclude(scenario__status=Scenario.Status.RUNNING)
+        .select_related("scenario")
+    )
+
+    checked = 0
+    triggered = 0
+
+    for sched in schedules:
+        checked += 1
+
+        if sched.schedule_type == Schedule.ScheduleType.CRON:
+            if not _cron_matches(sched.cron_minute, current_minute):
+                continue
+            if not _cron_matches(sched.cron_hour, current_hour):
+                continue
+            if not _cron_matches(sched.cron_day_of_week, current_dow):
+                continue
+
+        elif sched.schedule_type == Schedule.ScheduleType.TIME_RANGE:
+            if sched.days_of_week and current_dow not in sched.days_of_week:
+                continue
+            if not sched.start_time:
+                continue
+            # Only trigger at exact start_time (minute-level matching)
+            if sched.start_time.hour != current_hour or sched.start_time.minute != current_minute:
+                continue
+
+        else:
+            continue
+
+        # Avoid re-triggering within the same minute
+        if sched.last_run_at and (now - sched.last_run_at).total_seconds() < 60:
+            continue
+
+        execute_scenario_task.delay(sched.scenario_id)
+        sched.last_run_at = now
+        sched.save(update_fields=["last_run_at"])
+        triggered += 1
+        logger.info("Schedule %s triggered scenario %s", sched.pk, sched.scenario_id)
+
+    logger.info("Schedule check complete: checked=%d triggered=%d", checked, triggered)
+    return {"checked": checked, "triggered": triggered}
+
+
+def _cron_matches(field: str, value: int) -> bool:
+    """Check if a cron field matches a given value.
+
+    Supports '*', single values, and comma-separated lists.
+
+    Args:
+        field: The cron field string (e.g., '0', '*', '1,3,5').
+        value: The current time component to match against.
+
+    Returns:
+        True if the field matches the value.
+    """
+    field = field.strip()
+    if field == "*":
+        return True
+    parts = [p.strip() for p in field.split(",")]
+    return str(value) in parts

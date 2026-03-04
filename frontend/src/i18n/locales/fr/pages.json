@@ -279,5 +279,40 @@
       "readings7d": "Lectures (7j)",
       "activeAlerts": "Alertes actives"
     }
+  },
+  "scenarios": {
+    "title": "Scénarios & Programmes",
+    "subtitle": "Créez des scénarios d'automatisation et planifiez-les.",
+    "tabs": {
+      "scenarios": "Scénarios",
+      "calendar": "Calendrier hebdomadaire"
+    },
+    "newScenario": "Nouveau scénario",
+    "newSchedule": "Nouveau programme",
+    "editScenario": "Modifier le scénario",
+    "editSchedule": "Modifier le programme",
+    "noScenarios": "Aucun scénario pour le moment.",
+    "noSchedules": "Aucun programme pour le moment.",
+    "runNow": "Lancer",
+    "lastRun": "Dernier lancement",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer",
+    "steps": "Étapes",
+    "addStep": "Ajouter une étape",
+    "delay": "Délai",
+    "delaySec": "Délai (secondes)",
+    "duration": "Durée",
+    "durationSec": "Durée (secondes)",
+    "weeklyCalendar": "Calendrier hebdomadaire des programmes",
+    "schedule": "Programme",
+    "scenario": "Scénario",
+    "time": "Heure",
+    "type": "Type",
+    "timeRange": "Plage horaire",
+    "cronMinute": "Minute",
+    "cronHour": "Heure",
+    "cronDow": "Jour de la semaine",
+    "startTime": "Heure de début",
+    "endTime": "Heure de fin",
+    "daysOfWeek": "Jours de la semaine"
   }
 }

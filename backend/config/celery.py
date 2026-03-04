@@ -31,4 +31,8 @@ app.conf.beat_schedule = {
         "task": "iot.aggregate_hourly_readings",
         "schedule": crontab(minute=5),  # Every hour at :05
     },
+    "check-schedules": {
+        "task": "iot.check_schedules",
+        "schedule": 60.0,  # Every 60 seconds
+    },
 }

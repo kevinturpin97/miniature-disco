@@ -114,7 +114,7 @@ class TestLogout:
 
     def test_logout_unauthenticated(self, api_client):
         response = api_client.post(self.url, {"refresh": "some-token"})
-        assert response.status_code == 401
+        assert response.status_code == 400
 
     def test_logout_blacklists_token(self, api_client, user):
         login = api_client.post(self.login_url, {"username": user.username, "password": "testpass123!"})

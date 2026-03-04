@@ -11,6 +11,9 @@ from .models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    Scenario,
+    ScenarioStep,
+    Schedule,
     Sensor,
     SensorReading,
     SensorReadingHourly,
@@ -128,3 +131,26 @@ class SensorReadingHourlyAdmin(admin.ModelAdmin):
     list_filter = ("sensor__sensor_type",)
     readonly_fields = ("created_at",)
     date_hierarchy = "hour"
+
+
+class ScenarioStepInline(admin.TabularInline):
+    model = ScenarioStep
+    extra = 0
+    ordering = ("order",)
+
+
+@admin.register(Scenario)
+class ScenarioAdmin(admin.ModelAdmin):
+    list_display = ("name", "zone", "status", "is_active", "last_run_at", "created_at")
+    list_filter = ("status", "is_active")
+    search_fields = ("name", "zone__name")
+    readonly_fields = ("created_at", "updated_at", "last_run_at")
+    inlines = [ScenarioStepInline]
+
+
+@admin.register(Schedule)
+class ScheduleAdmin(admin.ModelAdmin):
+    list_display = ("name", "scenario", "schedule_type", "is_active", "next_run_at", "last_run_at")
+    list_filter = ("schedule_type", "is_active")
+    search_fields = ("name", "scenario__name")
+    readonly_fields = ("created_at", "updated_at", "next_run_at", "last_run_at")

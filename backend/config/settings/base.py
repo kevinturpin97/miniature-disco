@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "channels",
+    "django_celery_beat",
     # Local
     "apps.iot",
     "apps.api",
@@ -123,8 +124,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "30/minute",
-        "user": "120/minute",
+        "anon": "60/minute",
+        "user": "300/minute",
     },
     "DEFAULT_PAGINATION_CLASS": "utils.pagination.StandardPagination",
     "PAGE_SIZE": 50,

@@ -12,6 +12,8 @@ from .views import (
     NotificationLogViewSet,
     NotificationRuleViewSet,
     OrgAnalyticsSummaryView,
+    ScenarioViewSet,
+    ScheduleViewSet,
     SensorViewSet,
     ZoneAnalyticsView,
     ZoneReportPDFView,
@@ -67,6 +69,19 @@ zone_analytics = ZoneAnalyticsView.as_view({"get": "retrieve"})
 zone_report_pdf = ZoneReportPDFView.as_view({"get": "retrieve"})
 org_analytics_summary = OrgAnalyticsSummaryView.as_view({"get": "list"})
 
+# Scenarios
+scenario_list = ScenarioViewSet.as_view({"get": "list", "post": "create"})
+scenario_detail = ScenarioViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+scenario_run = ScenarioViewSet.as_view({"post": "run_now"})
+
+# Schedules
+schedule_list = ScheduleViewSet.as_view({"get": "list", "post": "create"})
+schedule_detail = ScheduleViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -104,4 +119,11 @@ urlpatterns = [
     path("zones/<int:pk>/report/pdf/", zone_report_pdf, name="zone-report-pdf"),
     # Analytics — org-level
     path("orgs/<slug:slug>/analytics/summary/", org_analytics_summary, name="org-analytics-summary"),
+    # Scenarios — nested under zone + standalone
+    path("zones/<int:zone_id>/scenarios/", scenario_list, name="scenario-list"),
+    path("scenarios/<int:pk>/", scenario_detail, name="scenario-detail"),
+    path("scenarios/<int:pk>/run/", scenario_run, name="scenario-run"),
+    # Schedules — nested under zone + standalone
+    path("zones/<int:zone_id>/schedules/", schedule_list, name="schedule-list"),
+    path("schedules/<int:pk>/", schedule_detail, name="schedule-detail"),
 ]

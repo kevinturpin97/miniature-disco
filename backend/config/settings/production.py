@@ -20,8 +20,8 @@ SECURE_SSL_REDIRECT = False  # Handled by Nginx
 
 # Stricter rate limits for production
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
-    "anon": "20/minute",
-    "user": "60/minute",
+    "anon": "30/minute",
+    "user": "180/minute",
 }
 
 # File upload size limit (10 MB)

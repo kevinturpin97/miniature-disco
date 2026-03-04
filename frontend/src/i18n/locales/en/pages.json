@@ -279,5 +279,40 @@
       "readings7d": "Readings (7d)",
       "activeAlerts": "Active Alerts"
     }
+  },
+  "scenarios": {
+    "title": "Scenarios & Schedules",
+    "subtitle": "Create automation scenarios and schedule them.",
+    "tabs": {
+      "scenarios": "Scenarios",
+      "calendar": "Weekly Calendar"
+    },
+    "newScenario": "New Scenario",
+    "newSchedule": "New Schedule",
+    "editScenario": "Edit Scenario",
+    "editSchedule": "Edit Schedule",
+    "noScenarios": "No scenarios yet.",
+    "noSchedules": "No schedules yet.",
+    "runNow": "Run Now",
+    "lastRun": "Last run",
+    "confirmDelete": "Are you sure you want to delete",
+    "steps": "Steps",
+    "addStep": "Add Step",
+    "delay": "Delay",
+    "delaySec": "Delay (seconds)",
+    "duration": "Duration",
+    "durationSec": "Duration (seconds)",
+    "weeklyCalendar": "Weekly Schedule Calendar",
+    "schedule": "Schedule",
+    "scenario": "Scenario",
+    "time": "Time",
+    "type": "Type",
+    "timeRange": "Time Range",
+    "cronMinute": "Minute",
+    "cronHour": "Hour",
+    "cronDow": "Day of Week",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "daysOfWeek": "Days of Week"
   }
 }

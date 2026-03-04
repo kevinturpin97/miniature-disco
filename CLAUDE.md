@@ -748,16 +748,16 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 16 — Scénarios & Programmes Horaires
 **Objectif : automatisation temporelle avancée, au-delà du simple seuil**
 
-- [ ] Modèle `Schedule` : actions planifiées (cron-style ou time ranges)
-- [ ] Modèle `Scenario` : séquence d'actions nommée (ex : "Arrosage matin")
-- [ ] Modèle `ScenarioStep` : actionneur + action + délai + durée
-- [ ] Celery beat dynamique : charger les schedules depuis DB (django-celery-beat)
-- [ ] API CRUD complet pour `Schedule`, `Scenario`, `ScenarioStep`
-- [ ] Frontend : "Scenario Builder" drag-and-drop (timeline visuelle des étapes)
-- [ ] Frontend : calendrier hebdomadaire des programmes (style Google Calendar)
-- [ ] Exécution de scénario manuel depuis l'UI ("Lancer maintenant")
-- [ ] Gestion des conflits (un actionneur ne peut pas être dans 2 scénarios actifs)
-- [ ] Tests : ordonnancement des steps, conflits, exécution Celery
+- [x] Modèle `Schedule` : actions planifiées (cron-style ou time ranges)
+- [x] Modèle `Scenario` : séquence d'actions nommée (ex : "Arrosage matin")
+- [x] Modèle `ScenarioStep` : actionneur + action + délai + durée
+- [x] Celery beat dynamique : charger les schedules depuis DB (django-celery-beat)
+- [x] API CRUD complet pour `Schedule`, `Scenario`, `ScenarioStep`
+- [x] Frontend : "Scenario Builder" drag-and-drop (timeline visuelle des étapes)
+- [x] Frontend : calendrier hebdomadaire des programmes (style Google Calendar)
+- [x] Exécution de scénario manuel depuis l'UI ("Lancer maintenant")
+- [x] Gestion des conflits (un actionneur ne peut pas être dans 2 scénarios actifs)
+- [x] Tests : ordonnancement des steps, conflits, exécution Celery
 
 ---
 

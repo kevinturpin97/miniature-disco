@@ -15,6 +15,9 @@ from .models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    Scenario,
+    ScenarioStep,
+    Schedule,
     Sensor,
     SensorReading,
     Zone,
@@ -410,3 +413,142 @@ class NotificationLogSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = fields
+
+
+class ScenarioStepSerializer(serializers.ModelSerializer):
+    """Serializer for ScenarioStep — nested within ScenarioSerializer.
+
+    Fields:
+        id, actuator, actuator_name, order, action, action_value,
+        delay_seconds, duration_seconds.
+    """
+
+    actuator_name = serializers.CharField(source="actuator.name", read_only=True)
+
+    class Meta:
+        model = ScenarioStep
+        fields = (
+            "id",
+            "actuator",
+            "actuator_name",
+            "order",
+            "action",
+            "action_value",
+            "delay_seconds",
+            "duration_seconds",
+        )
+        read_only_fields = ("id",)
+
+
+class ScenarioSerializer(serializers.ModelSerializer):
+    """Serializer for the Scenario model.
+
+    Includes nested steps (read) and accepts step writes through
+    the ``steps`` field.
+
+    Fields:
+        id, zone, name, description, status, is_active, last_run_at,
+        steps, created_at, updated_at.
+    """
+
+    steps = ScenarioStepSerializer(many=True, required=False)
+
+    class Meta:
+        model = Scenario
+        fields = (
+            "id",
+            "zone",
+            "name",
+            "description",
+            "status",
+            "is_active",
+            "last_run_at",
+            "steps",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "zone", "status", "last_run_at", "created_at", "updated_at")
+
+    def create(self, validated_data: dict) -> Scenario:
+        """Create a scenario with nested steps."""
+        steps_data = validated_data.pop("steps", [])
+        scenario = Scenario.objects.create(**validated_data)
+        for step_data in steps_data:
+            ScenarioStep.objects.create(scenario=scenario, **step_data)
+        return scenario
+
+    def update(self, instance: Scenario, validated_data: dict) -> Scenario:
+        """Update a scenario and replace its steps if provided."""
+        steps_data = validated_data.pop("steps", None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if steps_data is not None:
+            instance.steps.all().delete()
+            for step_data in steps_data:
+                ScenarioStep.objects.create(scenario=instance, **step_data)
+
+        return instance
+
+    def validate_steps(self, value: list) -> list:
+        """Validate that step orders are unique and sequential."""
+        if not value:
+            return value
+        orders = [s.get("order", s.get("order")) for s in value]
+        if len(orders) != len(set(orders)):
+            raise serializers.ValidationError("Step orders must be unique.")
+        return value
+
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    """Serializer for the Schedule model.
+
+    Fields:
+        id, scenario, scenario_name, name, schedule_type,
+        cron_minute, cron_hour, cron_day_of_week,
+        start_time, end_time, days_of_week,
+        is_active, next_run_at, last_run_at, created_at, updated_at.
+    """
+
+    scenario_name = serializers.CharField(source="scenario.name", read_only=True)
+
+    class Meta:
+        model = Schedule
+        fields = (
+            "id",
+            "scenario",
+            "scenario_name",
+            "name",
+            "schedule_type",
+            "cron_minute",
+            "cron_hour",
+            "cron_day_of_week",
+            "start_time",
+            "end_time",
+            "days_of_week",
+            "is_active",
+            "next_run_at",
+            "last_run_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "next_run_at", "last_run_at", "created_at", "updated_at")
+
+    def validate(self, attrs: dict) -> dict:
+        """Validate schedule-type-specific fields."""
+        schedule_type = attrs.get("schedule_type", getattr(self.instance, "schedule_type", None))
+
+        if schedule_type == Schedule.ScheduleType.TIME_RANGE:
+            start = attrs.get("start_time", getattr(self.instance, "start_time", None))
+            end = attrs.get("end_time", getattr(self.instance, "end_time", None))
+            if not start:
+                raise serializers.ValidationError(
+                    {"start_time": "Start time is required for TIME_RANGE schedules."}
+                )
+            if not end:
+                raise serializers.ValidationError(
+                    {"end_time": "End time is required for TIME_RANGE schedules."}
+                )
+
+        return attrs

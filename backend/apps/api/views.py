@@ -35,6 +35,7 @@ class RegisterView(generics.CreateAPIView):
     """Create a new user account, personal org, and return JWT tokens."""
 
     permission_classes = [AllowAny]
+    throttle_classes = []  # Auth endpoints exempt from default throttling
     serializer_class = RegisterSerializer
 
     def create(self, request: Request, *args, **kwargs) -> Response:
@@ -56,18 +57,21 @@ class LoginView(TokenObtainPairView):
     """Obtain JWT access and refresh tokens."""
 
     permission_classes = [AllowAny]
+    throttle_classes = []  # Auth endpoints exempt from default throttling
 
 
 class RefreshView(TokenRefreshView):
     """Refresh the JWT access token."""
 
     permission_classes = [AllowAny]
+    throttle_classes = []  # Auth endpoints exempt from default throttling
 
 
 class LogoutView(APIView):
     """Blacklist the refresh token to invalidate the session."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    throttle_classes = []  # Auth endpoints exempt from default throttling
 
     def post(self, request: Request) -> Response:
         refresh_token = request.data.get("refresh")

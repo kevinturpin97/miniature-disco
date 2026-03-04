@@ -282,6 +282,72 @@ export interface OrgAnalyticsSummary {
   greenhouses: GreenhouseSummary[];
 }
 
+export type ScenarioStatus = "IDLE" | "RUNNING" | "COMPLETED" | "FAILED";
+export type ScheduleType = "CRON" | "TIME_RANGE";
+
+export interface ScenarioStep {
+  id?: number;
+  actuator: number;
+  actuator_name?: string;
+  order: number;
+  action: "ON" | "OFF" | "SET";
+  action_value?: number | null;
+  delay_seconds: number;
+  duration_seconds?: number | null;
+}
+
+export interface Scenario {
+  id: number;
+  zone: number;
+  name: string;
+  description: string;
+  status: ScenarioStatus;
+  is_active: boolean;
+  last_run_at: string | null;
+  steps: ScenarioStep[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScenarioPayload {
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  steps?: Omit<ScenarioStep, "id" | "actuator_name">[];
+}
+
+export interface ScheduleData {
+  id: number;
+  scenario: number;
+  scenario_name: string;
+  name: string;
+  schedule_type: ScheduleType;
+  cron_minute: string;
+  cron_hour: string;
+  cron_day_of_week: string;
+  start_time: string | null;
+  end_time: string | null;
+  days_of_week: number[];
+  is_active: boolean;
+  next_run_at: string | null;
+  last_run_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SchedulePayload {
+  scenario: number;
+  name: string;
+  schedule_type: ScheduleType;
+  cron_minute?: string;
+  cron_hour?: string;
+  cron_day_of_week?: string;
+  start_time?: string;
+  end_time?: string;
+  days_of_week?: number[];
+  is_active?: boolean;
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

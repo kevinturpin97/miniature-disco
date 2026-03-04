@@ -3,6 +3,7 @@
  *
  * - Attaches the access token to every request via Authorization header.
  * - On 401 responses, attempts a silent token refresh and retries the request.
+ * - On 429 responses, retries with exponential backoff (up to 3 attempts).
  * - Redirects to /login when refresh fails.
  */
 
@@ -10,6 +11,9 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { AuthTokens } from "@/types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+
+const MAX_RETRY_429 = 3;
+const BASE_DELAY_MS = 1000;
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -27,7 +31,7 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// ── Response interceptor (refresh on 401) ───────────────────────
+// ── Response interceptor (refresh on 401, retry on 429) ─────────
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -43,13 +47,34 @@ function processQueue(error: unknown, token: string | null) {
   failedQueue = [];
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 client.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
+      _retryCount429?: number;
     };
 
+    // ── 429 Too Many Requests — retry with exponential backoff ──
+    if (error.response?.status === 429) {
+      const retryCount = originalRequest._retryCount429 ?? 0;
+      if (retryCount < MAX_RETRY_429) {
+        originalRequest._retryCount429 = retryCount + 1;
+        const retryAfter = error.response.headers["retry-after"];
+        const waitMs = retryAfter
+          ? Number(retryAfter) * 1000
+          : BASE_DELAY_MS * Math.pow(2, retryCount);
+        await delay(waitMs);
+        return client(originalRequest);
+      }
+      return Promise.reject(error);
+    }
+
+    // ── 401 Unauthorized — attempt token refresh ────────────────
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
@@ -57,12 +82,14 @@ client.interceptors.response.use(
     if (isRefreshing) {
       return new Promise<string>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      }).then((token) => {
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-        }
-        return client(originalRequest);
-      });
+      })
+        .then((token) => {
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
+          return client(originalRequest);
+        })
+        .catch((err) => Promise.reject(err));
     }
 
     originalRequest._retry = true;
