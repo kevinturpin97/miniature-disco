@@ -12,9 +12,11 @@ from .views import (
     NotificationLogViewSet,
     NotificationRuleViewSet,
     OrgAnalyticsSummaryView,
+    PushSubscriptionView,
     ScenarioViewSet,
     ScheduleViewSet,
     SensorViewSet,
+    VapidPublicKeyView,
     ZoneAnalyticsView,
     ZoneReportPDFView,
     ZoneViewSet,
@@ -82,6 +84,10 @@ schedule_detail = ScheduleViewSet.as_view(
     {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
 )
 
+# Push subscriptions
+push_subscribe = PushSubscriptionView.as_view({"post": "create", "delete": "destroy"})
+vapid_public_key = VapidPublicKeyView.as_view({"get": "list"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -126,4 +132,7 @@ urlpatterns = [
     # Schedules — nested under zone + standalone
     path("zones/<int:zone_id>/schedules/", schedule_list, name="schedule-list"),
     path("schedules/<int:pk>/", schedule_detail, name="schedule-detail"),
+    # Push notifications
+    path("push/subscribe/", push_subscribe, name="push-subscribe"),
+    path("push/vapid-key/", vapid_public_key, name="vapid-public-key"),
 ]

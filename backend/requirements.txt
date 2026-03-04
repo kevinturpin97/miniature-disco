@@ -19,3 +19,5 @@ pytest-asyncio==0.24
 pytest==8.3
 reportlab==4.2
 django-celery-beat==2.7
+pywebpush==2.0.1
+py-vapid==1.9.2

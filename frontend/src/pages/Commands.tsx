@@ -26,11 +26,11 @@ interface GreenhouseWithZones extends Greenhouse {
 /* ---------- constants ---------- */
 
 const STATUS_STYLES: Record<CommandStatus, { bg: string; text: string }> = {
-  PENDING: { bg: "bg-yellow-100", text: "text-yellow-700" },
-  SENT: { bg: "bg-blue-100", text: "text-blue-700" },
-  ACK: { bg: "bg-green-100", text: "text-green-700" },
-  FAILED: { bg: "bg-red-100", text: "text-red-700" },
-  TIMEOUT: { bg: "bg-gray-100", text: "text-gray-600" },
+  PENDING: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-300" },
+  SENT: { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300" },
+  ACK: { bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-300" },
+  FAILED: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-300" },
+  TIMEOUT: { bg: "bg-gray-100 dark:bg-gray-700", text: "text-gray-600 dark:text-gray-400" },
 };
 
 const COMMAND_REFRESH_INTERVAL = 5_000;
@@ -210,7 +210,7 @@ export default function Commands() {
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-300">
         {error}
       </div>
     );
@@ -222,19 +222,19 @@ export default function Commands() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{tp("commands.title")}</h1>
-        <p className="mt-1 text-sm text-gray-500">{tp("commands.subtitle")}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{tp("commands.title")}</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{tp("commands.subtitle")}</p>
       </div>
 
       {/* Zone selector */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
           {t("labels.zone")}
         </label>
         <select
           value={selectedZoneId ?? ""}
           onChange={handleZoneChange}
-          className="w-full max-w-md rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+          className="w-full max-w-md rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-sm"
         >
           <option value="">{tp("commands.selectZone")}</option>
           {greenhouses.map((gh) => (
@@ -251,9 +251,9 @@ export default function Commands() {
 
       {/* No zone selected state */}
       {selectedZoneId === null && (
-        <div className="rounded-xl border bg-white p-12 text-center">
+        <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-gray-300"
+            className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -265,7 +265,7 @@ export default function Commands() {
               d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
             />
           </svg>
-          <p className="mt-4 text-sm text-gray-500">{tp("commands.selectZone")}</p>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{tp("commands.selectZone")}</p>
         </div>
       )}
 
@@ -280,11 +280,11 @@ export default function Commands() {
       {selectedZoneId !== null && !loadingZone && (
         <>
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
               {tp("commands.actuatorControls")}
             </h2>
             {actuators.length === 0 ? (
-              <div className="rounded-xl border bg-white p-8 text-center text-sm text-gray-400">
+              <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center text-sm text-gray-400 dark:text-gray-500">
                 {tp("commands.noActuators")}
               </div>
             ) : (
@@ -296,23 +296,23 @@ export default function Commands() {
                   return (
                     <div
                       key={actuator.id}
-                      className="rounded-xl border bg-white p-5 shadow-sm"
+                      className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm"
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{actuator.name}</h3>
-                          <p className="text-xs text-gray-500">{typeLabel}</p>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{actuator.name}</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{typeLabel}</p>
                         </div>
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             actuator.state
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-600"
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           <span
                             className={`inline-block h-1.5 w-1.5 rounded-full ${
-                              actuator.state ? "bg-green-500" : "bg-gray-400"
+                              actuator.state ? "bg-green-500" : "bg-gray-400 dark:bg-gray-500"
                             }`}
                           />
                           {actuator.state ? t("status.on") : t("status.off")}
@@ -330,7 +330,7 @@ export default function Commands() {
                         <button
                           onClick={() => handleSendCommand(actuator.id, "OFF")}
                           disabled={isSending}
-                          className="flex-1 rounded-lg bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-300 disabled:opacity-50"
+                          className="flex-1 rounded-lg bg-gray-200 dark:bg-gray-600 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm transition-colors hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50"
                         >
                           {isSending ? tp("commands.sendingCommand") : t("status.off")}
                         </button>
@@ -343,21 +343,21 @@ export default function Commands() {
           </div>
 
           {/* Command history */}
-          <div className="rounded-xl border bg-white shadow-sm">
-            <div className="border-b px-4 py-3">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+            <div className="border-b dark:border-gray-700 px-4 py-3">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {tp("commands.commandHistory")}
               </h2>
             </div>
             {commands.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-gray-400">
+              <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
                 {tp("commands.noCommands")}
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <tr className="border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       <th className="px-4 py-3">{t("labels.actuator")}</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Status</th>
@@ -366,17 +366,17 @@ export default function Commands() {
                       <th className="px-4 py-3">Acknowledged At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y dark:divide-gray-700">
                     {commands.map((cmd) => {
                       const statusStyle = STATUS_STYLES[cmd.status] ?? STATUS_STYLES.PENDING;
                       const actuatorName = nameMap.get(cmd.actuator) ?? `#${cmd.actuator}`;
 
                       return (
-                        <tr key={cmd.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium text-gray-900">
+                        <tr key={cmd.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                             {actuatorName}
                           </td>
-                          <td className="px-4 py-3 text-gray-700">{cmd.command_type}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{cmd.command_type}</td>
                           <td className="px-4 py-3">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}
@@ -385,16 +385,16 @@ export default function Commands() {
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
                             {cmd.error_message && (
-                              <p className="mt-1 text-xs text-red-500">{cmd.error_message}</p>
+                              <p className="mt-1 text-xs text-red-500 dark:text-red-400">{cmd.error_message}</p>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-gray-500">
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                             {formatDate(cmd.created_at)}
                           </td>
-                          <td className="px-4 py-3 text-gray-500">
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                             {cmd.sent_at ? formatDate(cmd.sent_at) : "--"}
                           </td>
-                          <td className="px-4 py-3 text-gray-500">
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                             {cmd.acknowledged_at ? formatDate(cmd.acknowledged_at) : "--"}
                           </td>
                         </tr>

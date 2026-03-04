@@ -905,3 +905,68 @@ class ScheduleViewSet(viewsets.ModelViewSet):
                     {"scenario": "Scenario does not belong to your organization."}
                 )
         serializer.save()
+
+
+class PushSubscriptionView(viewsets.ViewSet):
+    """Manage Web Push subscriptions for the authenticated user.
+
+    POST   /api/push/subscribe/   — Register a new push subscription.
+    DELETE /api/push/subscribe/   — Unsubscribe by endpoint URL.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request: Request) -> Response:
+        """Register a push subscription for the current user."""
+        from .models import PushSubscription
+        from .serializers import PushSubscriptionSerializer
+
+        serializer = PushSubscriptionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        PushSubscription.objects.update_or_create(
+            endpoint=serializer.validated_data["endpoint"],
+            defaults={
+                "user": request.user,
+                "p256dh": serializer.validated_data["p256dh"],
+                "auth": serializer.validated_data["auth"],
+            },
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request: Request) -> Response:
+        """Remove a push subscription by endpoint URL."""
+        from .models import PushSubscription
+
+        endpoint = request.data.get("endpoint")
+        if not endpoint:
+            return Response(
+                {"detail": "endpoint is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        deleted, _ = PushSubscription.objects.filter(
+            user=request.user, endpoint=endpoint
+        ).delete()
+        if not deleted:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VapidPublicKeyView(viewsets.ViewSet):
+    """Return the VAPID public key for the frontend to subscribe to push.
+
+    GET /api/push/vapid-key/
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request) -> Response:
+        from django.conf import settings as django_settings
+
+        public_key = django_settings.VAPID_PUBLIC_KEY
+        if not public_key:
+            return Response(
+                {"detail": "VAPID keys not configured."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return Response({"public_key": public_key})

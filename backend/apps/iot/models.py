@@ -325,6 +325,7 @@ class NotificationChannel(models.Model):
         EMAIL = "EMAIL", "Email"
         WEBHOOK = "WEBHOOK", "Webhook"
         TELEGRAM = "TELEGRAM", "Telegram"
+        PUSH = "PUSH", "Web Push"
 
     organization = models.ForeignKey(
         "api.Organization",
@@ -451,6 +452,26 @@ class NotificationLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.status} via {self.channel} @ {self.created_at}"
+
+
+class PushSubscription(models.Model):
+    """Web Push subscription stored per user for push notification delivery."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="push_subscriptions",
+    )
+    endpoint = models.URLField(max_length=500, unique=True)
+    p256dh = models.CharField(max_length=200, help_text="Client public encryption key")
+    auth = models.CharField(max_length=100, help_text="Client auth secret")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"PushSub({self.user.username}@{self.endpoint[:40]}...)"
 
 
 class Scenario(models.Model):

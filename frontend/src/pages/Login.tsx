@@ -57,34 +57,34 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white text-xl font-bold">
             G
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">
+          <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
             {tp("login.title")}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {tp("login.subtitle")}
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-xl border bg-white p-6 shadow-sm"
+          className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm"
         >
           {serverError && (
-            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">
               {serverError}
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t("labels.username")}
               </label>
               <input
@@ -94,17 +94,17 @@ export default function Login() {
                 autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 ${
-                  errors.username ? "border-red-300" : "border-gray-300"
+                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 ${
+                  errors.username ? "border-red-300 dark:border-red-500" : "border-gray-300 dark:border-gray-600"
                 }`}
               />
               {errors.username && (
-                <p className="mt-1 text-xs text-red-600">{errors.username}</p>
+                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.username}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t("labels.password")}
               </label>
               <input
@@ -114,12 +114,12 @@ export default function Login() {
                 autoComplete="current-password"
                 value={form.password}
                 onChange={handleChange}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 ${
-                  errors.password ? "border-red-300" : "border-gray-300"
+                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 ${
+                  errors.password ? "border-red-300 dark:border-red-500" : "border-gray-300 dark:border-gray-600"
                 }`}
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password}</p>
               )}
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function Login() {
             {loading ? t("actions.signingIn") : t("actions.signIn")}
           </button>
 
-          <p className="mt-4 text-center text-sm text-gray-500">
+          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
             {tp("login.noAccount")}{" "}
             <Link to="/register" className="font-medium text-primary-600 hover:text-primary-700">
               {tp("login.registerLink")}

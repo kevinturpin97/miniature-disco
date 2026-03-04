@@ -15,6 +15,7 @@ from .models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    PushSubscription,
     Scenario,
     ScenarioStep,
     Schedule,
@@ -413,6 +414,22 @@ class NotificationLogSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = fields
+
+
+class PushSubscriptionSerializer(serializers.ModelSerializer):
+    """Serializer for the PushSubscription model.
+
+    Fields:
+        id, endpoint, p256dh, auth, created_at.
+    """
+
+    class Meta:
+        model = PushSubscription
+        fields = ("id", "endpoint", "p256dh", "auth", "created_at")
+        read_only_fields = ("id", "created_at")
+        extra_kwargs = {
+            "endpoint": {"validators": []},
+        }
 
 
 class ScenarioStepSerializer(serializers.ModelSerializer):

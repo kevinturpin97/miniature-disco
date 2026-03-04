@@ -9,7 +9,8 @@
     "team": "Équipe",
     "notifications": "Notifications",
     "analytics": "Analytique",
-    "scenarios": "Scénarios"
+    "scenarios": "Scénarios",
+    "quickActions": "Actions rapides"
   },
   "actions": {
     "save": "Enregistrer",

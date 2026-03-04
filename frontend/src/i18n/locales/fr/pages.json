@@ -243,7 +243,19 @@
     "logDate": "Date",
     "logRule": "Règle",
     "logChannel": "Canal",
-    "logError": "Erreur"
+    "logError": "Erreur",
+    "pushTitle": "Notifications push",
+    "pushHint": "Recevez les alertes directement sur cet appareil.",
+    "pushSubscribed": "Vous êtes abonné aux notifications push sur cet appareil.",
+    "pushDenied": "Les notifications push sont bloquées. Activez-les dans les paramètres de votre navigateur.",
+    "pushEnable": "Activer",
+    "pushUnsubscribe": "Se désabonner",
+    "channelTypes": {
+      "EMAIL": "Email",
+      "WEBHOOK": "Webhook",
+      "TELEGRAM": "Telegram",
+      "PUSH": "Push web"
+    }
   },
   "analytics": {
     "title": "Analytique",
@@ -279,6 +291,13 @@
       "readings7d": "Lectures (7j)",
       "activeAlerts": "Alertes actives"
     }
+  },
+  "quickActions": {
+    "title": "Actions rapides",
+    "subtitle": "Contrôle rapide des actionneurs depuis votre écran d'accueil.",
+    "zoneOverview": "Aperçu des zones",
+    "actuators": "Contrôle des actionneurs",
+    "noActuators": "Aucun actionneur trouvé."
   },
   "scenarios": {
     "title": "Scénarios & Programmes",

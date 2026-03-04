@@ -42,9 +42,9 @@ export default function AcceptInvitation() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="rounded-lg bg-white p-8 text-center shadow">
-          <p className="text-gray-700">{t("team.loginToAccept")}</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center shadow">
+          <p className="text-gray-700 dark:text-gray-300">{t("team.loginToAccept")}</p>
           <button
             onClick={() => navigate("/login")}
             className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
@@ -57,12 +57,12 @@ export default function AcceptInvitation() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="rounded-lg bg-white p-8 text-center shadow">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center shadow">
         {status === "loading" && (
           <>
             <Spinner className="mx-auto h-8 w-8" />
-            <p className="mt-4 text-gray-600">{t("team.acceptingInvite")}</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">{t("team.acceptingInvite")}</p>
           </>
         )}
         {status === "success" && (
@@ -75,8 +75,8 @@ export default function AcceptInvitation() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <p className="mt-4 text-gray-900 font-medium">{message}</p>
-            <p className="mt-2 text-sm text-gray-500">{t("team.redirecting")}</p>
+            <p className="mt-4 text-gray-900 dark:text-gray-100 font-medium">{message}</p>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t("team.redirecting")}</p>
           </>
         )}
         {status === "error" && (
@@ -89,7 +89,7 @@ export default function AcceptInvitation() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <p className="mt-4 text-red-700 font-medium">{message}</p>
+            <p className="mt-4 text-red-700 dark:text-red-300 font-medium">{message}</p>
             <button
               onClick={() => navigate("/")}
               className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"

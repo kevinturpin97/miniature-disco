@@ -180,7 +180,7 @@ export interface AutomationRule {
   created_at: string;
 }
 
-export type ChannelType = "EMAIL" | "WEBHOOK" | "TELEGRAM";
+export type ChannelType = "EMAIL" | "WEBHOOK" | "TELEGRAM" | "PUSH";
 
 export interface NotificationChannel {
   id: number;

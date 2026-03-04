@@ -282,7 +282,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-300">
         {error}
       </div>
     );
@@ -293,10 +293,10 @@ export default function Dashboard() {
       {/* ---------- header ---------- */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {tp("dashboard.title")}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {tp("dashboard.subtitle")}
           </p>
         </div>
@@ -313,7 +313,7 @@ export default function Dashboard() {
       {data.length === 0 && (
         <div className="text-center py-12">
           <svg
-            className="mx-auto h-12 w-12 text-gray-300"
+            className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -325,10 +325,10 @@ export default function Dashboard() {
               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
             />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
             {tp("dashboard.noGreenhouses")}
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {tp("dashboard.noGreenhousesHint")}
           </p>
         </div>
@@ -340,23 +340,23 @@ export default function Dashboard() {
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">{gh.name}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{gh.name}</h2>
                 {gh.location && (
-                  <p className="text-sm text-gray-500">{gh.location}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{gh.location}</p>
                 )}
               </div>
               {/* greenhouse edit / delete buttons */}
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => openEditGreenhouse(gh)}
-                  className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                  className="rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-200"
                   aria-label={t("actions.edit")}
                 >
                   <PencilIcon />
                 </button>
                 <button
                   onClick={() => setDeleteTarget({ kind: "greenhouse", id: gh.id })}
-                  className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
                   aria-label={t("actions.delete")}
                 >
                   <TrashIcon />
@@ -365,12 +365,12 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">
+              <span className="rounded-full bg-primary-50 dark:bg-primary-900/20 px-3 py-1 text-xs font-medium text-primary-700 dark:text-primary-300">
                 {gh.zones.length} zone{gh.zones.length !== 1 ? "s" : ""}
               </span>
               <button
                 onClick={() => openCreateZone(gh.id)}
-                className="inline-flex items-center gap-1 rounded-lg border border-primary-300 px-3 py-1 text-xs font-medium text-primary-700 hover:bg-primary-50"
+                className="inline-flex items-center gap-1 rounded-lg border border-primary-300 dark:border-primary-600 px-3 py-1 text-xs font-medium text-primary-700 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
               >
                 <PlusIcon className="h-3.5 w-3.5" />
                 {tp("dashboard.addZone")}
@@ -379,7 +379,7 @@ export default function Dashboard() {
           </div>
 
           {gh.zones.length === 0 ? (
-            <p className="rounded-lg border border-dashed p-6 text-center text-sm text-gray-400">
+            <p className="rounded-lg border border-dashed dark:border-gray-700 p-6 text-center text-sm text-gray-400 dark:text-gray-500">
               {tp("dashboard.noZones")}
             </p>
           ) : (
@@ -405,41 +405,41 @@ export default function Dashboard() {
       >
         <form onSubmit={handleGhSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.name")} *
             </label>
             <input
               type="text"
               value={ghForm.name}
               onChange={(e) => setGhForm({ ...ghForm, name: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
             {ghErrors.name && (
-              <p className="mt-1 text-xs text-red-600">{ghErrors.name}</p>
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{ghErrors.name}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.location")}
             </label>
             <input
               type="text"
               value={ghForm.location ?? ""}
               onChange={(e) => setGhForm({ ...ghForm, location: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.description")}
             </label>
             <textarea
               rows={3}
               value={ghForm.description ?? ""}
               onChange={(e) => setGhForm({ ...ghForm, description: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
@@ -448,7 +448,7 @@ export default function Dashboard() {
               type="button"
               onClick={closeGhModal}
               disabled={ghSaving}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               {t("actions.cancel")}
             </button>
@@ -471,22 +471,22 @@ export default function Dashboard() {
       >
         <form onSubmit={handleZoneSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.name")} *
             </label>
             <input
               type="text"
               value={zoneForm.name}
               onChange={(e) => setZoneForm({ ...zoneForm, name: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
             {zoneErrors.name && (
-              <p className="mt-1 text-xs text-red-600">{zoneErrors.name}</p>
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{zoneErrors.name}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.relayId")} *
             </label>
             <input
@@ -496,27 +496,27 @@ export default function Dashboard() {
               value={zoneForm.relay_id}
               onChange={(e) => setZoneForm({ ...zoneForm, relay_id: Number(e.target.value) })}
               disabled={!!zoneEditing}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400"
             />
             {zoneErrors.relay_id && (
-              <p className="mt-1 text-xs text-red-600">{zoneErrors.relay_id}</p>
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{zoneErrors.relay_id}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.description")}
             </label>
             <textarea
               rows={3}
               value={zoneForm.description ?? ""}
               onChange={(e) => setZoneForm({ ...zoneForm, description: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.transmissionInterval")}
             </label>
             <input
@@ -524,10 +524,10 @@ export default function Dashboard() {
               min={1}
               value={zoneForm.transmission_interval}
               onChange={(e) => setZoneForm({ ...zoneForm, transmission_interval: Number(e.target.value) })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
             {zoneErrors.transmission_interval && (
-              <p className="mt-1 text-xs text-red-600">{zoneErrors.transmission_interval}</p>
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{zoneErrors.transmission_interval}</p>
             )}
           </div>
 
@@ -536,7 +536,7 @@ export default function Dashboard() {
               type="button"
               onClick={closeZoneModal}
               disabled={zoneSaving}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               {t("actions.cancel")}
             </button>
@@ -585,11 +585,11 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
   return (
     <Link
       to={`/zones/${zone.id}`}
-      className="block rounded-xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+      className="block rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">{zone.name}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{zone.name}</h3>
           {/* edit / delete buttons */}
           <button
             onClick={(e) => {
@@ -597,7 +597,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
               e.stopPropagation();
               onEdit();
             }}
-            className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-200"
             aria-label={t("actions.edit")}
           >
             <PencilIcon className="h-3.5 w-3.5" />
@@ -608,7 +608,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
               e.stopPropagation();
               onDelete();
             }}
-            className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+            className="rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
             aria-label={t("actions.delete")}
           >
             <TrashIcon className="h-3.5 w-3.5" />
@@ -617,7 +617,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
         <StatusBadge online={zone.is_online} />
       </div>
 
-      <p className="mt-1 text-xs text-gray-400">
+      <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
         {tp("dashboard.relay", { id: zone.relay_id })}
       </p>
 
@@ -628,7 +628,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
           ))}
         </div>
       ) : (
-        <p className="mt-4 text-xs text-gray-400">{tp("dashboard.noSensors")}</p>
+        <p className="mt-4 text-xs text-gray-400 dark:text-gray-500">{tp("dashboard.noSensors")}</p>
       )}
     </Link>
   );
@@ -648,8 +648,8 @@ function SensorRow({ sensor }: { sensor: Sensor }) {
 
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-gray-900">-- {unit}</span>
+      <span className="text-gray-500 dark:text-gray-400">{label}</span>
+      <span className="font-medium text-gray-900 dark:text-gray-100">-- {unit}</span>
     </div>
   );
 }

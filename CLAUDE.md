@@ -764,15 +764,36 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 17 — Mobile App & PWA
 **Objectif : expérience mobile native sans app store**
 
-- [ ] PWA : `manifest.json`, service worker (Vite PWA plugin), offline fallback page
-- [ ] Push notifications web (Web Push API + VAPID keys)
-- [ ] Refonte UX mobile : bottom navigation bar, swipe gestures sur les cartes
-- [ ] Page "Quick Actions" : contrôle rapide des actionneurs depuis l'accueil mobile
-- [ ] Optimisation performance : lazy loading routes, code splitting, skeleton screens
-- [ ] Dark mode complet (CSS variables, toggle persisté dans Zustand + localStorage)
-- [ ] Widget "Zone Status" : composant compact pour l'écran d'accueil PWA
-- [ ] Tests Lighthouse : score > 90 PWA, Performance, Accessibility
-- [ ] Tests : service worker, offline behavior, push subscription
+- [x] PWA : `manifest.json`, service worker (Vite PWA plugin), offline fallback page
+- [x] Push notifications web (Web Push API + VAPID keys)
+- [x] Refonte UX mobile : bottom navigation bar, swipe gestures sur les cartes
+- [x] Page "Quick Actions" : contrôle rapide des actionneurs depuis l'accueil mobile
+- [x] Optimisation performance : lazy loading routes, code splitting, skeleton screens
+- [x] Dark mode complet (CSS variables, toggle persisté dans Zustand + localStorage)
+- [x] Widget "Zone Status" : composant compact pour l'écran d'accueil PWA
+- [x] Tests Lighthouse : score > 90 PWA, Performance, Accessibility
+- [x] Tests : service worker, offline behavior, push subscription
+
+---
+
+### SPRINT 17 BIS — Refonte UI/UX & Identité Visuelle
+**Objectif : donner à la plateforme un design unique, professionnel, responsive et identitaire, prêt pour le SaaS, avec des animations simples, fluides, immersives**
+
+- [ ] Mise en place du Design System : DaisyUI + TailwindCSS (LLM: https://daisyui.com/llms.txt)
+- [ ] Définition des tokens : couleurs, typographies, spacing, icônes
+- [ ] Création du layout global : header, sidebar, footer, responsive breakpoints
+- [ ] Refonte Dashboard : cartes, tableaux, graphiques avec style uniforme
+- [ ] Refonte Zone Detail & Analytics : graphiques, heatmaps, corrélations
+- [ ] Refonte Pages Commands & Alerts : feedback visuel, boutons, modals
+- [ ] Refonte Settings / Profile / Team Management : formulaires, tables, rôles
+- [ ] Intégration branding : logo, favicon, palette couleurs, dark/light mode
+- [ ] Micro-interactions & animations pour l'immersion (style Duolingo) : hover, focus, transitions (framer-motion / TailwindCSS)
+- [ ] Responsive mobile & PWA : bottom nav bar, swipe gestures, skeleton screens
+- [ ] Tests Lighthouse : Performance > 90, Accessibility, PWA compliance
+- [ ] Tests composants : Storybook, tests unitaires frontend (Vitest + RTL)
+- [ ] QA cross-browser : Chrome, Firefox, Safari, Edge + mobile / tablette
+- [ ] Documentation du Design System et des composants pour usage futur
+- [ ] Version finale “brandée” prête pour production et intégration multi-tenant
 
 ---
 

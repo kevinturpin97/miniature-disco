@@ -243,7 +243,19 @@
     "logDate": "Date",
     "logRule": "Rule",
     "logChannel": "Channel",
-    "logError": "Error"
+    "logError": "Error",
+    "pushTitle": "Push Notifications",
+    "pushHint": "Receive alerts directly on this device.",
+    "pushSubscribed": "You are subscribed to push notifications on this device.",
+    "pushDenied": "Push notifications are blocked. Enable them in your browser settings.",
+    "pushEnable": "Enable Push",
+    "pushUnsubscribe": "Unsubscribe",
+    "channelTypes": {
+      "EMAIL": "Email",
+      "WEBHOOK": "Webhook",
+      "TELEGRAM": "Telegram",
+      "PUSH": "Web Push"
+    }
   },
   "analytics": {
     "title": "Analytics",
@@ -279,6 +291,13 @@
       "readings7d": "Readings (7d)",
       "activeAlerts": "Active Alerts"
     }
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "subtitle": "Fast actuator control from your mobile home screen.",
+    "zoneOverview": "Zone Overview",
+    "actuators": "Actuator Controls",
+    "noActuators": "No actuators found."
   },
   "scenarios": {
     "title": "Scenarios & Schedules",

@@ -48,7 +48,7 @@ type TabKey = "profile" | "resources";
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
-      className={`h-4 w-4 text-gray-500 transition-transform ${expanded ? "rotate-90" : ""}`}
+      className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${expanded ? "rotate-90" : ""}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -217,21 +217,21 @@ function ProfileTab() {
   return (
     <div className="space-y-8">
       {/* Profile form */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">
+      <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {tp("settings.profile.title")}
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {tp("settings.profile.subtitle")}
         </p>
 
         {profileMsg && (
-          <div className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="mt-4 rounded-lg bg-green-50 dark:bg-green-900/20 px-4 py-3 text-sm text-green-700 dark:text-green-300">
             {profileMsg}
           </div>
         )}
         {profileError && (
-          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
             {profileError}
           </div>
         )}
@@ -239,20 +239,20 @@ function ProfileTab() {
         <form onSubmit={handleProfileSave} className="mt-6 space-y-4">
           {/* Username (readonly) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.username")}
             </label>
             <input
               type="text"
               value={username}
               readOnly
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 shadow-sm"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-sm text-gray-500 dark:text-gray-400 shadow-sm"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.email")}
             </label>
             <input
@@ -260,32 +260,32 @@ function ProfileTab() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700"
             />
           </div>
 
           {/* First name / Last name */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t("labels.name")} (first)
               </label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t("labels.name")} (last)
               </label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700"
               />
             </div>
           </div>
@@ -303,28 +303,28 @@ function ProfileTab() {
       </div>
 
       {/* Password change */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">
+      <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {tp("settings.profile.passwordTitle")}
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {tp("settings.profile.passwordSubtitle")}
         </p>
 
         {pwMsg && (
-          <div className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="mt-4 rounded-lg bg-green-50 dark:bg-green-900/20 px-4 py-3 text-sm text-green-700 dark:text-green-300">
             {pwMsg}
           </div>
         )}
         {pwError && (
-          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
             {pwError}
           </div>
         )}
 
         <form onSubmit={handlePasswordChange} className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.currentPassword")}
             </label>
             <input
@@ -332,11 +332,11 @@ function ProfileTab() {
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.newPassword")}
             </label>
             <input
@@ -344,11 +344,11 @@ function ProfileTab() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.confirmNewPassword")}
             </label>
             <input
@@ -356,7 +356,7 @@ function ProfileTab() {
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700"
             />
           </div>
 
@@ -840,7 +840,7 @@ function ResourcesTab() {
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-300">
         {error}
       </div>
     );
@@ -852,10 +852,10 @@ function ResourcesTab() {
         {/* Header row */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {tp("settings.resources.title")}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {tp("settings.resources.subtitle")}
             </p>
           </div>
@@ -875,7 +875,7 @@ function ResourcesTab() {
             return (
               <div
                 key={gh.id}
-                className="overflow-hidden rounded-xl border bg-white shadow-sm"
+                className="overflow-hidden rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
               >
                 {/* Greenhouse row */}
                 <div className="flex items-center gap-3 px-4 py-3">
@@ -885,11 +885,11 @@ function ResourcesTab() {
                   >
                     <ChevronIcon expanded={ghOpen} />
                     <div>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {gh.name}
                       </span>
                       {gh.location && (
-                        <span className="ml-2 text-xs text-gray-500">
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                           {gh.location}
                         </span>
                       )}
@@ -897,7 +897,7 @@ function ResourcesTab() {
                   </button>
                   <button
                     onClick={() => handleDeleteGh(gh)}
-                    className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
                     title={t("actions.delete")}
                   >
                     <TrashIcon />
@@ -906,7 +906,7 @@ function ResourcesTab() {
 
                 {/* Zones */}
                 {ghOpen && (
-                  <div className="border-t bg-gray-50 px-4 py-3">
+                  <div className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3">
                     {!ghLoaded ? (
                       <div className="flex justify-center py-4">
                         <Spinner className="h-5 w-5" />
@@ -924,7 +924,7 @@ function ResourcesTab() {
                             return (
                               <div
                                 key={zone.id}
-                                className="overflow-hidden rounded-lg border bg-white"
+                                className="overflow-hidden rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800"
                               >
                                 {/* Zone row */}
                                 <div className="flex items-center gap-3 px-4 py-2.5">
@@ -934,17 +934,17 @@ function ResourcesTab() {
                                   >
                                     <ChevronIcon expanded={zOpen} />
                                     <div>
-                                      <span className="text-sm font-medium text-gray-900">
+                                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                         {zone.name}
                                       </span>
-                                      <span className="ml-2 text-xs text-gray-500">
+                                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                                         Relay #{zone.relay_id}
                                       </span>
                                     </div>
                                   </button>
                                   <button
                                     onClick={() => handleDeleteZone(zone)}
-                                    className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                    className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
                                     title={t("actions.delete")}
                                   >
                                     <TrashIcon />
@@ -953,7 +953,7 @@ function ResourcesTab() {
 
                                 {/* Sensors + Actuators */}
                                 {zOpen && (
-                                  <div className="border-t bg-gray-50 px-4 py-3 space-y-4">
+                                  <div className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3 space-y-4">
                                     {!zoneLoaded ? (
                                       <div className="flex justify-center py-4">
                                         <Spinner className="h-5 w-5" />
@@ -963,7 +963,7 @@ function ResourcesTab() {
                                         {/* Sensors */}
                                         <div>
                                           <div className="flex items-center justify-between mb-2">
-                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                               {t("labels.sensor")}s
                                             </h4>
                                             <button
@@ -979,7 +979,7 @@ function ResourcesTab() {
                                             </button>
                                           </div>
                                           {sensors.length === 0 ? (
-                                            <p className="text-xs text-gray-400 italic">
+                                            <p className="text-xs text-gray-400 dark:text-gray-500 italic">
                                               {tp(
                                                 "settings.resources.noSensors",
                                               )}
@@ -989,21 +989,21 @@ function ResourcesTab() {
                                               {sensors.map((s) => (
                                                 <li
                                                   key={s.id}
-                                                  className="flex items-center justify-between rounded-md bg-white px-3 py-2 text-sm border"
+                                                  className="flex items-center justify-between rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm border dark:border-gray-700"
                                                 >
                                                   <div>
-                                                    <span className="font-medium text-gray-800">
+                                                    <span className="font-medium text-gray-800 dark:text-gray-200">
                                                       {SENSOR_TYPE_LABELS[
                                                         s.sensor_type
                                                       ] ?? s.sensor_type}
                                                     </span>
                                                     {s.unit && (
-                                                      <span className="ml-1.5 text-xs text-gray-500">
+                                                      <span className="ml-1.5 text-xs text-gray-500 dark:text-gray-400">
                                                         ({s.unit})
                                                       </span>
                                                     )}
                                                     {s.label && (
-                                                      <span className="ml-2 text-xs text-gray-400">
+                                                      <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
                                                         - {s.label}
                                                       </span>
                                                     )}
@@ -1012,7 +1012,7 @@ function ResourcesTab() {
                                                     onClick={() =>
                                                       handleDeleteSensor(s)
                                                     }
-                                                    className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                                    className="rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
                                                     title={t("actions.delete")}
                                                   >
                                                     <TrashIcon />
@@ -1026,7 +1026,7 @@ function ResourcesTab() {
                                         {/* Actuators */}
                                         <div>
                                           <div className="flex items-center justify-between mb-2">
-                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                               {t("labels.actuator")}s
                                             </h4>
                                             <button
@@ -1042,7 +1042,7 @@ function ResourcesTab() {
                                             </button>
                                           </div>
                                           {actuators.length === 0 ? (
-                                            <p className="text-xs text-gray-400 italic">
+                                            <p className="text-xs text-gray-400 dark:text-gray-500 italic">
                                               {tp(
                                                 "settings.resources.noActuators",
                                               )}
@@ -1052,19 +1052,19 @@ function ResourcesTab() {
                                               {actuators.map((a) => (
                                                 <li
                                                   key={a.id}
-                                                  className="flex items-center justify-between rounded-md bg-white px-3 py-2 text-sm border"
+                                                  className="flex items-center justify-between rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm border dark:border-gray-700"
                                                 >
                                                   <div>
-                                                    <span className="font-medium text-gray-800">
+                                                    <span className="font-medium text-gray-800 dark:text-gray-200">
                                                       {a.name}
                                                     </span>
-                                                    <span className="ml-2 text-xs text-gray-500">
+                                                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                                                       {ACTUATOR_TYPE_LABELS[
                                                         a.actuator_type
                                                       ] ?? a.actuator_type}
                                                     </span>
                                                     {a.gpio_pin !== null && (
-                                                      <span className="ml-1.5 text-xs text-gray-400">
+                                                      <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">
                                                         (GPIO {a.gpio_pin})
                                                       </span>
                                                     )}
@@ -1073,7 +1073,7 @@ function ResourcesTab() {
                                                     onClick={() =>
                                                       handleDeleteActuator(a)
                                                     }
-                                                    className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                                    className="rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
                                                     title={t("actions.delete")}
                                                   >
                                                     <TrashIcon />
@@ -1095,7 +1095,7 @@ function ResourcesTab() {
                         {/* Add zone button */}
                         <button
                           onClick={() => openCreateZone(gh.id)}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 hover:border-primary-400 hover:text-primary-600"
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600"
                         >
                           <PlusIcon />
                           {t("labels.zone")}
@@ -1109,8 +1109,8 @@ function ResourcesTab() {
           })}
 
           {greenhouses.length === 0 && (
-            <div className="rounded-xl border bg-white p-12 text-center">
-              <p className="text-sm text-gray-500">
+            <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-12 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 No greenhouses yet. Create one to get started.
               </p>
             </div>
@@ -1128,7 +1128,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateGh} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.name")}
             </label>
             <input
@@ -1136,36 +1136,36 @@ function ResourcesTab() {
               value={ghName}
               onChange={(e) => setGhName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.location")}
             </label>
             <input
               type="text"
               value={ghLocation}
               onChange={(e) => setGhLocation(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.description")}
             </label>
             <textarea
               value={ghDescription}
               onChange={(e) => setGhDescription(e.target.value)}
               rows={2}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setGhModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {t("actions.cancel")}
             </button>
@@ -1188,7 +1188,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateZone} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.name")}
             </label>
             <input
@@ -1196,11 +1196,11 @@ function ResourcesTab() {
               value={zoneName}
               onChange={(e) => setZoneName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.relayId")}
             </label>
             <input
@@ -1210,22 +1210,22 @@ function ResourcesTab() {
               value={zoneRelayId}
               onChange={(e) => setZoneRelayId(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.description")}
             </label>
             <textarea
               value={zoneDescription}
               onChange={(e) => setZoneDescription(e.target.value)}
               rows={2}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.transmissionInterval")}
             </label>
             <input
@@ -1233,14 +1233,14 @@ function ResourcesTab() {
               min={10}
               value={zoneInterval}
               onChange={(e) => setZoneInterval(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setZoneModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {t("actions.cancel")}
             </button>
@@ -1263,7 +1263,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateSensor} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.sensorType")}
             </label>
             <select
@@ -1271,7 +1271,7 @@ function ResourcesTab() {
               onChange={(e) =>
                 handleSensorTypeChange(e.target.value as SensorType)
               }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             >
               {ALL_SENSOR_TYPES.map((st) => (
                 <option key={st} value={st}>
@@ -1281,19 +1281,19 @@ function ResourcesTab() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.unit")}
             </label>
             <input
               type="text"
               value={sensorUnit}
               onChange={(e) => setSensorUnit(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 shadow-sm"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-sm text-gray-500 dark:text-gray-400 shadow-sm"
               readOnly
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Label
             </label>
             <input
@@ -1301,12 +1301,12 @@ function ResourcesTab() {
               value={sensorLabel}
               onChange={(e) => setSensorLabel(e.target.value)}
               placeholder="Optional label"
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t("labels.minThreshold")}
               </label>
               <input
@@ -1314,11 +1314,11 @@ function ResourcesTab() {
                 step="any"
                 value={sensorMin}
                 onChange={(e) => setSensorMin(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t("labels.maxThreshold")}
               </label>
               <input
@@ -1326,7 +1326,7 @@ function ResourcesTab() {
                 step="any"
                 value={sensorMax}
                 onChange={(e) => setSensorMax(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
@@ -1334,7 +1334,7 @@ function ResourcesTab() {
             <button
               type="button"
               onClick={() => setSensorModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {t("actions.cancel")}
             </button>
@@ -1357,7 +1357,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateActuator} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.actuatorType")}
             </label>
             <select
@@ -1365,7 +1365,7 @@ function ResourcesTab() {
               onChange={(e) =>
                 setActuatorType(e.target.value as ActuatorType)
               }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             >
               {ALL_ACTUATOR_TYPES.map((at) => (
                 <option key={at} value={at}>
@@ -1375,7 +1375,7 @@ function ResourcesTab() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.name")}
             </label>
             <input
@@ -1383,11 +1383,11 @@ function ResourcesTab() {
               value={actuatorName}
               onChange={(e) => setActuatorName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("labels.gpioPin")}
             </label>
             <input
@@ -1396,14 +1396,14 @@ function ResourcesTab() {
               value={actuatorGpio}
               onChange={(e) => setActuatorGpio(e.target.value)}
               placeholder="Optional"
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setActuatorModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {t("actions.cancel")}
             </button>
@@ -1452,13 +1452,13 @@ export default function Settings() {
     <div className="space-y-6">
       {/* Page title */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {tp("settings.title")}
         </h1>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex gap-6" aria-label="Tabs">
           {tabs.map((tab) => (
             <button
@@ -1467,7 +1467,7 @@ export default function Settings() {
               className={`whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === tab.key
                   ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               {tab.label}

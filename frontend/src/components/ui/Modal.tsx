@@ -40,12 +40,12 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <div className="w-full max-w-lg rounded-xl bg-white shadow-xl dark:bg-gray-800">
+        <div className="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-gray-400 hover:text-gray-600"
+            className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
             aria-label={t("actions.close")}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

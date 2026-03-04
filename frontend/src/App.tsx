@@ -1,26 +1,37 @@
 /**
  * Root application component with routing and auth protection.
+ * All page routes use React.lazy for code-splitting.
  */
 
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@/components/ui/Spinner";
 import { AppLayout } from "@/components/layout/AppLayout";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import Dashboard from "@/pages/Dashboard";
-import ZoneDetail from "@/pages/ZoneDetail";
-import History from "@/pages/History";
-import Alerts from "@/pages/Alerts";
-import Commands from "@/pages/Commands";
-import Automations from "@/pages/Automations";
-import Settings from "@/pages/Settings";
-import Team from "@/pages/Team";
-import Notifications from "@/pages/Notifications";
-import Analytics from "@/pages/Analytics";
-import Scenarios from "@/pages/Scenarios";
-import AcceptInvitation from "@/pages/AcceptInvitation";
+
+const Login = lazy(() => import("@/pages/Login"));
+const Register = lazy(() => import("@/pages/Register"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const ZoneDetail = lazy(() => import("@/pages/ZoneDetail"));
+const History = lazy(() => import("@/pages/History"));
+const Alerts = lazy(() => import("@/pages/Alerts"));
+const Commands = lazy(() => import("@/pages/Commands"));
+const Automations = lazy(() => import("@/pages/Automations"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const Team = lazy(() => import("@/pages/Team"));
+const Notifications = lazy(() => import("@/pages/Notifications"));
+const Analytics = lazy(() => import("@/pages/Analytics"));
+const Scenarios = lazy(() => import("@/pages/Scenarios"));
+const AcceptInvitation = lazy(() => import("@/pages/AcceptInvitation"));
+const QuickActions = lazy(() => import("@/pages/QuickActions"));
+
+function PageFallback() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Spinner className="h-10 w-10" />
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -28,11 +39,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner className="h-10 w-10" />
-      </div>
-    );
+    return <PageFallback />;
   }
 
   if (!isAuthenticated) {
@@ -47,11 +54,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const isLoading = useAuthStore((s) => s.isLoading);
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner className="h-10 w-10" />
-      </div>
-    );
+    return <PageFallback />;
   }
 
   if (isAuthenticated) {
@@ -75,59 +78,62 @@ function App() {
   return (
     <BrowserRouter>
       <AppInit>
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
 
-          {/* Invitation acceptance (requires auth but no layout) */}
-          <Route
-            path="/invite/:token"
-            element={
-              <ProtectedRoute>
-                <AcceptInvitation />
-              </ProtectedRoute>
-            }
-          />
+            {/* Invitation acceptance (requires auth but no layout) */}
+            <Route
+              path="/invite/:token"
+              element={
+                <ProtectedRoute>
+                  <AcceptInvitation />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Protected routes with layout */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="zones/:zoneId" element={<ZoneDetail />} />
-            <Route path="history" element={<History />} />
-            <Route path="alerts" element={<Alerts />} />
-            <Route path="commands" element={<Commands />} />
-            <Route path="automations" element={<Automations />} />
-            <Route path="team" element={<Team />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="scenarios" element={<Scenarios />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
+            {/* Protected routes with layout */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="quick-actions" element={<QuickActions />} />
+              <Route path="zones/:zoneId" element={<ZoneDetail />} />
+              <Route path="history" element={<History />} />
+              <Route path="alerts" element={<Alerts />} />
+              <Route path="commands" element={<Commands />} />
+              <Route path="automations" element={<Automations />} />
+              <Route path="team" element={<Team />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="scenarios" element={<Scenarios />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </AppInit>
     </BrowserRouter>
   );

@@ -11,6 +11,7 @@ from .models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    PushSubscription,
     Scenario,
     ScenarioStep,
     Schedule,
@@ -154,3 +155,11 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_filter = ("schedule_type", "is_active")
     search_fields = ("name", "scenario__name")
     readonly_fields = ("created_at", "updated_at", "next_run_at", "last_run_at")
+
+
+@admin.register(PushSubscription)
+class PushSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("user", "endpoint", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "endpoint")
+    readonly_fields = ("created_at",)

@@ -17,8 +17,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from pywebpush import WebPushException, webpush
 
-from .models import Alert, NotificationChannel
+from .models import Alert, NotificationChannel, PushSubscription
 
 logger = logging.getLogger(__name__)
 
@@ -171,9 +172,86 @@ def dispatch_telegram(alert: Alert, channel: NotificationChannel) -> None:
     logger.info("Telegram notification sent for alert %s to chat %s", alert.pk, chat_id)
 
 
+def dispatch_push(alert: Alert, channel: NotificationChannel) -> None:
+    """Send push notifications to all subscribed users in the organization.
+
+    Uses the Web Push protocol with VAPID authentication. Sends to every
+    PushSubscription belonging to users who are members of the channel's
+    organization.
+
+    Args:
+        alert: The Alert that triggered the notification.
+        channel: The PUSH NotificationChannel.
+
+    Raises:
+        ValueError: If VAPID keys are not configured.
+    """
+    vapid_private = settings.VAPID_PRIVATE_KEY
+    vapid_public = settings.VAPID_PUBLIC_KEY
+    vapid_email = settings.VAPID_ADMIN_EMAIL
+
+    if not vapid_private or not vapid_public:
+        raise ValueError("VAPID keys are not configured. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY.")
+
+    org = channel.organization
+    user_ids = org.memberships.values_list("user_id", flat=True)
+    subscriptions = PushSubscription.objects.filter(user_id__in=user_ids)
+
+    if not subscriptions.exists():
+        logger.info("No push subscriptions found for org %s", org.slug)
+        return
+
+    context = _build_alert_context(alert)
+    payload = json.dumps({
+        "title": f"[{alert.severity}] {alert.get_alert_type_display()}",
+        "body": alert.message,
+        "data": context,
+        "icon": "/pwa-192x192.png",
+        "badge": "/pwa-192x192.png",
+    })
+
+    vapid_claims = {
+        "sub": f"mailto:{vapid_email}",
+    }
+
+    failed_endpoints: list[int] = []
+    for sub in subscriptions:
+        subscription_info = {
+            "endpoint": sub.endpoint,
+            "keys": {
+                "p256dh": sub.p256dh,
+                "auth": sub.auth,
+            },
+        }
+        try:
+            webpush(
+                subscription_info=subscription_info,
+                data=payload,
+                vapid_private_key=vapid_private,
+                vapid_claims=vapid_claims,
+            )
+        except WebPushException as exc:
+            if exc.response and exc.response.status_code in (404, 410):
+                failed_endpoints.append(sub.pk)
+                logger.info("Push subscription expired/invalid, removing: %s", sub.endpoint[:60])
+            else:
+                logger.warning("Push notification failed for %s: %s", sub.endpoint[:60], exc)
+
+    if failed_endpoints:
+        PushSubscription.objects.filter(pk__in=failed_endpoints).delete()
+
+    logger.info(
+        "Push notifications sent for alert %s to org %s (%d subscriptions)",
+        alert.pk,
+        org.slug,
+        subscriptions.count(),
+    )
+
+
 # Registry mapping channel type to dispatcher function
 DISPATCHERS = {
     NotificationChannel.ChannelType.EMAIL: dispatch_email,
     NotificationChannel.ChannelType.WEBHOOK: dispatch_webhook,
     NotificationChannel.ChannelType.TELEGRAM: dispatch_telegram,
+    NotificationChannel.ChannelType.PUSH: dispatch_push,
 }

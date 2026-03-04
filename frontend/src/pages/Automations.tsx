@@ -283,7 +283,7 @@ export default function Automations() {
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-300">
         {error}
       </div>
     );
@@ -294,8 +294,8 @@ export default function Automations() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{tp("automations.title")}</h1>
-          <p className="mt-1 text-sm text-gray-500">{tp("automations.subtitle")}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{tp("automations.title")}</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{tp("automations.subtitle")}</p>
         </div>
         {selectedZoneId !== null && (
           <button
@@ -309,13 +309,13 @@ export default function Automations() {
 
       {/* Zone selector */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
           {t("labels.zone")}
         </label>
         <select
           value={selectedZoneId ?? ""}
           onChange={(e) => setSelectedZoneId(e.target.value ? Number(e.target.value) : null)}
-          className="w-full max-w-md rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+          className="w-full max-w-md rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-sm"
         >
           <option value="">{tp("automations.selectZone")}</option>
           {greenhouses.map((gh) => (
@@ -332,9 +332,9 @@ export default function Automations() {
 
       {/* No zone selected */}
       {selectedZoneId === null && (
-        <div className="rounded-xl border bg-white p-12 text-center">
+        <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-gray-300"
+            className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -352,7 +352,7 @@ export default function Automations() {
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <p className="mt-4 text-sm text-gray-500">{tp("automations.selectZone")}</p>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{tp("automations.selectZone")}</p>
         </div>
       )}
 
@@ -367,7 +367,7 @@ export default function Automations() {
       {selectedZoneId !== null && !loadingZone && (
         <>
           {rules.length === 0 ? (
-            <div className="rounded-xl border bg-white p-8 text-center text-sm text-gray-400">
+            <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center text-sm text-gray-400 dark:text-gray-500">
               {tp("automations.noRules")}
             </div>
           ) : (
@@ -378,20 +378,20 @@ export default function Automations() {
                 return (
                   <div
                     key={rule.id}
-                    className={`rounded-xl border bg-white p-5 shadow-sm ${!rule.is_active ? "opacity-60" : ""}`}
+                    className={`rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm ${!rule.is_active ? "opacity-60" : ""}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate font-semibold text-gray-900">{rule.name}</h3>
+                        <h3 className="truncate font-semibold text-gray-900 dark:text-gray-100">{rule.name}</h3>
                         {rule.description && (
-                          <p className="mt-1 text-xs text-gray-500">{rule.description}</p>
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{rule.description}</p>
                         )}
                       </div>
                       <span
                         className={`ml-2 inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           rule.is_active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-500"
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                         }`}
                       >
                         {rule.is_active
@@ -401,23 +401,23 @@ export default function Automations() {
                     </div>
 
                     {/* Rule condition summary */}
-                    <div className="mt-3 rounded-lg bg-gray-50 p-3 text-sm">
-                      <span className="font-medium text-gray-700">IF </span>
+                    <div className="mt-3 rounded-lg bg-gray-50 dark:bg-gray-900 p-3 text-sm">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">IF </span>
                       <span className="text-blue-600">{SENSOR_TYPE_LABELS[rule.sensor_type] ?? rule.sensor_type}</span>
-                      <span className="text-gray-500"> {tp(`automations.conditions.${rule.condition}`)} </span>
-                      <span className="font-mono text-gray-900">{rule.threshold_value}</span>
+                      <span className="text-gray-500 dark:text-gray-400"> {tp(`automations.conditions.${rule.condition}`)} </span>
+                      <span className="font-mono text-gray-900 dark:text-gray-100">{rule.threshold_value}</span>
                       <br />
-                      <span className="font-medium text-gray-700">THEN </span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">THEN </span>
                       <span className="text-purple-600">{tp(`automations.commandTypes.${rule.action_command_type}`)}</span>
-                      <span className="text-gray-500"> → </span>
-                      <span className="text-gray-900">{actuatorName}</span>
+                      <span className="text-gray-500 dark:text-gray-400"> → </span>
+                      <span className="text-gray-900 dark:text-gray-100">{actuatorName}</span>
                       {rule.action_command_type === "SET" && rule.action_value !== null && (
-                        <span className="text-gray-500"> = {rule.action_value}</span>
+                        <span className="text-gray-500 dark:text-gray-400"> = {rule.action_value}</span>
                       )}
                     </div>
 
                     {/* Metadata row */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400 dark:text-gray-500">
                       <span>
                         {rule.last_triggered
                           ? `${tp("automations.status.lastTriggered")}: ${formatRelativeTime(rule.last_triggered)}`
@@ -432,8 +432,8 @@ export default function Automations() {
                         onClick={() => handleToggleActive(rule)}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                           rule.is_active
-                            ? "bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
-                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                            ? "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                            : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30"
                         }`}
                       >
                         {rule.is_active
@@ -442,13 +442,13 @@ export default function Automations() {
                       </button>
                       <button
                         onClick={() => openEditModal(rule)}
-                        className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                        className="rounded-lg bg-gray-50 dark:bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         {t("actions.edit")}
                       </button>
                       <button
                         onClick={() => setDeleteTarget(rule)}
-                        className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
+                        className="rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-900/30"
                       >
                         {t("actions.delete")}
                       </button>
@@ -460,21 +460,21 @@ export default function Automations() {
           )}
 
           {/* Trigger History */}
-          <div className="rounded-xl border bg-white shadow-sm">
-            <div className="border-b px-4 py-3">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+            <div className="border-b dark:border-gray-700 px-4 py-3">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {tp("automations.triggerHistory")}
               </h2>
             </div>
             {triggerCommands.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-gray-400">
+              <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
                 {tp("automations.noTriggers")}
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <tr className="border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       <th className="px-4 py-3">{t("labels.actuator")}</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Status</th>
@@ -482,26 +482,26 @@ export default function Automations() {
                       <th className="px-4 py-3">Created</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y dark:divide-gray-700">
                     {triggerCommands.slice(0, 20).map((cmd) => {
                       const actuatorName = actuatorNameMap.get(cmd.actuator) ?? `#${cmd.actuator}`;
                       const linkedRule = rules.find((r) => r.id === cmd.automation_rule);
 
                       return (
-                        <tr key={cmd.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium text-gray-900">
+                        <tr key={cmd.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                             {actuatorName}
                           </td>
-                          <td className="px-4 py-3 text-gray-700">{cmd.command_type}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{cmd.command_type}</td>
                           <td className="px-4 py-3">
-                            <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                            <span className="inline-flex rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-500">
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                             {linkedRule?.name ?? `#${cmd.automation_rule}`}
                           </td>
-                          <td className="px-4 py-3 text-gray-500">
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                             {formatDate(cmd.created_at)}
                           </td>
                         </tr>
@@ -523,45 +523,45 @@ export default function Automations() {
       >
         <div className="space-y-4">
           {formErrors._form && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{formErrors._form}</div>
+            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">{formErrors._form}</div>
           )}
 
           {/* Name */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               {tp("automations.ruleForm.name")}
             </label>
             <input
               value={form.name}
               onChange={(e) => updateField("name", e.target.value)}
               placeholder={tp("automations.ruleForm.namePlaceholder")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
             />
             {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
           </div>
 
           {/* Description */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               {tp("automations.ruleForm.description")}
             </label>
             <input
               value={form.description}
               onChange={(e) => updateField("description", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
           {/* Sensor Type + Condition + Threshold */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {tp("automations.ruleForm.sensorType")}
               </label>
               <select
                 value={form.sensor_type}
                 onChange={(e) => updateField("sensor_type", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="">--</option>
                 {SENSOR_TYPES.map((st) => (
@@ -573,13 +573,13 @@ export default function Automations() {
               {formErrors.sensor_type && <p className="mt-1 text-xs text-red-500">{formErrors.sensor_type}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {tp("automations.ruleForm.condition")}
               </label>
               <select
                 value={form.condition}
                 onChange={(e) => updateField("condition", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
               >
                 {CONDITIONS.map((c) => (
                   <option key={c} value={c}>
@@ -590,7 +590,7 @@ export default function Automations() {
               {formErrors.condition && <p className="mt-1 text-xs text-red-500">{formErrors.condition}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {tp("automations.ruleForm.thresholdValue")}
               </label>
               <input
@@ -598,7 +598,7 @@ export default function Automations() {
                 step="any"
                 value={form.threshold_value}
                 onChange={(e) => updateField("threshold_value", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
               />
               {formErrors.threshold_value && <p className="mt-1 text-xs text-red-500">{formErrors.threshold_value}</p>}
             </div>
@@ -607,13 +607,13 @@ export default function Automations() {
           {/* Actuator + Command Type */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {tp("automations.ruleForm.actuator")}
               </label>
               <select
                 value={form.action_actuator}
                 onChange={(e) => updateField("action_actuator", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="">--</option>
                 {actuators.map((a) => (
@@ -625,13 +625,13 @@ export default function Automations() {
               {formErrors.action_actuator && <p className="mt-1 text-xs text-red-500">{formErrors.action_actuator}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {tp("automations.ruleForm.commandType")}
               </label>
               <select
                 value={form.action_command_type}
                 onChange={(e) => updateField("action_command_type", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
               >
                 {COMMAND_TYPES.map((ct) => (
                   <option key={ct} value={ct}>
@@ -646,7 +646,7 @@ export default function Automations() {
           {/* Action value (only for SET) */}
           {form.action_command_type === "SET" && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {tp("automations.ruleForm.actionValue")}
               </label>
               <input
@@ -654,24 +654,24 @@ export default function Automations() {
                 step="any"
                 value={form.action_value}
                 onChange={(e) => updateField("action_value", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
               />
-              <p className="mt-1 text-xs text-gray-400">{tp("automations.ruleForm.actionValueHint")}</p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{tp("automations.ruleForm.actionValueHint")}</p>
             </div>
           )}
 
           {/* Cooldown */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               {tp("automations.ruleForm.cooldown")}
             </label>
             <input
               type="number"
               value={form.cooldown_seconds}
               onChange={(e) => updateField("cooldown_seconds", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100"
             />
-            <p className="mt-1 text-xs text-gray-400">{tp("automations.ruleForm.cooldownHint")}</p>
+            <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{tp("automations.ruleForm.cooldownHint")}</p>
             {formErrors.cooldown_seconds && <p className="mt-1 text-xs text-red-500">{formErrors.cooldown_seconds}</p>}
           </div>
 
@@ -681,7 +681,7 @@ export default function Automations() {
               type="checkbox"
               checked={form.is_active}
               onChange={(e) => updateField("is_active", e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-emerald-600"
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-emerald-600"
             />
             {tp("automations.ruleForm.isActive")}
           </label>
@@ -690,7 +690,7 @@ export default function Automations() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {t("actions.cancel")}
             </button>

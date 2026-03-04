@@ -9,7 +9,8 @@
     "team": "Team",
     "notifications": "Notifications",
     "analytics": "Analytics",
-    "scenarios": "Scenarios"
+    "scenarios": "Scenarios",
+    "quickActions": "Quick Actions"
   },
   "actions": {
     "save": "Save",

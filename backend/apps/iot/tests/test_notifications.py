@@ -1,12 +1,14 @@
-"""Tests for the notification system (Sprint 14).
+"""Tests for the notification system (Sprint 14 + Sprint 17 push).
 
 Covers:
 - NotificationChannel CRUD via API
 - NotificationRule CRUD via API
-- dispatch_notifications task (email, webhook, telegram)
+- dispatch_notifications task (email, webhook, telegram, push)
 - Rate limiting (cooldown)
 - Daily digest task
 - Permission checks (ADMIN+ required)
+- Push subscription API
+- VAPID key endpoint
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -26,6 +29,7 @@ from apps.iot.models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    PushSubscription,
     Sensor,
     SensorReading,
     Zone,
@@ -489,3 +493,200 @@ class TestNotificationLogAPI:
         assert resp.status_code == 200
         assert resp.data["count"] == 1
         assert resp.data["results"][0]["status"] == "SENT"
+
+
+# -------------------------------------------------------------------------
+# Push Subscription API Tests
+# -------------------------------------------------------------------------
+
+class TestPushSubscriptionAPI:
+
+    def test_subscribe(self, authed_client, user):
+        resp = authed_client.post(
+            "/api/push/subscribe/",
+            {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/abc123",
+                "p256dh": "BNcRdreALRFXTkOOUHK1ETjLhQw7E4ixhWqBv-abc123",
+                "auth": "tBHItJI5svbpC7sc-def456",
+            },
+            format="json",
+        )
+        assert resp.status_code == 201
+        assert PushSubscription.objects.filter(user=user).count() == 1
+
+    def test_subscribe_updates_existing(self, authed_client, user):
+        endpoint = "https://fcm.googleapis.com/fcm/send/abc123"
+        PushSubscription.objects.create(
+            user=user,
+            endpoint=endpoint,
+            p256dh="old-key",
+            auth="old-auth",
+        )
+        resp = authed_client.post(
+            "/api/push/subscribe/",
+            {
+                "endpoint": endpoint,
+                "p256dh": "new-key",
+                "auth": "new-auth",
+            },
+            format="json",
+        )
+        assert resp.status_code == 201
+        sub = PushSubscription.objects.get(endpoint=endpoint)
+        assert sub.p256dh == "new-key"
+        assert sub.auth == "new-auth"
+        assert PushSubscription.objects.count() == 1
+
+    def test_unsubscribe(self, authed_client, user):
+        endpoint = "https://fcm.googleapis.com/fcm/send/abc123"
+        PushSubscription.objects.create(
+            user=user, endpoint=endpoint, p256dh="k", auth="a"
+        )
+        resp = authed_client.delete(
+            "/api/push/subscribe/",
+            {"endpoint": endpoint},
+            format="json",
+        )
+        assert resp.status_code == 204
+        assert PushSubscription.objects.count() == 0
+
+    def test_unsubscribe_missing_endpoint(self, authed_client):
+        resp = authed_client.delete("/api/push/subscribe/", {}, format="json")
+        assert resp.status_code == 400
+
+    def test_unsubscribe_not_found(self, authed_client):
+        resp = authed_client.delete(
+            "/api/push/subscribe/",
+            {"endpoint": "https://fake.endpoint.com/push"},
+            format="json",
+        )
+        assert resp.status_code == 404
+
+    def test_unauthenticated_subscribe(self):
+        client = APIClient()
+        resp = client.post(
+            "/api/push/subscribe/",
+            {"endpoint": "https://fcm.example.com/push/x", "p256dh": "k", "auth": "a"},
+            format="json",
+        )
+        assert resp.status_code == 401
+
+
+# -------------------------------------------------------------------------
+# VAPID Key API Tests
+# -------------------------------------------------------------------------
+
+class TestVapidKeyAPI:
+
+    @override_settings(VAPID_PUBLIC_KEY="BFakeKey123")
+    def test_vapid_key_returned(self, authed_client):
+        resp = authed_client.get("/api/push/vapid-key/")
+        assert resp.status_code == 200
+        assert resp.data["public_key"] == "BFakeKey123"
+
+    @override_settings(VAPID_PUBLIC_KEY="")
+    def test_vapid_key_not_configured(self, authed_client):
+        resp = authed_client.get("/api/push/vapid-key/")
+        assert resp.status_code == 503
+
+    def test_unauthenticated_vapid_key(self):
+        client = APIClient()
+        resp = client.get("/api/push/vapid-key/")
+        assert resp.status_code == 401
+
+
+# -------------------------------------------------------------------------
+# Push Dispatcher Tests
+# -------------------------------------------------------------------------
+
+class TestPushDispatcher:
+
+    @patch("apps.iot.notification_dispatchers.webpush")
+    def test_dispatch_push_sends_to_subscribers(
+        self, mock_webpush, alert, org, user
+    ):
+        channel = NotificationChannel.objects.create(
+            organization=org,
+            channel_type=NotificationChannel.ChannelType.PUSH,
+            name="Push Alerts",
+        )
+        NotificationRule.objects.create(
+            organization=org,
+            name="Push Rule",
+            channel=channel,
+            alert_types=[],
+            severities=[],
+            cooldown_seconds=300,
+        )
+        PushSubscription.objects.create(
+            user=user,
+            endpoint="https://push.example.com/v1/abc",
+            p256dh="test-key",
+            auth="test-auth",
+        )
+
+        with patch("apps.iot.notification_dispatchers.settings") as mock_settings:
+            mock_settings.VAPID_PRIVATE_KEY = "fake-private-key"
+            mock_settings.VAPID_PUBLIC_KEY = "fake-public-key"
+            mock_settings.VAPID_ADMIN_EMAIL = "admin@test.fr"
+            mock_settings.DEFAULT_FROM_EMAIL = "noreply@test.fr"
+
+            result = dispatch_notifications(alert.pk)
+
+        assert result["sent"] == 1
+        mock_webpush.assert_called_once()
+
+    @patch("apps.iot.notification_dispatchers.webpush")
+    def test_dispatch_push_no_subscribers(self, mock_webpush, alert, org):
+        channel = NotificationChannel.objects.create(
+            organization=org,
+            channel_type=NotificationChannel.ChannelType.PUSH,
+            name="Push Alerts",
+        )
+        NotificationRule.objects.create(
+            organization=org,
+            name="Push Rule",
+            channel=channel,
+            alert_types=[],
+            severities=[],
+            cooldown_seconds=300,
+        )
+
+        with patch("apps.iot.notification_dispatchers.settings") as mock_settings:
+            mock_settings.VAPID_PRIVATE_KEY = "fake-private-key"
+            mock_settings.VAPID_PUBLIC_KEY = "fake-public-key"
+            mock_settings.VAPID_ADMIN_EMAIL = "admin@test.fr"
+            mock_settings.DEFAULT_FROM_EMAIL = "noreply@test.fr"
+
+            result = dispatch_notifications(alert.pk)
+
+        assert result["sent"] == 1  # no error, just no subscribers
+        mock_webpush.assert_not_called()
+
+    def test_dispatch_push_missing_vapid_keys(self, alert, org):
+        channel = NotificationChannel.objects.create(
+            organization=org,
+            channel_type=NotificationChannel.ChannelType.PUSH,
+            name="Push Alerts",
+        )
+        NotificationRule.objects.create(
+            organization=org,
+            name="Push Rule",
+            channel=channel,
+            alert_types=[],
+            severities=[],
+            cooldown_seconds=300,
+        )
+
+        with patch("apps.iot.notification_dispatchers.settings") as mock_settings:
+            mock_settings.VAPID_PRIVATE_KEY = ""
+            mock_settings.VAPID_PUBLIC_KEY = ""
+            mock_settings.VAPID_ADMIN_EMAIL = ""
+            mock_settings.DEFAULT_FROM_EMAIL = "noreply@test.fr"
+
+            result = dispatch_notifications(alert.pk)
+
+        assert result["failed"] == 1
+        log = NotificationLog.objects.filter(status="FAILED").first()
+        assert log is not None
+        assert "VAPID" in log.error_message

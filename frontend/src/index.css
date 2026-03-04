@@ -19,3 +19,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Dark mode base styles */
+.dark body,
+.dark #root {
+  @apply bg-gray-900 text-gray-100;
+}
+
+/* Safe area padding for PWA standalone mode */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

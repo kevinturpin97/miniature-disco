@@ -223,10 +223,10 @@ export default function Analytics() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t("pages:analytics.title")}
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {t("pages:analytics.subtitle")}
         </p>
       </div>
@@ -259,15 +259,15 @@ export default function Analytics() {
       )}
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-white p-4">
+      <div className="flex flex-wrap items-center gap-4 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
             {t("common:labels.zone")}
           </label>
           <select
             value={selectedZone ?? ""}
             onChange={(e) => setSelectedZone(Number(e.target.value))}
-            className="rounded-md border-gray-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
           >
             {greenhouses.map((gh) => (
               <optgroup key={gh.id} label={gh.name}>
@@ -284,7 +284,7 @@ export default function Analytics() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
             {t("pages:analytics.period")}
           </label>
           <div className="flex gap-1">
@@ -295,7 +295,7 @@ export default function Analytics() {
                 className={`rounded-md px-3 py-1.5 text-sm font-medium ${
                   days === d
                     ? "bg-primary-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
                 {d === 7 ? t("pages:analytics.periods.7d") : t("pages:analytics.periods.30d")}
@@ -323,7 +323,7 @@ export default function Analytics() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">{error}</div>
       )}
 
       {loading ? (
@@ -334,7 +334,7 @@ export default function Analytics() {
         <div className="space-y-6">
           {/* Sensor stat cards */}
           {analytics.sensors.length === 0 ? (
-            <p className="text-sm text-gray-500">{t("pages:analytics.noData")}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t("pages:analytics.noData")}</p>
           ) : (
             <>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -345,8 +345,8 @@ export default function Analytics() {
 
               {/* Daily Averages Chart */}
               {dailyChartData.length > 0 && (
-                <div className="rounded-lg border bg-white p-4">
-                  <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                  <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {t("pages:analytics.dailyAverages")}
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
@@ -374,8 +374,8 @@ export default function Analytics() {
 
               {/* Heatmap Calendar */}
               {heatmapData && (
-                <div className="rounded-lg border bg-white p-4">
-                  <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                  <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {t("pages:analytics.heatmap")} — {SENSOR_LABELS[heatmapData.sensor_type as SensorType]} ({heatmapData.unit})
                   </h3>
                   <div className="flex flex-wrap gap-1">
@@ -383,7 +383,7 @@ export default function Analytics() {
                       <div
                         key={cell.date}
                         title={`${cell.date}: ${cell.value.toFixed(1)} ${heatmapData.unit}`}
-                        className="h-8 w-8 rounded-sm border cursor-default"
+                        className="h-8 w-8 rounded-sm border dark:border-gray-700 cursor-default"
                         style={{
                           backgroundColor: `rgba(34, 139, 34, ${0.15 + cell.intensity * 0.85})`,
                         }}
@@ -394,7 +394,7 @@ export default function Analytics() {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>{t("pages:analytics.low")}</span>
                     <div className="flex gap-0.5">
                       {[0.15, 0.35, 0.55, 0.75, 1].map((i) => (
@@ -412,8 +412,8 @@ export default function Analytics() {
 
               {/* Correlation */}
               {correlationData && correlationData.data.length >= 2 && (
-                <div className="rounded-lg border bg-white p-4">
-                  <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                  <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {t("pages:analytics.correlation")}
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
@@ -455,11 +455,11 @@ function SummaryCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-lg border bg-white p-4">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
+    <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
       <p
         className={`mt-1 text-2xl font-bold ${
-          highlight ? "text-red-600" : "text-gray-900"
+          highlight ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-gray-100"
         }`}
       >
         {value}
@@ -477,30 +477,30 @@ function SensorStatCard({
 }) {
   if (stat.count === 0) {
     return (
-      <div className="rounded-lg border bg-white p-4">
+      <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
         <div className="flex items-center gap-2">
           <div
             className="h-3 w-3 rounded-full"
             style={{ backgroundColor: SENSOR_COLORS[stat.sensor_type] ?? "#6b7280" }}
           />
-          <span className="text-sm font-semibold text-gray-700">
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
             {SENSOR_LABELS[stat.sensor_type]} ({stat.unit})
           </span>
         </div>
-        <p className="mt-2 text-xs text-gray-400">{t("pages:analytics.noData")}</p>
+        <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">{t("pages:analytics.noData")}</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4">
+    <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div
             className="h-3 w-3 rounded-full"
             style={{ backgroundColor: SENSOR_COLORS[stat.sensor_type] ?? "#6b7280" }}
           />
-          <span className="text-sm font-semibold text-gray-700">
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
             {stat.label || SENSOR_LABELS[stat.sensor_type]} ({stat.unit})
           </span>
         </div>
@@ -508,10 +508,10 @@ function SensorStatCard({
           <span
             className={`text-lg ${
               stat.trend === "rising"
-                ? "text-red-500"
+                ? "text-red-500 dark:text-red-400"
                 : stat.trend === "falling"
-                  ? "text-blue-500"
-                  : "text-gray-400"
+                  ? "text-blue-500 dark:text-blue-400"
+                  : "text-gray-400 dark:text-gray-500"
             }`}
             title={t(`pages:analytics.trends.${stat.trend}`)}
           >
@@ -521,23 +521,23 @@ function SensorStatCard({
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <div>
-          <span className="text-gray-400">{t("pages:analytics.stats.min")}</span>
-          <p className="font-medium text-gray-700">{stat.min}</p>
+          <span className="text-gray-400 dark:text-gray-500">{t("pages:analytics.stats.min")}</span>
+          <p className="font-medium text-gray-700 dark:text-gray-300">{stat.min}</p>
         </div>
         <div>
-          <span className="text-gray-400">{t("pages:analytics.stats.max")}</span>
-          <p className="font-medium text-gray-700">{stat.max}</p>
+          <span className="text-gray-400 dark:text-gray-500">{t("pages:analytics.stats.max")}</span>
+          <p className="font-medium text-gray-700 dark:text-gray-300">{stat.max}</p>
         </div>
         <div>
-          <span className="text-gray-400">{t("pages:analytics.stats.avg")}</span>
-          <p className="font-medium text-gray-700">{stat.avg}</p>
+          <span className="text-gray-400 dark:text-gray-500">{t("pages:analytics.stats.avg")}</span>
+          <p className="font-medium text-gray-700 dark:text-gray-300">{stat.avg}</p>
         </div>
         <div>
-          <span className="text-gray-400">{t("pages:analytics.stats.stddev")}</span>
-          <p className="font-medium text-gray-700">{stat.stddev}</p>
+          <span className="text-gray-400 dark:text-gray-500">{t("pages:analytics.stats.stddev")}</span>
+          <p className="font-medium text-gray-700 dark:text-gray-300">{stat.stddev}</p>
         </div>
       </div>
-      <p className="mt-2 text-[10px] text-gray-400">
+      <p className="mt-2 text-[10px] text-gray-400 dark:text-gray-500">
         {stat.count} {t("pages:analytics.readings")}
       </p>
     </div>

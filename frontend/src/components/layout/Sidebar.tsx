@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
   { to: "/", labelKey: "nav.dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" },
+  { to: "/quick-actions", labelKey: "nav.quickActions", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
   { to: "/alerts", labelKey: "nav.alerts", icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" },
   { to: "/history", labelKey: "nav.history", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
   { to: "/commands", labelKey: "nav.commands", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
@@ -28,18 +29,18 @@ export function Sidebar({ onClose }: SidebarProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
+      <div className="flex h-16 items-center justify-between border-b px-4 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white text-sm font-bold">
             G
           </div>
-          <span className="text-lg font-semibold text-gray-900">
+          <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Greenhouse
           </span>
         </div>
         <button
           onClick={onClose}
-          className="rounded-md p-1 text-gray-400 hover:text-gray-600 lg:hidden"
+          className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 lg:hidden"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -48,17 +49,18 @@ export function Sidebar({ onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.to === "/"}
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-primary-50 text-primary-700"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               }`
             }
           >

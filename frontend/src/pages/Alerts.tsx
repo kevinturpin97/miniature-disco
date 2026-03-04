@@ -12,9 +12,9 @@ import { formatDate, formatRelativeTime } from "@/utils/formatters";
 import type { Alert, Severity } from "@/types";
 
 const SEVERITY_STYLES: Record<Severity, { bg: string; text: string; dot: string }> = {
-  CRITICAL: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
-  WARNING: { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
-  INFO: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
+  CRITICAL: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-300", dot: "bg-red-500" },
+  WARNING: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-300", dot: "bg-yellow-500" },
+  INFO: { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300", dot: "bg-blue-500" },
 };
 
 type AcknowledgedFilter = "all" | "unacknowledged" | "acknowledged";
@@ -90,7 +90,7 @@ export default function Alerts() {
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-300">
         {error}
       </div>
     );
@@ -100,8 +100,8 @@ export default function Alerts() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{tp("alerts.title")}</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{tp("alerts.title")}</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {tp("alerts.subtitle")}
         </p>
       </div>
@@ -112,7 +112,7 @@ export default function Alerts() {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value as Severity | "")}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+          className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-sm"
           aria-label={t("filters.filterBySeverity")}
         >
           <option value="">{t("filters.allSeverities")}</option>
@@ -122,7 +122,7 @@ export default function Alerts() {
         </select>
 
         {/* Acknowledged filter */}
-        <div className="flex gap-1 rounded-lg border bg-white p-1">
+        <div className="flex gap-1 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-1">
           {(["all", "unacknowledged", "acknowledged"] as AcknowledgedFilter[]).map((val) => (
             <button
               key={val}
@@ -130,7 +130,7 @@ export default function Alerts() {
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 ackFilter === val
                   ? "bg-primary-600 text-white"
-                  : "text-gray-600 hover:bg-gray-100"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
               }`}
             >
               {t(ACK_FILTER_KEYS[val])}
@@ -141,9 +141,9 @@ export default function Alerts() {
 
       {/* Alert List */}
       {alerts.length === 0 ? (
-        <div className="rounded-xl border bg-white p-12 text-center">
+        <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-gray-300"
+            className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -155,7 +155,7 @@ export default function Alerts() {
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />
           </svg>
-          <p className="mt-4 text-sm text-gray-500">{tp("alerts.noAlerts")}</p>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{tp("alerts.noAlerts")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -164,7 +164,7 @@ export default function Alerts() {
             return (
               <div
                 key={alert.id}
-                className={`rounded-xl border bg-white p-4 shadow-sm transition-opacity ${
+                className={`rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm transition-opacity ${
                   alert.is_acknowledged ? "opacity-60" : ""
                 }`}
               >
@@ -178,21 +178,21 @@ export default function Alerts() {
                         <span className={`inline-block h-1.5 w-1.5 rounded-full ${style.dot}`} />
                         {alert.severity}
                       </span>
-                      <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                      <span className="rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                         {tp(`alerts.types.${alert.alert_type}`) ?? alert.alert_type}
                       </span>
                       {alert.is_acknowledged && (
-                        <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                        <span className="rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:text-green-300">
                           {t("status.acknowledged")}
                         </span>
                       )}
                     </div>
 
                     {/* Message */}
-                    <p className="text-sm font-medium text-gray-900">{alert.message}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{alert.message}</p>
 
                     {/* Meta */}
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                       <span title={formatDate(alert.created_at)}>
                         {formatRelativeTime(alert.created_at)}
                       </span>
@@ -212,7 +212,7 @@ export default function Alerts() {
                     <button
                       onClick={() => handleAcknowledge(alert.id)}
                       disabled={acknowledging === alert.id}
-                      className="flex-shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+                      className="flex-shrink-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                     >
                       {acknowledging === alert.id ? "..." : t("actions.acknowledge")}
                     </button>

@@ -21,8 +21,9 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FormField } from "@/components/ui/FormField";
 import { SelectField } from "@/components/ui/SelectField";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
-const CHANNEL_TYPES: ChannelType[] = ["EMAIL", "WEBHOOK", "TELEGRAM"];
+const CHANNEL_TYPES: ChannelType[] = ["EMAIL", "WEBHOOK", "TELEGRAM", "PUSH"];
 const ALERT_TYPES: AlertType[] = ["HIGH", "LOW", "OFFLINE", "ERROR", "CMD_FAIL"];
 const SEVERITIES: Severity[] = ["INFO", "WARNING", "CRITICAL"];
 
@@ -73,6 +74,8 @@ export default function Notifications() {
     name: string;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const push = usePushNotifications();
 
   const loadData = useCallback(async () => {
     if (!currentOrg) return;
@@ -264,7 +267,7 @@ export default function Notifications() {
   if (!currentOrg) {
     return (
       <div className="p-6">
-        <p className="text-gray-500">{t("team.noOrg")}</p>
+        <p className="text-gray-500 dark:text-gray-400">{t("team.noOrg")}</p>
       </div>
     );
   }
@@ -279,22 +282,22 @@ export default function Notifications() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t("notifications.title")}
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {t("notifications.subtitle", { org: currentOrg.name })}
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
 
       {/* Tab bar */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex gap-4">
           {TABS.map(({ key, label }) => (
             <button
@@ -303,7 +306,7 @@ export default function Notifications() {
               className={`whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium ${
                 tab === key
                   ? "border-primary-500 text-primary-600"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               {label}
@@ -321,6 +324,42 @@ export default function Notifications() {
           {/* ── Channels Tab ────────────────────────────────── */}
           {tab === "channels" && (
             <div className="space-y-4">
+              {/* Web Push Subscription Card */}
+              {push.state !== "unsupported" && (
+                <div className="flex items-center justify-between rounded-lg border bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {t("notifications.pushTitle")}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {push.state === "denied"
+                        ? t("notifications.pushDenied")
+                        : push.state === "subscribed"
+                          ? t("notifications.pushSubscribed")
+                          : t("notifications.pushHint")}
+                    </p>
+                    {push.error && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{push.error}</p>
+                    )}
+                  </div>
+                  {push.state === "subscribed" ? (
+                    <button
+                      onClick={push.unsubscribe}
+                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      {t("notifications.pushUnsubscribe")}
+                    </button>
+                  ) : push.state !== "denied" ? (
+                    <button
+                      onClick={push.subscribe}
+                      className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700"
+                    >
+                      {t("notifications.pushEnable")}
+                    </button>
+                  ) : null}
+                </div>
+              )}
+
               {canManage && (
                 <div className="flex justify-end">
                   <button
@@ -332,11 +371,11 @@ export default function Notifications() {
                 </div>
               )}
               {channels.length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-500">
+                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                   {t("notifications.noChannels")}
                 </p>
               ) : (
-                <div className="divide-y rounded-lg border bg-white">
+                <div className="divide-y dark:divide-gray-700 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800">
                   {channels.map((ch) => (
                     <div
                       key={ch.id}
@@ -346,19 +385,19 @@ export default function Notifications() {
                         <span
                           className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
                             ch.channel_type === "EMAIL"
-                              ? "bg-blue-100 text-blue-700"
+                              ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                               : ch.channel_type === "WEBHOOK"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-cyan-100 text-cyan-700"
+                              ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                              : "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300"
                           }`}
                         >
                           {ch.channel_type}
                         </span>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {ch.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {ch.channel_type === "EMAIL" && ch.email_recipients}
                             {ch.channel_type === "WEBHOOK" && ch.webhook_url}
                             {ch.channel_type === "TELEGRAM" &&
@@ -372,8 +411,8 @@ export default function Notifications() {
                           disabled={!canManage}
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             ch.is_active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-500"
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                           }`}
                         >
                           {ch.is_active
@@ -384,7 +423,7 @@ export default function Notifications() {
                           <>
                             <button
                               onClick={() => openEditChannel(ch)}
-                              className="rounded p-1 text-gray-400 hover:text-gray-600"
+                              className="rounded p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                               title={tc("actions.edit")}
                             >
                               <svg
@@ -409,7 +448,7 @@ export default function Notifications() {
                                   name: ch.name,
                                 })
                               }
-                              className="rounded p-1 text-red-400 hover:text-red-600"
+                              className="rounded p-1 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400"
                               title={tc("actions.delete")}
                             >
                               <svg
@@ -451,42 +490,42 @@ export default function Notifications() {
                 </div>
               )}
               {rules.length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-500">
+                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                   {t("notifications.noRules")}
                 </p>
               ) : (
-                <div className="divide-y rounded-lg border bg-white">
+                <div className="divide-y dark:divide-gray-700 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800">
                   {rules.map((rule) => (
                     <div
                       key={rule.id}
                       className="flex items-center justify-between px-4 py-3"
                     >
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {rule.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {t("notifications.ruleChannel")}: {rule.channel_name}
                           {" — "}
                           {t("notifications.ruleCooldown")}: {rule.cooldown_seconds}s
                         </p>
                         <div className="mt-1 flex flex-wrap gap-1">
                           {rule.alert_types.length === 0 ? (
-                            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">
+                            <span className="rounded bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 text-[10px] text-gray-500 dark:text-gray-400">
                               {t("notifications.allTypes")}
                             </span>
                           ) : (
                             rule.alert_types.map((at) => (
                               <span
                                 key={at}
-                                className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700"
+                                className="rounded bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 text-[10px] text-blue-700 dark:text-blue-300"
                               >
                                 {at}
                               </span>
                             ))
                           )}
                           {rule.severities.length === 0 ? (
-                            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">
+                            <span className="rounded bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 text-[10px] text-gray-500 dark:text-gray-400">
                               {t("notifications.allSeverities")}
                             </span>
                           ) : (
@@ -495,10 +534,10 @@ export default function Notifications() {
                                 key={s}
                                 className={`rounded px-1.5 py-0.5 text-[10px] ${
                                   s === "CRITICAL"
-                                    ? "bg-red-50 text-red-700"
+                                    ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
                                     : s === "WARNING"
-                                    ? "bg-yellow-50 text-yellow-700"
-                                    : "bg-blue-50 text-blue-700"
+                                    ? "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300"
+                                    : "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                                 }`}
                               >
                                 {s}
@@ -513,8 +552,8 @@ export default function Notifications() {
                           disabled={!canManage}
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             rule.is_active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-500"
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                           }`}
                         >
                           {rule.is_active
@@ -525,7 +564,7 @@ export default function Notifications() {
                           <>
                             <button
                               onClick={() => openEditRule(rule)}
-                              className="rounded p-1 text-gray-400 hover:text-gray-600"
+                              className="rounded p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                               title={tc("actions.edit")}
                             >
                               <svg
@@ -550,7 +589,7 @@ export default function Notifications() {
                                   name: rule.name,
                                 })
                               }
-                              className="rounded p-1 text-red-400 hover:text-red-600"
+                              className="rounded p-1 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400"
                               title={tc("actions.delete")}
                             >
                               <svg
@@ -581,56 +620,56 @@ export default function Notifications() {
           {tab === "logs" && (
             <div>
               {logs.length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-500">
+                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                   {t("notifications.noLogs")}
                 </p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border bg-white">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <div className="overflow-x-auto rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                           {t("notifications.logDate")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                           {t("notifications.logRule")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                           {t("notifications.logChannel")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                           {tc("status.loading").replace("...", "")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                           {t("notifications.logError")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {logs.map((log) => (
                         <tr key={log.id}>
-                          <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-700">
+                          <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                             {new Date(log.created_at).toLocaleString()}
                           </td>
-                          <td className="px-4 py-2 text-sm text-gray-700">
+                          <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                             {log.rule_name}
                           </td>
-                          <td className="px-4 py-2 text-sm text-gray-700">
+                          <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                             {log.channel_name}
                           </td>
                           <td className="px-4 py-2">
                             <span
                               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                                 log.status === "SENT"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
+                                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
                               }`}
                             >
                               {log.status}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-xs text-red-600">
-                            {log.error_message || "—"}
+                          <td className="px-4 py-2 text-xs text-red-600 dark:text-red-400">
+                            {log.error_message || "\u2014"}
                           </td>
                         </tr>
                       ))}
@@ -675,7 +714,7 @@ export default function Notifications() {
                 setChannelForm({ ...channelForm, name: e.target.value })
               }
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </FormField>
 
@@ -692,7 +731,7 @@ export default function Notifications() {
                 }
                 placeholder="user@example.com, admin@example.com"
                 required={!editingChannel}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </FormField>
           )}
@@ -711,7 +750,7 @@ export default function Notifications() {
                   }
                   placeholder="https://hooks.example.com/..."
                   required={!editingChannel}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </FormField>
               <FormField label={t("notifications.webhookSecret")}>
@@ -729,7 +768,7 @@ export default function Notifications() {
                       ? t("notifications.secretUnchanged")
                       : t("notifications.secretOptional")
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </FormField>
             </>
@@ -753,7 +792,7 @@ export default function Notifications() {
                       : "123456:ABC-DEF..."
                   }
                   required={!editingChannel}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </FormField>
               <FormField label={t("notifications.telegramChatId")}>
@@ -768,7 +807,7 @@ export default function Notifications() {
                   }
                   placeholder="-100123456"
                   required={!editingChannel}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </FormField>
             </>
@@ -778,7 +817,7 @@ export default function Notifications() {
             <button
               type="button"
               onClick={() => setChannelModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {tc("actions.cancel")}
             </button>
@@ -812,7 +851,7 @@ export default function Notifications() {
                 setRuleForm({ ...ruleForm, name: e.target.value })
               }
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </FormField>
 
@@ -829,10 +868,10 @@ export default function Notifications() {
           />
 
           <div>
-            <p className="mb-1 text-sm font-medium text-gray-700">
+            <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("notifications.ruleAlertTypes")}
             </p>
-            <p className="mb-2 text-xs text-gray-500">
+            <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
               {t("notifications.ruleAlertTypesHint")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -848,8 +887,8 @@ export default function Notifications() {
                   }
                   className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
                     ruleForm.alert_types.includes(at)
-                      ? "border-primary-500 bg-primary-50 text-primary-700"
-                      : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                      ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
+                      : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
                   {at}
@@ -859,10 +898,10 @@ export default function Notifications() {
           </div>
 
           <div>
-            <p className="mb-1 text-sm font-medium text-gray-700">
+            <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
               {t("notifications.ruleSeverities")}
             </p>
-            <p className="mb-2 text-xs text-gray-500">
+            <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
               {t("notifications.ruleSeveritiesHint")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -878,8 +917,8 @@ export default function Notifications() {
                   }
                   className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
                     ruleForm.severities.includes(sev)
-                      ? "border-primary-500 bg-primary-50 text-primary-700"
-                      : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                      ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
+                      : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
                   {sev}
@@ -899,7 +938,7 @@ export default function Notifications() {
                   cooldown_seconds: Number(e.target.value),
                 })
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </FormField>
 
@@ -907,7 +946,7 @@ export default function Notifications() {
             <button
               type="button"
               onClick={() => setRuleModalOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {tc("actions.cancel")}
             </button>
