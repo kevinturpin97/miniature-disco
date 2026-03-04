@@ -400,20 +400,30 @@ export default function ZoneDetail() {
               {sensors.map((sensor) => {
                 const live = latestReadings[sensor.id];
                 const history = readings[sensor.id];
-                const lastReading = live ?? (history && history.length > 0 ? history[0] : null);
+                const historyEntry = history && history.length > 0 ? history[0] : null;
+                // Aggregated readings use "avg_value" + "period", raw use "value" + "received_at"
+                const raw = historyEntry as unknown as Record<string, unknown> | null;
+                const historyValue = historyEntry
+                  ? ((raw?.avg_value as number) ?? historyEntry.value)
+                  : undefined;
+                const historyTime = historyEntry
+                  ? ((raw?.period as string) ?? historyEntry.received_at)
+                  : undefined;
+                const lastValue = live?.value ?? historyValue;
+                const lastTime = live?.received_at ?? historyTime;
                 const label = SENSOR_TYPE_LABELS[sensor.sensor_type] ?? sensor.sensor_type;
                 const unit = SENSOR_TYPE_UNITS[sensor.sensor_type] ?? sensor.unit;
 
                 const isOutOfRange =
-                  lastReading &&
-                  ((sensor.min_threshold !== null && lastReading.value < sensor.min_threshold) ||
-                    (sensor.max_threshold !== null && lastReading.value > sensor.max_threshold));
+                  lastValue != null &&
+                  ((sensor.min_threshold !== null && lastValue < sensor.min_threshold) ||
+                    (sensor.max_threshold !== null && lastValue > sensor.max_threshold));
 
                 return (
                   <tr key={sensor.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{label}</td>
                     <td className={`px-4 py-3 font-semibold ${isOutOfRange ? "text-red-600" : "text-gray-900"}`}>
-                      {lastReading ? formatSensorValue(lastReading.value, unit) : "--"}
+                      {lastValue != null ? formatSensorValue(lastValue, unit) : "--"}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {sensor.min_threshold !== null || sensor.max_threshold !== null ? (
@@ -428,7 +438,7 @@ export default function ZoneDetail() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {lastReading?.received_at ? formatDate(lastReading.received_at) : "--"}
+                      {lastTime ? formatDate(lastTime) : "--"}
                     </td>
                   </tr>
                 );

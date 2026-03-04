@@ -698,6 +698,203 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Seed data pour démo
 - [x] Review sécurité (CORS, CSRF, rate limiting)
 
+### SPRINT 13 — Multi-Tenancy & Organisation
+**Objectif : passer d'un modèle "utilisateur solo" à un vrai SaaS collaboratif**
+
+- [ ] Modèle `Organization` avec `slug`, `plan` (FREE/PRO/ENTERPRISE), `max_greenhouses`, `max_zones`
+- [ ] Modèle `Membership` (user ↔ org) avec rôles : OWNER, ADMIN, OPERATOR, VIEWER
+- [ ] Migration des `Greenhouse` : owner → organization (rétrocompat)
+- [ ] Permission system revu : `IsOrganizationMember`, `HasRole(role)`
+- [ ] Invitation par email (token signé, expiry 48h)
+- [ ] API endpoints : `/api/orgs/`, `/api/orgs/{slug}/members/`, `/api/orgs/{slug}/invite/`
+- [ ] Frontend : page "Team Management" (invitations, rôles, revoke)
+- [ ] Frontend : switcher d'organisation dans le header
+- [ ] Tests : permissions croisées entre orgs, invitations expirées
+- [ ] Quotas enforced côté API (ex : 403 si FREE + > 3 serres)
+
+---
+
+### SPRINT 14 — Notifications & Alerting Avancé
+**Objectif : sortir des alertes de l'interface et toucher les utilisateurs là où ils sont**
+
+- [ ] Modèle `NotificationChannel` : EMAIL, WEBHOOK, TELEGRAM, PUSH
+- [ ] Modèle `NotificationRule` : lier une alerte (severity + type) à un channel
+- [ ] Backend email : Django email + template HTML (threshold dépassé, relais offline)
+- [ ] Webhook générique : POST JSON configurable (compatible n8n, Zapier, Make)
+- [ ] Telegram bot : envoi via Bot API (token configurable par org)
+- [ ] Celery task : `dispatch_notifications` déclenché par signal post-save Alert
+- [ ] Digest quotidien (Celery beat, 8h du matin) : résumé des alertes non acquittées
+- [ ] Frontend : page "Notifications" avec config des channels par org
+- [ ] Tests : mock des envois email/webhook/telegram
+- [ ] Rate-limiting des notifications (max 1 notif / 5min par règle)
+
+---
+
+### SPRINT 15 — Analytics & Rapports
+**Objectif : transformer les données brutes en insights actionnables**
+
+- [ ] Endpoint `/api/zones/{id}/analytics/` : stats 7j/30j (min, max, moyenne, écart-type, tendance)
+- [ ] Détection d'anomalies basique : z-score > 3σ → alerte `SENSOR_ERROR`
+- [ ] Endpoint export PDF (reportlab ou WeasyPrint) : rapport hebdomadaire par zone
+- [ ] Agrégation time-series : table `SensorReadingHourly` (materialized via Celery beat)
+- [ ] Frontend : page "Analytics" avec heatmap calendrier (jours × valeur moyenne)
+- [ ] Frontend : carte de corrélation entre capteurs (ex : T° vs HUM_AIR)
+- [ ] Frontend : rapport PDF téléchargeable avec sélecteur de période
+- [ ] API `/api/orgs/{slug}/analytics/summary/` : vue globale multi-serres
+- [ ] Tests : calculs stat, génération PDF, perf requêtes agrégation
+
+---
+
+### SPRINT 16 — Scénarios & Programmes Horaires
+**Objectif : automatisation temporelle avancée, au-delà du simple seuil**
+
+- [ ] Modèle `Schedule` : actions planifiées (cron-style ou time ranges)
+- [ ] Modèle `Scenario` : séquence d'actions nommée (ex : "Arrosage matin")
+- [ ] Modèle `ScenarioStep` : actionneur + action + délai + durée
+- [ ] Celery beat dynamique : charger les schedules depuis DB (django-celery-beat)
+- [ ] API CRUD complet pour `Schedule`, `Scenario`, `ScenarioStep`
+- [ ] Frontend : "Scenario Builder" drag-and-drop (timeline visuelle des étapes)
+- [ ] Frontend : calendrier hebdomadaire des programmes (style Google Calendar)
+- [ ] Exécution de scénario manuel depuis l'UI ("Lancer maintenant")
+- [ ] Gestion des conflits (un actionneur ne peut pas être dans 2 scénarios actifs)
+- [ ] Tests : ordonnancement des steps, conflits, exécution Celery
+
+---
+
+### SPRINT 17 — Mobile App & PWA
+**Objectif : expérience mobile native sans app store**
+
+- [ ] PWA : `manifest.json`, service worker (Vite PWA plugin), offline fallback page
+- [ ] Push notifications web (Web Push API + VAPID keys)
+- [ ] Refonte UX mobile : bottom navigation bar, swipe gestures sur les cartes
+- [ ] Page "Quick Actions" : contrôle rapide des actionneurs depuis l'accueil mobile
+- [ ] Optimisation performance : lazy loading routes, code splitting, skeleton screens
+- [ ] Dark mode complet (CSS variables, toggle persisté dans Zustand + localStorage)
+- [ ] Widget "Zone Status" : composant compact pour l'écran d'accueil PWA
+- [ ] Tests Lighthouse : score > 90 PWA, Performance, Accessibility
+- [ ] Tests : service worker, offline behavior, push subscription
+
+---
+
+### SPRINT 18 — Observabilité & Production Hardening
+**Objectif : un système qu'on peut opérer sereinement en production réelle**
+
+- [ ] Structured logging unifié : structlog backend + pino frontend → format JSON
+- [ ] Sentry integration (backend + frontend) avec source maps
+- [ ] Healthcheck endpoints enrichis : `/api/health/` (DB, Redis, MQTT, Celery)
+- [ ] Métriques Prometheus : `django-prometheus` + custom metrics (readings/min, commands/min)
+- [ ] Grafana dashboard pré-configuré (docker-compose.prod.yml)
+- [ ] Rate limiting API : `django-ratelimit` par user et par IP
+- [ ] Backup automatique PostgreSQL : script + cron Docker (dump → S3/local)
+- [ ] Migration zéro-downtime : `django-zero-downtime-migrations`
+- [ ] Audit log : modèle `AuditEvent` (qui a fait quoi, quand, sur quoi)
+- [ ] Tests de charge basiques : locust scenario (100 zones, 1000 readings/min)
+- [ ] Hardening sécurité : CORS strict, Content-Security-Policy, HSTS, secrets rotation doc
+
+---
+
+### SPRINT 19 — Marketplace de Templates
+**Objectif : permettre aux utilisateurs de partager et réutiliser des configurations**
+
+- [ ] Modèle `Template` : snapshot exportable d'une zone (capteurs + actionneurs + règles + scénarios)
+- [ ] Modèle `TemplateCategory` : maraîchage, floriculture, hydroponie, champignons, etc.
+- [ ] API : publish, clone, rate (1-5 étoiles), search/filter templates
+- [ ] Frontend : page "Marketplace" avec cards, filtres, preview détaillée
+- [ ] Import d'un template sur une zone existante (merge ou replace)
+- [ ] Templates officiels Greenhouse (seed data) : tomate, laitue, fraise, basilic
+- [ ] Versioning des templates (`version` + changelog)
+- [ ] Tests : clone, import, conflits de merge
+
+---
+
+### SPRINT 20 — Intelligence Artificielle & Prédictions
+**Objectif : valeur ajoutée IA sur les données collectées**
+
+- [ ] Prédiction de dérive : régression linéaire sur les 24 dernières heures → alerte si tendance critique
+- [ ] Détection d'anomalies ML : Isolation Forest (scikit-learn) sur les readings par capteur
+- [ ] Endpoint `/api/zones/{id}/predictions/` : valeurs prédites sur les 6 prochaines heures
+- [ ] "Smart Suggestions" : recommandation d'ajustement de seuils basée sur l'historique
+- [ ] Rapport hebdomadaire IA : résumé en langage naturel (template Jinja2 + stats)
+- [ ] Celery task : entraînement incrémental des modèles par zone (toutes les 24h)
+- [ ] Frontend : widget "Prédictions" dans ZoneDetail (graphe + intervalle de confiance)
+- [ ] Frontend : badge "Anomalie détectée" avec explication
+- [ ] Tests : fixtures de séries temporelles connues, assertions sur prédictions
+
+---
+
+### SPRINT 21 — API Publique & Developer Platform
+**Objectif : permettre à des tiers de s'intégrer à la plateforme**
+
+- [ ] Modèle `APIKey` : clé longue durée par organisation (scope : read / write / admin)
+- [ ] Authentification par API Key (header `X-API-Key`) en parallèle du JWT
+- [ ] Rate limiting par clé (configurable par plan)
+- [ ] Versioning API : préfixe `/api/v1/` + header `API-Version`
+- [ ] Documentation OpenAPI auto-générée (drf-spectacular) + UI Swagger/Redoc
+- [ ] SDK Python client auto-généré (openapi-generator) + publié sur PyPI
+- [ ] Webhooks configurables (événements : new_reading, alert_created, command_ack)
+- [ ] Sandbox de test : org dédiée avec données simulées
+- [ ] Frontend : page "Developer" avec gestion des API Keys + logs d'appels
+- [ ] Tests : auth par clé, scopes, rate limiting, webhook delivery
+
+---
+
+### SPRINT 22 — Billing & Plans SaaS
+**Objectif : monétiser la plateforme de façon robuste**
+
+- [ ] Intégration Stripe (stripe-python) : produits FREE / PRO / ENTERPRISE
+- [ ] Modèle `Subscription` : plan, status, period_end, stripe_subscription_id
+- [ ] Webhooks Stripe : payment_succeeded, payment_failed, subscription_cancelled
+- [ ] Enforcement des quotas par plan (middleware Django)
+- [ ] Page "Billing" : plan actuel, usage (zones/serres/membres), upgrade CTA
+- [ ] Page "Upgrade" : tableau comparatif des plans + Stripe Checkout
+- [ ] Emails transactionnels : confirmation paiement, échec, rappel renouvellement
+- [ ] Trial 14 jours automatique à l'inscription
+- [ ] Tests : webhooks Stripe mockés, enforcement quotas, trial expiry
+
+---
+
+### SPRINT 23 — Data Pipeline & Historique Long Terme
+**Objectif : gérer des volumes de données industriels sans dégrader les perfs**
+
+- [ ] Partitionnement PostgreSQL de `SensorReading` par mois (pg_partman)
+- [ ] Politique de rétention configurable : raw data 30j, hourly 1an, daily forever
+- [ ] Archivage cold storage : export automatique S3/MinIO des partitions expirées
+- [ ] Vue matérialisée `sensor_reading_daily` rafraîchie toutes les heures
+- [ ] Timescale DB optionnel : migration path documentée
+- [ ] API streaming : `/api/zones/{id}/readings/stream/` (Server-Sent Events)
+- [ ] Frontend : mode "Big Data" pour les graphiques (downsampling LTTB algorithm)
+- [ ] Benchmarks : 10M readings → temps de réponse < 200ms sur les agrégats
+- [ ] Tests : partitionnement, archivage, downsampling visuel
+
+---
+
+### SPRINT 24 — Multi-Site & Cartographie
+**Objectif : gérer des exploitations avec plusieurs sites géographiques**
+
+- [ ] Modèle `Site` : localisation GPS, timezone, météo locale
+- [ ] Intégration API météo (Open-Meteo, gratuit) : température ext., précipitations, UV
+- [ ] Corrélation météo ↔ données capteurs dans les analytics
+- [ ] Frontend : carte interactive (Leaflet.js) avec marqueurs par site
+- [ ] Vue "multi-site" : tableau de bord global avec statut par site
+- [ ] Alertes géo-contextuelles : "Canicule prévue demain, ajuster les seuils ?"
+- [ ] Export cartographique : snapshot PNG de la carte avec état des zones
+- [ ] Tests : geocoding, intégration météo mockée, rendu carte
+
+---
+
+### SPRINT 25 — Conformité & Traçabilité Agricole
+**Objectif : répondre aux exigences réglementaires (filière bio, certifications)**
+
+- [ ] Modèle `CropCycle` : culture en cours par zone (espèce, variété, date semis/récolte)
+- [ ] Journal de culture automatique : log de toutes les interventions (commandes + alertes + notes manuelles)
+- [ ] Rapport de traçabilité PDF : conditions de culture sur une période donnée
+- [ ] Conformité RGPD : export de toutes les données utilisateur (DSAR), droit à l'oubli
+- [ ] Modèle `Note` : annotation manuelle sur une zone à un instant t (observations terrain)
+- [ ] Signature électronique des rapports (hash SHA256 + timestamp)
+- [ ] API export conforme GlobalG.A.P. (JSON schema normalisé)
+- [ ] Frontend : page "Journal de Culture" avec timeline chronologique
+- [ ] Tests : génération rapports, conformité RGPD, intégrité hash
+
 ---
 
 ## CONVENTIONS DE CODE

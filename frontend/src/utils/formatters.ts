@@ -22,5 +22,6 @@ export function formatRelativeTime(dateString: string): string {
  * Format a sensor value with its unit.
  */
 export function formatSensorValue(value: number, unit: string): string {
+  if (value == null) return "--";
   return `${value.toFixed(1)}${unit ? ` ${unit}` : ""}`;
 }
