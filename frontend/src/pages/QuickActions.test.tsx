@@ -176,9 +176,9 @@ describe("QuickActions page", () => {
     expect(switches).toHaveLength(2);
 
     // Water Valve 1 is OFF (state: false)
-    expect(switches[0]).toHaveAttribute("aria-checked", "false");
+    expect(switches[0]).not.toBeChecked();
     // Fan 1 is ON (state: true)
-    expect(switches[1]).toHaveAttribute("aria-checked", "true");
+    expect(switches[1]).toBeChecked();
   });
 
   it("shows no actuators message when empty", async () => {
@@ -221,16 +221,18 @@ describe("QuickActions page", () => {
     });
 
     // Optimistic update: switch should now be ON
-    expect(switches[0]).toHaveAttribute("aria-checked", "true");
+    expect(switches[0]).toBeChecked();
   });
 
-  it("shows error state on API failure", async () => {
+  it("shows empty state on API failure (errors handled via toast)", async () => {
     mockListGreenhouses.mockRejectedValue(new Error("Network error"));
 
     renderQuickActions();
 
+    // After API failure, loading finishes and no actuators message is shown
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
+      expect(screen.getByText("No actuators found.")).toBeInTheDocument();
     });
   });
 });

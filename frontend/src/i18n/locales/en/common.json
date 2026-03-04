@@ -58,7 +58,26 @@
     "loadFailed": "Failed to load data.",
     "networkError": "Network error. Please try again.",
     "invalidCredentials": "Invalid username or password.",
-    "registrationFailed": "Registration failed. Username or email may already be taken."
+    "registrationFailed": "Registration failed. Username or email may already be taken.",
+    "timeout": "Request timed out. Please try again.",
+    "forbidden": "You don't have permission to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "conflict": "Conflict detected. Please reload and try again.",
+    "rateLimit": "Too many requests. Please wait and try again.",
+    "serverError": "Server error. Please try again later."
+  },
+  "success": {
+    "created": "Created successfully.",
+    "updated": "Updated successfully.",
+    "deleted": "Deleted successfully.",
+    "saved": "Saved successfully.",
+    "passwordChanged": "Password changed successfully.",
+    "invitationSent": "Invitation sent.",
+    "roleUpdated": "Role updated.",
+    "memberRemoved": "Member removed.",
+    "acknowledged": "Alert acknowledged.",
+    "scenarioStarted": "Scenario started.",
+    "subscriptionSaved": "Notification settings saved."
   },
   "labels": {
     "username": "Username",

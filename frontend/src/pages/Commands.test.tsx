@@ -217,13 +217,15 @@ describe("Commands page", () => {
     expect(screen.getByRole("option", { name: "Zone A" })).toBeInTheDocument();
   });
 
-  it("shows error state on API failure", async () => {
+  it("shows page content on API failure (errors handled via toast)", async () => {
     mockListGreenhouses.mockRejectedValue(new Error("Network error"));
 
     renderCommands();
 
+    // After API failure, loading finishes and page renders with empty data
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
+      expect(screen.getByText("Commands")).toBeInTheDocument();
     });
   });
 });

@@ -49,8 +49,8 @@ describe("Dashboard page", () => {
     // Never resolve to keep loading state
     mockedListGreenhouses.mockReturnValue(new Promise(() => {}));
     renderDashboard();
-    // The Spinner component renders an SVG with role="status"
-    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
+    // The Spinner component renders a DaisyUI loading span
+    expect(document.querySelector("span.loading")).toBeInTheDocument();
   });
 
   it("shows empty state when no greenhouses", async () => {
@@ -140,13 +140,15 @@ describe("Dashboard page", () => {
     expect(screen.getByText("Online")).toBeInTheDocument();
   });
 
-  it("shows error state on API failure", async () => {
+  it("shows empty state on API failure (errors handled via toast)", async () => {
     mockedListGreenhouses.mockRejectedValue(new Error("Network error"));
 
     renderDashboard();
 
+    // After API failure, loading finishes and empty state is shown
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
+      expect(screen.getByText("No greenhouses")).toBeInTheDocument();
     });
   });
 });

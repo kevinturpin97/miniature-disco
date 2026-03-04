@@ -1,5 +1,9 @@
 /**
  * Authentication API calls.
+ *
+ * Login, register, and session bootstrap calls use `_silentError` to suppress
+ * the global error toast — these are handled inline by the calling page or
+ * silently by the auth store.
  */
 
 import client from "./client";
@@ -18,12 +22,16 @@ interface LoginPayload {
 }
 
 export async function register(payload: RegisterPayload): Promise<User> {
-  const { data } = await client.post<User>("/auth/register/", payload);
+  const { data } = await client.post<User>("/auth/register/", payload, {
+    _silentError: true,
+  });
   return data;
 }
 
 export async function login(payload: LoginPayload): Promise<AuthTokens> {
-  const { data } = await client.post<AuthTokens>("/auth/login/", payload);
+  const { data } = await client.post<AuthTokens>("/auth/login/", payload, {
+    _silentError: true,
+  });
   return data;
 }
 
@@ -35,11 +43,13 @@ export async function refreshToken(refresh: string): Promise<AuthTokens> {
 }
 
 export async function logout(refresh: string): Promise<void> {
-  await client.post("/auth/logout/", { refresh });
+  await client.post("/auth/logout/", { refresh }, { _silentError: true });
 }
 
 export async function getMe(): Promise<User> {
-  const { data } = await client.get<User>("/auth/me/");
+  const { data } = await client.get<User>("/auth/me/", {
+    _silentError: true,
+  });
   return data;
 }
 

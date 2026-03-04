@@ -69,33 +69,33 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-base-200 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white text-xl font-bold">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-content text-xl font-bold">
             G
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="mt-4 text-2xl font-bold text-base-content">
             {tp("register.title")}
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-base-content/60">
             {tp("register.subtitle")}
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm"
+          className="card bg-base-100 shadow-xs p-6"
         >
           {serverError && (
-            <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">
-              {serverError}
+            <div role="alert" className="alert alert-error mb-4">
+              <span className="text-sm">{serverError}</span>
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="username" className="mb-1 block text-sm font-medium text-base-content/80">
                 {t("labels.username")}
               </label>
               <input
@@ -105,17 +105,17 @@ export default function Register() {
                 autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 ${
-                  errors.username ? "border-red-300 dark:border-red-500" : "border-gray-300 dark:border-gray-600"
+                className={`input input-bordered w-full text-sm ${
+                  errors.username ? "input-error" : ""
                 }`}
               />
               {errors.username && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.username}</p>
+                <p className="mt-1 text-xs text-error">{errors.username}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-base-content/80">
                 {t("labels.email")}
               </label>
               <input
@@ -125,17 +125,17 @@ export default function Register() {
                 autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 ${
-                  errors.email ? "border-red-300 dark:border-red-500" : "border-gray-300 dark:border-gray-600"
+                className={`input input-bordered w-full text-sm ${
+                  errors.email ? "input-error" : ""
                 }`}
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.email}</p>
+                <p className="mt-1 text-xs text-error">{errors.email}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="mb-1 block text-sm font-medium text-base-content/80">
                 {t("labels.password")}
               </label>
               <input
@@ -145,17 +145,17 @@ export default function Register() {
                 autoComplete="new-password"
                 value={form.password}
                 onChange={handleChange}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 ${
-                  errors.password ? "border-red-300 dark:border-red-500" : "border-gray-300 dark:border-gray-600"
+                className={`input input-bordered w-full text-sm ${
+                  errors.password ? "input-error" : ""
                 }`}
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password}</p>
+                <p className="mt-1 text-xs text-error">{errors.password}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium text-base-content/80">
                 {t("labels.confirmPassword")}
               </label>
               <input
@@ -165,12 +165,12 @@ export default function Register() {
                 autoComplete="new-password"
                 value={form.confirmPassword}
                 onChange={handleChange}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 ${
-                  errors.confirmPassword ? "border-red-300 dark:border-red-500" : "border-gray-300 dark:border-gray-600"
+                className={`input input-bordered w-full text-sm ${
+                  errors.confirmPassword ? "input-error" : ""
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
+                <p className="mt-1 text-xs text-error">{errors.confirmPassword}</p>
               )}
             </div>
           </div>
@@ -178,14 +178,14 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+            className="btn btn-primary w-full mt-6"
           >
             {loading ? t("actions.creatingAccount") : t("actions.createAccount")}
           </button>
 
-          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-4 text-center text-sm text-base-content/60">
             {tp("register.hasAccount")}{" "}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
+            <Link to="/login" className="link link-primary font-medium">
               {tp("register.signInLink")}
             </Link>
           </p>

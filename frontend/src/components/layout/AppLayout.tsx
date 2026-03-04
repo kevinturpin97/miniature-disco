@@ -1,43 +1,63 @@
 /**
- * Main application layout with sidebar, header, bottom nav (mobile), and content area.
+ * Main application layout using DaisyUI drawer, with sidebar, header, bottom nav (mobile),
+ * and content area with framer-motion page transitions.
  */
 
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useRef } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 
 export function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const drawerToggleRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
+
+  const openSidebar = () => {
+    if (drawerToggleRef.current) drawerToggleRef.current.checked = true;
+  };
+
+  const closeSidebar = () => {
+    if (drawerToggleRef.current) drawerToggleRef.current.checked = false;
+  };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="drawer lg:drawer-open">
+      <input
+        id="app-drawer"
+        type="checkbox"
+        className="drawer-toggle"
+        ref={drawerToggleRef}
+      />
 
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-200 dark:bg-gray-800 dark:shadow-gray-900/50 lg:static lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
+      {/* Main content area */}
+      <div className="drawer-content flex flex-col bg-base-200 min-h-screen">
+        <Header onMenuClick={openSidebar} />
+        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 lg:pb-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        </main>
+        <BottomNav />
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 lg:pb-6">
-          <Outlet />
-        </main>
-        {/* Bottom navigation for mobile */}
-        <BottomNav />
+      {/* Sidebar (drawer side) */}
+      <div className="drawer-side z-30">
+        <label
+          htmlFor="app-drawer"
+          className="drawer-overlay"
+          aria-label="Close sidebar"
+        ></label>
+        <Sidebar onClose={closeSidebar} />
       </div>
     </div>
   );

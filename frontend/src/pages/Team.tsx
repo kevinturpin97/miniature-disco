@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 import { useAuthStore } from "@/stores/authStore";
 import * as orgApi from "@/api/organizations";
 import type { Membership, Invitation, MemberRole } from "@/types";
@@ -18,19 +19,15 @@ export default function Team() {
   const [members, setMembers] = useState<Membership[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Invite form state
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<MemberRole>("VIEWER");
   const [inviting, setInviting] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [inviteSuccess, setInviteSuccess] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!currentOrg) return;
     setLoading(true);
-    setError(null);
     try {
       const [m, inv] = await Promise.all([
         orgApi.listMembers(currentOrg.slug),
@@ -39,11 +36,11 @@ export default function Team() {
       setMembers(m);
       setInvitations(inv.filter((i) => !i.accepted && !i.is_expired));
     } catch {
-      setError(tc("errors.loadFailed"));
+      // handled by global interceptor
     } finally {
       setLoading(false);
     }
-  }, [currentOrg, tc]);
+  }, [currentOrg]);
 
   useEffect(() => {
     loadData();
@@ -56,20 +53,14 @@ export default function Team() {
     e.preventDefault();
     if (!currentOrg || !inviteEmail.trim()) return;
     setInviting(true);
-    setInviteError(null);
-    setInviteSuccess(false);
     try {
       await orgApi.sendInvitation(currentOrg.slug, inviteEmail.trim(), inviteRole);
       setInviteEmail("");
       setInviteRole("VIEWER");
-      setInviteSuccess(true);
+      toast.success(tc("success.invitationSent"));
       await loadData();
-      setTimeout(() => setInviteSuccess(false), 3000);
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { email?: string[] } } })?.response?.data
-          ?.email?.[0] ?? tc("errors.generic");
-      setInviteError(msg);
+    } catch {
+      // handled by global interceptor
     } finally {
       setInviting(false);
     }
@@ -80,8 +71,9 @@ export default function Team() {
     try {
       await orgApi.updateMemberRole(currentOrg.slug, membershipId, role);
       await loadData();
+      toast.success(tc("success.roleUpdated"));
     } catch {
-      setError(tc("errors.generic"));
+      // handled by global interceptor
     }
   }
 
@@ -91,15 +83,16 @@ export default function Team() {
     try {
       await orgApi.removeMember(currentOrg.slug, membershipId);
       await loadData();
+      toast.success(tc("success.memberRemoved"));
     } catch {
-      setError(tc("errors.generic"));
+      // handled by global interceptor
     }
   }
 
   if (!currentOrg) {
     return (
       <div className="p-6">
-        <p className="text-gray-500 dark:text-gray-400">{t("team.noOrg")}</p>
+        <p className="text-base-content/60">{t("team.noOrg")}</p>
       </div>
     );
   }
@@ -108,12 +101,12 @@ export default function Team() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t("team.title")}</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-base-content">{t("team.title")}</h1>
+        <p className="mt-1 text-sm text-base-content/60">
           {t("team.subtitle", { org: currentOrg.name })}
         </p>
-        <div className="mt-2 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-          <span className="rounded bg-gray-100 dark:bg-gray-700 px-2 py-0.5 font-medium">
+        <div className="mt-2 flex items-center gap-3 text-sm text-base-content/60">
+          <span className="rounded bg-base-200 px-2 py-0.5 font-medium">
             {currentOrg.plan}
           </span>
           <span>
@@ -125,21 +118,15 @@ export default function Team() {
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">
-          {error}
-        </div>
-      )}
-
       {/* Invite form (ADMIN+ only) */}
       {canManage && (
-        <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="rounded-lg border border-base-300 bg-base-100 p-4">
+          <h2 className="text-lg font-semibold text-base-content">
             {t("team.inviteTitle")}
           </h2>
           <form onSubmit={handleInvite} className="mt-3 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium text-base-content/80">
                 {tc("labels.email")}
               </label>
               <input
@@ -147,18 +134,18 @@ export default function Team() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
+                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-1 focus:ring-primary bg-base-100 text-base-content"
                 placeholder="user@example.com"
               />
             </div>
             <div className="w-40">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium text-base-content/80">
                 {t("team.role")}
               </label>
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as MemberRole)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100"
+                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-1 focus:ring-primary bg-base-100 text-base-content"
               >
                 {ROLE_OPTIONS.filter((r) => r !== "OWNER").map((role) => (
                   <option key={role} value={role}>
@@ -170,44 +157,36 @@ export default function Team() {
             <button
               type="submit"
               disabled={inviting}
-              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content hover:bg-primary/80 disabled:opacity-50"
             >
               {inviting ? tc("status.loading") : t("team.sendInvite")}
             </button>
           </form>
-          {inviteError && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{inviteError}</p>
-          )}
-          {inviteSuccess && (
-            <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-              {t("team.inviteSent")}
-            </p>
-          )}
         </div>
       )}
 
       {/* Pending invitations */}
       {invitations.length > 0 && (
-        <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="rounded-lg border border-base-300 bg-base-100 p-4">
+          <h2 className="text-lg font-semibold text-base-content">
             {t("team.pendingInvitations")}
           </h2>
-          <div className="mt-3 divide-y dark:divide-gray-700">
+          <div className="mt-3 divide-y divide-base-300">
             {invitations.map((inv) => (
               <div
                 key={inv.id}
                 className="flex items-center justify-between py-3"
               >
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium text-base-content">
                     {inv.email}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-base-content/60">
                     {t("team.invitedBy", { name: inv.invited_by_username })} &middot;{" "}
                     {t(`team.roles.${inv.role}`)}
                   </p>
                 </div>
-                <span className="rounded bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-300">
+                <span className="rounded bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
                   {t("team.pending")}
                 </span>
               </div>
@@ -217,8 +196,8 @@ export default function Team() {
       )}
 
       {/* Members list */}
-      <div className="rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <div className="rounded-lg border border-base-300 bg-base-100 p-4">
+        <h2 className="text-lg font-semibold text-base-content">
           {t("team.members")}
         </h2>
         {loading ? (
@@ -226,17 +205,17 @@ export default function Team() {
             <Spinner className="h-8 w-8" />
           </div>
         ) : (
-          <div className="mt-3 divide-y dark:divide-gray-700">
+          <div className="mt-3 divide-y divide-base-300">
             {members.map((member) => (
               <div
                 key={member.id}
                 className="flex items-center justify-between py-3"
               >
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium text-base-content">
                     {member.username}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{member.email}</p>
+                  <p className="text-xs text-base-content/60">{member.email}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {canManage && member.role !== "OWNER" ? (
@@ -246,7 +225,7 @@ export default function Team() {
                         onChange={(e) =>
                           handleRoleChange(member.id, e.target.value as MemberRole)
                         }
-                        className="rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs dark:bg-gray-700 dark:text-gray-100"
+                        className="rounded-lg border border-base-300 px-2 py-1 text-xs bg-base-100 text-base-content"
                       >
                         {ROLE_OPTIONS.filter((r) => r !== "OWNER").map((role) => (
                           <option key={role} value={role}>
@@ -256,7 +235,7 @@ export default function Team() {
                       </select>
                       <button
                         onClick={() => handleRemove(member.id)}
-                        className="rounded p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="rounded p-1 text-error hover:bg-error/10"
                         title={t("team.removeMember")}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -265,7 +244,7 @@ export default function Team() {
                       </button>
                     </>
                   ) : (
-                    <span className="rounded bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <span className="rounded bg-base-200 px-2 py-0.5 text-xs font-medium text-base-content/80">
                       {t(`team.roles.${member.role}`)}
                     </span>
                   )}

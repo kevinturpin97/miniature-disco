@@ -189,13 +189,15 @@ describe("History page", () => {
     expect(screen.getByText("Last 30 days")).toBeInTheDocument();
   });
 
-  it("shows error state on API failure", async () => {
+  it("shows page content on API failure (errors handled via toast)", async () => {
     mockListGreenhouses.mockRejectedValue(new Error("Network error"));
 
     renderHistory();
 
+    // After API failure, loading finishes and empty page is shown
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
+      expect(screen.getByText("History")).toBeInTheDocument();
     });
   });
 });

@@ -155,7 +155,7 @@ describe("ZoneDetail page", () => {
     mockedListSensors.mockReturnValue(new Promise(() => {}));
     mockedListActuators.mockReturnValue(new Promise(() => {}));
     renderZoneDetail();
-    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
+    expect(document.querySelector("span.loading")).toBeInTheDocument();
   });
 
   it("renders zone header with name and relay ID", async () => {
@@ -229,14 +229,16 @@ describe("ZoneDetail page", () => {
     });
   });
 
-  it("shows error state on API failure", async () => {
+  it("shows 'Zone not found' on API failure (errors handled via toast)", async () => {
     mockedGetZone.mockRejectedValue(new Error("Network error"));
     mockedListSensors.mockRejectedValue(new Error("Network error"));
     mockedListActuators.mockRejectedValue(new Error("Network error"));
     renderZoneDetail();
 
+    // After API failure, zone is null so "Zone not found." is displayed
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load zone data.")).toBeInTheDocument();
+      expect(screen.getByText("Zone not found.")).toBeInTheDocument();
     });
   });
 

@@ -16,6 +16,7 @@ from django.utils import timezone as django_tz
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ValidationError as DRFValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -940,15 +941,12 @@ class PushSubscriptionView(viewsets.ViewSet):
 
         endpoint = request.data.get("endpoint")
         if not endpoint:
-            return Response(
-                {"detail": "endpoint is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise DRFValidationError({"detail": "endpoint is required."})
         deleted, _ = PushSubscription.objects.filter(
             user=request.user, endpoint=endpoint
         ).delete()
         if not deleted:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            raise NotFound("Push subscription not found.")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -1,6 +1,73 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* ===== Greenhouse Light Theme ===== */
+@plugin "daisyui/theme" {
+  name: "greenhouse-light";
+  default: true;
+  color-scheme: light;
+
+  --color-primary: oklch(51.7% 0.174 142.5);
+  --color-primary-content: oklch(98% 0.01 142);
+  --color-secondary: oklch(60% 0.15 250);
+  --color-secondary-content: oklch(98% 0.01 250);
+  --color-accent: oklch(70% 0.14 160);
+  --color-accent-content: oklch(25% 0.02 160);
+  --color-neutral: oklch(30% 0.02 260);
+  --color-neutral-content: oklch(95% 0.01 260);
+  --color-base-100: oklch(98.5% 0.002 260);
+  --color-base-200: oklch(96% 0.005 260);
+  --color-base-300: oklch(92% 0.01 260);
+  --color-base-content: oklch(20% 0.02 260);
+  --color-info: oklch(62% 0.19 250);
+  --color-info-content: oklch(98% 0.01 250);
+  --color-success: oklch(60% 0.19 145);
+  --color-success-content: oklch(98% 0.01 145);
+  --color-warning: oklch(75% 0.18 85);
+  --color-warning-content: oklch(25% 0.05 85);
+  --color-error: oklch(56% 0.22 25);
+  --color-error-content: oklch(98% 0.01 25);
+
+  --radius-selector: 0.5rem;
+  --size-selector: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* ===== Greenhouse Dark Theme ===== */
+@plugin "daisyui/theme" {
+  name: "greenhouse-dark";
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-primary: oklch(60% 0.19 145);
+  --color-primary-content: oklch(15% 0.02 145);
+  --color-secondary: oklch(65% 0.17 250);
+  --color-secondary-content: oklch(15% 0.02 250);
+  --color-accent: oklch(70% 0.14 160);
+  --color-accent-content: oklch(15% 0.02 160);
+  --color-neutral: oklch(25% 0.015 260);
+  --color-neutral-content: oklch(90% 0.01 260);
+  --color-base-100: oklch(20% 0.015 260);
+  --color-base-200: oklch(24% 0.015 260);
+  --color-base-300: oklch(30% 0.015 260);
+  --color-base-content: oklch(92% 0.01 260);
+  --color-info: oklch(65% 0.19 250);
+  --color-info-content: oklch(15% 0.02 250);
+  --color-success: oklch(65% 0.19 145);
+  --color-success-content: oklch(15% 0.02 145);
+  --color-warning: oklch(78% 0.18 85);
+  --color-warning-content: oklch(20% 0.05 85);
+  --color-error: oklch(60% 0.22 25);
+  --color-error-content: oklch(15% 0.02 25);
+
+  --radius-selector: 0.5rem;
+  --size-selector: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
 
 body {
   margin: 0;
@@ -18,12 +85,6 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Dark mode base styles */
-.dark body,
-.dark #root {
-  @apply bg-gray-900 text-gray-100;
 }
 
 /* Safe area padding for PWA standalone mode */

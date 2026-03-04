@@ -89,7 +89,7 @@ describe("Settings page", () => {
     mockedGetMe.mockReturnValue(new Promise(() => {}));
     renderSettings();
     // The Spinner component renders an SVG with animate-spin class
-    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
+    expect(document.querySelector("span.loading")).toBeInTheDocument();
   });
 
   it("renders user profile form after loading", async () => {
@@ -112,12 +112,14 @@ describe("Settings page", () => {
     expect(screen.getByDisplayValue("Doe")).toBeInTheDocument();
   });
 
-  it("shows error on profile API failure", async () => {
+  it("stays on loading/empty state on profile API failure (errors handled via toast)", async () => {
     mockedGetMe.mockRejectedValue(new Error("Network error"));
     renderSettings();
 
+    // After API failure, loading finishes but no user data is loaded
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
+      expect(document.querySelector("span.loading")).not.toBeInTheDocument();
     });
   });
 

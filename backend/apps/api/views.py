@@ -5,6 +5,7 @@ Authentication and organization views for the Greenhouse SaaS API.
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -76,15 +77,12 @@ class LogoutView(APIView):
     def post(self, request: Request) -> Response:
         refresh_token = request.data.get("refresh")
         if not refresh_token:
-            return Response(
-                {"detail": "Refresh token is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"detail": "Refresh token is required."})
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
         except TokenError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({"detail": str(exc)})
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -193,14 +191,11 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
             user=self.request.user, organization=membership.organization
         ).first()
         if not requesting or requesting.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins can change member roles.")
         new_role = serializer.validated_data.get("role", membership.role)
         if new_role == Membership.Role.OWNER:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Cannot assign OWNER role via update.")
         if membership.role == Membership.Role.OWNER:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Cannot change the owner's role.")
         serializer.save()
 
@@ -210,10 +205,8 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
             user=self.request.user, organization=instance.organization
         ).first()
         if not requesting or requesting.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins can remove members.")
         if instance.role == Membership.Role.OWNER:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Cannot remove the organization owner.")
         instance.delete()
 
@@ -230,10 +223,7 @@ class InviteView(APIView):
         org = get_object_or_404(Organization, slug=slug)
         membership = Membership.objects.filter(user=request.user, organization=org).first()
         if not membership or membership.role_level < Membership.ROLE_HIERARCHY[Membership.Role.ADMIN]:
-            return Response(
-                {"detail": "Only admins can send invitations."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            raise PermissionDenied("Only admins can send invitations.")
         serializer = InvitationCreateSerializer(
             data=request.data,
             context={"request": request, "organization": org},
@@ -247,7 +237,7 @@ class InviteView(APIView):
         org = get_object_or_404(Organization, slug=slug)
         membership = Membership.objects.filter(user=request.user, organization=org).first()
         if not membership:
-            return Response({"detail": "Not a member."}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied("Not a member.")
         invitations = Invitation.objects.filter(organization=org).select_related("invited_by")
         return Response(InvitationSerializer(invitations, many=True).data)
 

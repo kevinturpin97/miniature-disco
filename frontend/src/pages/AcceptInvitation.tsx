@@ -28,11 +28,8 @@ export default function AcceptInvitation() {
         setStatus("success");
         await fetchOrganizations();
         setTimeout(() => navigate("/team"), 2000);
-      } catch (err: unknown) {
-        const detail =
-          (err as { response?: { data?: { detail?: string } } })?.response?.data
-            ?.detail ?? t("team.inviteError");
-        setMessage(detail);
+      } catch {
+        setMessage(t("team.inviteError"));
         setStatus("error");
       }
     }
@@ -42,62 +39,66 @@ export default function AcceptInvitation() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center shadow">
-          <p className="text-gray-700 dark:text-gray-300">{t("team.loginToAccept")}</p>
-          <button
-            onClick={() => navigate("/login")}
-            className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-          >
-            {t("team.goToLogin")}
-          </button>
+      <div className="flex min-h-screen items-center justify-center bg-base-200">
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body items-center text-center">
+            <p className="text-base-content">{t("team.loginToAccept")}</p>
+            <button
+              onClick={() => navigate("/login")}
+              className="btn btn-primary btn-sm mt-4"
+            >
+              {t("team.goToLogin")}
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center shadow">
-        {status === "loading" && (
-          <>
-            <Spinner className="mx-auto h-8 w-8" />
-            <p className="mt-4 text-gray-600 dark:text-gray-400">{t("team.acceptingInvite")}</p>
-          </>
-        )}
-        {status === "success" && (
-          <>
-            <svg
-              className="mx-auto h-12 w-12 text-green-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <p className="mt-4 text-gray-900 dark:text-gray-100 font-medium">{message}</p>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t("team.redirecting")}</p>
-          </>
-        )}
-        {status === "error" && (
-          <>
-            <svg
-              className="mx-auto h-12 w-12 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            <p className="mt-4 text-red-700 dark:text-red-300 font-medium">{message}</p>
-            <button
-              onClick={() => navigate("/")}
-              className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-            >
-              {t("team.backToDashboard")}
-            </button>
-          </>
-        )}
+    <div className="flex min-h-screen items-center justify-center bg-base-200">
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body items-center text-center">
+          {status === "loading" && (
+            <>
+              <Spinner className="mx-auto h-8 w-8" />
+              <p className="mt-4 text-base-content/60">{t("team.acceptingInvite")}</p>
+            </>
+          )}
+          {status === "success" && (
+            <>
+              <svg
+                className="mx-auto h-12 w-12 text-success"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="mt-4 font-medium text-base-content">{message}</p>
+              <p className="mt-2 text-sm text-base-content/60">{t("team.redirecting")}</p>
+            </>
+          )}
+          {status === "error" && (
+            <>
+              <svg
+                className="mx-auto h-12 w-12 text-error"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <p className="mt-4 font-medium text-error">{message}</p>
+              <button
+                onClick={() => navigate("/")}
+                className="btn btn-primary btn-sm mt-4"
+              >
+                {t("team.backToDashboard")}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

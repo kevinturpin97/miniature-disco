@@ -779,21 +779,21 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 17 BIS — Refonte UI/UX & Identité Visuelle
 **Objectif : donner à la plateforme un design unique, professionnel, responsive et identitaire, prêt pour le SaaS, avec des animations simples, fluides, immersives**
 
-- [ ] Mise en place du Design System : DaisyUI + TailwindCSS (LLM: https://daisyui.com/llms.txt)
-- [ ] Définition des tokens : couleurs, typographies, spacing, icônes
-- [ ] Création du layout global : header, sidebar, footer, responsive breakpoints
-- [ ] Refonte Dashboard : cartes, tableaux, graphiques avec style uniforme
-- [ ] Refonte Zone Detail & Analytics : graphiques, heatmaps, corrélations
-- [ ] Refonte Pages Commands & Alerts : feedback visuel, boutons, modals
-- [ ] Refonte Settings / Profile / Team Management : formulaires, tables, rôles
-- [ ] Intégration branding : logo, favicon, palette couleurs, dark/light mode
-- [ ] Micro-interactions & animations pour l'immersion (style Duolingo) : hover, focus, transitions (framer-motion / TailwindCSS)
-- [ ] Responsive mobile & PWA : bottom nav bar, swipe gestures, skeleton screens
-- [ ] Tests Lighthouse : Performance > 90, Accessibility, PWA compliance
-- [ ] Tests composants : Storybook, tests unitaires frontend (Vitest + RTL)
-- [ ] QA cross-browser : Chrome, Firefox, Safari, Edge + mobile / tablette
-- [ ] Documentation du Design System et des composants pour usage futur
-- [ ] Version finale “brandée” prête pour production et intégration multi-tenant
+- [x] Mise en place du Design System : DaisyUI + TailwindCSS (LLM: https://daisyui.com/llms.txt)
+- [x] Définition des tokens : couleurs, typographies, spacing, icônes
+- [x] Création du layout global : header, sidebar, footer, responsive breakpoints
+- [x] Refonte Dashboard : cartes, tableaux, graphiques avec style uniforme
+- [x] Refonte Zone Detail & Analytics : graphiques, heatmaps, corrélations
+- [x] Refonte Pages Commands & Alerts : feedback visuel, boutons, modals
+- [x] Refonte Settings / Profile / Team Management : formulaires, tables, rôles
+- [x] Intégration branding : logo, favicon, palette couleurs, dark/light mode
+- [x] Micro-interactions & animations pour l'immersion (style Duolingo) : hover, focus, transitions (framer-motion / TailwindCSS)
+- [x] Responsive mobile & PWA : bottom nav bar, swipe gestures, skeleton screens
+- [x] Tests Lighthouse : Performance > 90, Accessibility, PWA compliance
+- [x] Tests composants : Storybook, tests unitaires frontend (Vitest + RTL)
+- [x] QA cross-browser : Chrome, Firefox, Safari, Edge + mobile / tablette
+- [x] Documentation du Design System et des composants pour usage futur
+- [x] Version finale “brandée” prête pour production et intégration multi-tenant
 
 ---
 

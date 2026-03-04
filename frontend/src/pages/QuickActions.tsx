@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
 import { listActuators } from "@/api/actuators";
@@ -22,7 +23,6 @@ export default function QuickActions() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [actuators, setActuators] = useState<ActuatorWithZone[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function QuickActions() {
         setZones(allZones);
         setActuators(allActuators);
       } catch {
-        if (!cancelled) setError(t("common:errors.loadFailed"));
+        // Global interceptor shows toast.error automatically
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -71,7 +71,7 @@ export default function QuickActions() {
         ),
       );
     } catch {
-      setError(t("common:errors.generic"));
+      // Global interceptor shows toast.error automatically
     } finally {
       setTogglingId(null);
     }
@@ -88,23 +88,17 @@ export default function QuickActions() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl font-bold text-base-content">
           {t("pages:quickActions.title")}
         </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-base-content/60">
           {t("pages:quickActions.subtitle")}
         </p>
       </div>
 
-      {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
-          {error}
-        </div>
-      )}
-
       {/* Zone status widgets */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+        <h2 className="mb-3 text-sm font-semibold text-base-content/60 uppercase tracking-wider">
           {t("pages:quickActions.zoneOverview")}
         </h2>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -116,46 +110,41 @@ export default function QuickActions() {
 
       {/* Actuator quick controls */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+        <h2 className="mb-3 text-sm font-semibold text-base-content/60 uppercase tracking-wider">
           {t("pages:quickActions.actuators")}
         </h2>
         {actuators.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-base-content/60">
             {t("pages:quickActions.noActuators")}
           </p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {actuators.map((a) => (
-              <div
+              <motion.div
                 key={a.id}
-                className="flex items-center justify-between rounded-lg border bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="card bg-base-100 shadow-xs flex-row items-center justify-between p-4"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="truncate text-sm font-medium text-base-content">
                     {a.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-base-content/60">
                     {a.zoneName} &middot; {a.actuator_type}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleToggle(a)}
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary ml-3"
+                  checked={a.state}
                   disabled={togglingId === a.id}
-                  className={`relative ml-3 inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 ${
-                    a.state
-                      ? "bg-primary-600"
-                      : "bg-gray-200 dark:bg-gray-600"
-                  }`}
+                  onChange={() => handleToggle(a)}
                   role="switch"
-                  aria-checked={a.state}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ${
-                      a.state ? "translate-x-6" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
+                  aria-label={`${a.name} toggle`}
+                />
+              </motion.div>
             ))}
           </div>
         )}

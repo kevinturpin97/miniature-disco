@@ -1,5 +1,5 @@
 /**
- * Sidebar navigation.
+ * Sidebar navigation using DaisyUI menu component.
  */
 
 import { NavLink } from "react-router-dom";
@@ -27,20 +27,20 @@ export function Sidebar({ onClose }: SidebarProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-base-100 w-64">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b px-4 dark:border-gray-700">
+      <div className="flex h-16 items-center justify-between border-b border-base-300 px-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white text-sm font-bold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-content text-sm font-bold">
             G
           </div>
-          <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <span className="text-lg font-semibold text-base-content">
             Greenhouse
           </span>
         </div>
         <button
           onClick={onClose}
-          className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 lg:hidden"
+          className="btn btn-ghost btn-circle btn-sm lg:hidden"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -49,28 +49,23 @@ export function Sidebar({ onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+      <ul className="menu flex-1 px-3 py-4 overflow-y-auto">
         {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            onClick={onClose}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              }`
-            }
-          >
-            <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-            </svg>
-            {t(item.labelKey)}
-          </NavLink>
+          <li key={item.to}>
+            <NavLink
+              to={item.to}
+              end={item.to === "/"}
+              onClick={onClose}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+              </svg>
+              {t(item.labelKey)}
+            </NavLink>
+          </li>
         ))}
-      </nav>
+      </ul>
     </div>
   );
 }

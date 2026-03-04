@@ -1,8 +1,8 @@
 /**
  * Theme store (Zustand).
  *
- * Manages dark/light mode. Persisted in localStorage and applied
- * as a CSS class on <html>.
+ * Manages dark/light mode via DaisyUI data-theme attribute.
+ * Persisted in localStorage.
  */
 
 import { create } from "zustand";
@@ -17,11 +17,10 @@ interface ThemeState {
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  if (theme === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
-  }
+  root.setAttribute(
+    "data-theme",
+    theme === "dark" ? "greenhouse-dark" : "greenhouse-light",
+  );
   // Update PWA theme-color meta tag
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {

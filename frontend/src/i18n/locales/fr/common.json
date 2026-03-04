@@ -58,7 +58,26 @@
     "loadFailed": "Échec du chargement des données.",
     "networkError": "Erreur réseau. Veuillez réessayer.",
     "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide.",
-    "registrationFailed": "Échec de l'inscription. Le nom d'utilisateur ou l'email est peut-être déjà utilisé."
+    "registrationFailed": "Échec de l'inscription. Le nom d'utilisateur ou l'email est peut-être déjà utilisé.",
+    "timeout": "La requête a expiré. Veuillez réessayer.",
+    "forbidden": "Vous n'avez pas la permission d'effectuer cette action.",
+    "notFound": "La ressource demandée est introuvable.",
+    "conflict": "Conflit détecté. Veuillez recharger et réessayer.",
+    "rateLimit": "Trop de requêtes. Veuillez patienter et réessayer.",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard."
+  },
+  "success": {
+    "created": "Créé avec succès.",
+    "updated": "Mis à jour avec succès.",
+    "deleted": "Supprimé avec succès.",
+    "saved": "Enregistré avec succès.",
+    "passwordChanged": "Mot de passe modifié avec succès.",
+    "invitationSent": "Invitation envoyée.",
+    "roleUpdated": "Rôle mis à jour.",
+    "memberRemoved": "Membre retiré.",
+    "acknowledged": "Alerte acquittée.",
+    "scenarioStarted": "Scénario lancé.",
+    "subscriptionSaved": "Paramètres de notification enregistrés."
   },
   "labels": {
     "username": "Nom d'utilisateur",

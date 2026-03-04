@@ -12,7 +12,9 @@ import type {
 } from "@/types";
 
 export async function listOrganizations(): Promise<Organization[]> {
-  const { data } = await client.get<PaginatedResponse<Organization>>("/orgs/");
+  const { data } = await client.get<PaginatedResponse<Organization>>("/orgs/", {
+    _silentError: true,
+  });
   return data.results;
 }
 

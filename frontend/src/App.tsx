@@ -5,6 +5,7 @@
 
 import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@/components/ui/Spinner";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -78,6 +79,18 @@ function App() {
   return (
     <BrowserRouter>
       <AppInit>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            error: { duration: 5000 },
+            style: {
+              borderRadius: "0.5rem",
+              padding: "0.75rem 1rem",
+              fontSize: "0.875rem",
+            },
+          }}
+        />
         <Suspense fallback={<PageFallback />}>
           <Routes>
             {/* Public routes */}

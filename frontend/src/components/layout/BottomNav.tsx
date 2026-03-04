@@ -1,5 +1,5 @@
 /**
- * Mobile bottom navigation bar — visible only on small screens.
+ * Mobile bottom navigation bar using DaisyUI dock component -- visible only on small screens.
  */
 
 import { NavLink } from "react-router-dom";
@@ -37,28 +37,20 @@ export function BottomNav() {
   const { t } = useTranslation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-white pb-safe dark:border-gray-700 dark:bg-gray-800 lg:hidden">
-      <div className="flex items-center justify-around">
-        {BOTTOM_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-2 py-2 text-[10px] font-medium transition-colors ${
-                isActive
-                  ? "text-primary-600 dark:text-primary-400"
-                  : "text-gray-500 dark:text-gray-400"
-              }`
-            }
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-            </svg>
-            <span>{t(item.labelKey)}</span>
-          </NavLink>
-        ))}
-      </div>
-    </nav>
+    <div className="dock lg:hidden">
+      {BOTTOM_ITEMS.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === "/"}
+          className={({ isActive }) => (isActive ? "dock-active" : "")}
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+          </svg>
+          <span className="dock-label">{t(item.labelKey)}</span>
+        </NavLink>
+      ))}
+    </div>
   );
 }

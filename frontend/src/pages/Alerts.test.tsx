@@ -59,11 +59,13 @@ describe("Alerts page", () => {
     expect(screen.getByTestId("spinner")).toBeInTheDocument();
   });
 
-  it("shows error message on fetch failure", async () => {
+  it("shows empty state on fetch failure (errors handled via toast)", async () => {
     mockListAlerts.mockRejectedValueOnce(new Error("Network error"));
     renderAlerts();
+    // After API failure, loading finishes and empty filter results are shown
+    // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(screen.getByText("Failed to load data.")).toBeInTheDocument();
+      expect(screen.getByText("No alerts match your filters.")).toBeInTheDocument();
     });
   });
 
