@@ -93,6 +93,7 @@ export interface Command {
   value: number | null;
   status: CommandStatus;
   created_by: number | null;
+  automation_rule: number | null;
   created_at: string;
   sent_at: string | null;
   acknowledged_at: string | null;

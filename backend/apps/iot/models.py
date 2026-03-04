@@ -182,6 +182,14 @@ class Command(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
+    automation_rule = models.ForeignKey(
+        "AutomationRule",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="triggered_commands",
+        help_text="The automation rule that triggered this command, if any",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     acknowledged_at = models.DateTimeField(null=True, blank=True)

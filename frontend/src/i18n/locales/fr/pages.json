@@ -117,6 +117,56 @@
   },
   "automations": {
     "title": "Automatisations",
-    "subtitle": "Disponible au Sprint 11."
+    "subtitle": "Définissez des règles pour contrôler automatiquement les actionneurs selon les lectures des capteurs.",
+    "selectZone": "Sélectionnez une zone pour gérer les règles d'automatisation.",
+    "noRules": "Aucune règle d'automatisation configurée.",
+    "addRule": "Ajouter une règle",
+    "editRule": "Modifier la règle",
+    "deleteRule": "Supprimer la règle",
+    "ruleForm": {
+      "name": "Nom de la règle",
+      "namePlaceholder": "ex. Allumer le ventilateur quand il fait chaud",
+      "description": "Description",
+      "sensorType": "Type de capteur",
+      "condition": "Condition",
+      "thresholdValue": "Valeur seuil",
+      "actuator": "Actionneur",
+      "commandType": "Action",
+      "actionValue": "Valeur de l'action",
+      "actionValueHint": "Uniquement pour les commandes SET",
+      "cooldown": "Délai de récupération (secondes)",
+      "cooldownHint": "Secondes minimum entre les déclenchements",
+      "isActive": "Active"
+    },
+    "conditions": {
+      "GT": "Supérieur à",
+      "LT": "Inférieur à",
+      "EQ": "Égal à",
+      "GTE": "Supérieur ou égal",
+      "LTE": "Inférieur ou égal"
+    },
+    "commandTypes": {
+      "ON": "Allumer",
+      "OFF": "Éteindre",
+      "SET": "Définir une valeur"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "neverTriggered": "Jamais déclenchée",
+      "lastTriggered": "Dernier déclenchement"
+    },
+    "triggerHistory": "Historique des déclenchements",
+    "noTriggers": "Aucun déclenchement enregistré.",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette règle d'automatisation ?",
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "sensorTypeRequired": "Le type de capteur est requis",
+      "conditionRequired": "La condition est requise",
+      "thresholdRequired": "La valeur seuil est requise",
+      "actuatorRequired": "L'actionneur est requis",
+      "commandTypeRequired": "Le type de commande est requis",
+      "cooldownMin": "Le délai doit être d'au moins 10 secondes"
+    }
   }
 }

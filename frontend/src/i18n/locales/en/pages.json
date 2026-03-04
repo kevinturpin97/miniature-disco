@@ -117,6 +117,56 @@
   },
   "automations": {
     "title": "Automations",
-    "subtitle": "Coming in Sprint 11."
+    "subtitle": "Define rules to automatically control actuators based on sensor readings.",
+    "selectZone": "Select a zone to manage automation rules.",
+    "noRules": "No automation rules configured.",
+    "addRule": "Add Rule",
+    "editRule": "Edit Rule",
+    "deleteRule": "Delete Rule",
+    "ruleForm": {
+      "name": "Rule name",
+      "namePlaceholder": "e.g. Turn on fan when hot",
+      "description": "Description",
+      "sensorType": "Sensor type",
+      "condition": "Condition",
+      "thresholdValue": "Threshold value",
+      "actuator": "Actuator",
+      "commandType": "Action",
+      "actionValue": "Action value",
+      "actionValueHint": "Only for SET commands",
+      "cooldown": "Cooldown (seconds)",
+      "cooldownHint": "Min seconds between triggers",
+      "isActive": "Active"
+    },
+    "conditions": {
+      "GT": "Greater than",
+      "LT": "Less than",
+      "EQ": "Equal to",
+      "GTE": "Greater or equal",
+      "LTE": "Less or equal"
+    },
+    "commandTypes": {
+      "ON": "Turn ON",
+      "OFF": "Turn OFF",
+      "SET": "Set value"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "neverTriggered": "Never triggered",
+      "lastTriggered": "Last triggered"
+    },
+    "triggerHistory": "Trigger History",
+    "noTriggers": "No triggers recorded yet.",
+    "confirmDelete": "Are you sure you want to delete this automation rule?",
+    "validation": {
+      "nameRequired": "Name is required",
+      "sensorTypeRequired": "Sensor type is required",
+      "conditionRequired": "Condition is required",
+      "thresholdRequired": "Threshold value is required",
+      "actuatorRequired": "Actuator is required",
+      "commandTypeRequired": "Command type is required",
+      "cooldownMin": "Cooldown must be at least 10 seconds"
+    }
   }
 }

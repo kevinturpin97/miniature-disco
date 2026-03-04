@@ -37,6 +37,28 @@ def trigger_threshold_evaluation(
     evaluate_sensor_thresholds.delay(instance.pk)
 
 
+@receiver(post_save, sender=SensorReading)
+def trigger_automation_evaluation(
+    sender: type,
+    instance: SensorReading,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Dispatch the automation rules evaluation Celery task for new readings.
+
+    Args:
+        sender: The SensorReading model class.
+        instance: The newly created SensorReading.
+        created: True if the instance was just created.
+    """
+    if not created:
+        return
+
+    from .tasks import evaluate_automation_rules
+
+    evaluate_automation_rules.delay(instance.pk)
+
+
 @receiver(post_save, sender=Command)
 def trigger_send_command_to_mqtt(
     sender: type,

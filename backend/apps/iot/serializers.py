@@ -163,7 +163,7 @@ class CommandSerializer(serializers.ModelSerializer):
 
     Fields:
         id, actuator, command_type, value, status, created_by (hidden),
-        created_at, sent_at, acknowledged_at, error_message.
+        automation_rule, created_at, sent_at, acknowledged_at, error_message.
     """
 
     created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -177,6 +177,7 @@ class CommandSerializer(serializers.ModelSerializer):
             "value",
             "status",
             "created_by",
+            "automation_rule",
             "created_at",
             "sent_at",
             "acknowledged_at",
@@ -186,6 +187,7 @@ class CommandSerializer(serializers.ModelSerializer):
             "id",
             "actuator",
             "status",
+            "automation_rule",
             "created_at",
             "sent_at",
             "acknowledged_at",

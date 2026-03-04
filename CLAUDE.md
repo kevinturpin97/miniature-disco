@@ -680,12 +680,12 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Timeout des commandes (Celery task)
 
 ### SPRINT 11 — Automatisations
-- [ ] Page création/édition de règles
-- [ ] Formulaire : SI [capteur] [condition] [valeur] ALORS [actionneur] [action]
-- [ ] Automation engine (Celery) : évalue les règles à chaque reading
-- [ ] Cooldown entre déclenchements
-- [ ] Historique des déclenchements
-- [ ] Activation/désactivation des règles
+- [x] Page création/édition de règles
+- [x] Formulaire : SI [capteur] [condition] [valeur] ALORS [actionneur] [action]
+- [x] Automation engine (Celery) : évalue les règles à chaque reading
+- [x] Cooldown entre déclenchements
+- [x] Historique des déclenchements
+- [x] Activation/désactivation des règles
 
 ### SPRINT 12 — Intégration & Production
 - [ ] docker-compose.prod.yml optimisé (images ARM64, healthchecks)

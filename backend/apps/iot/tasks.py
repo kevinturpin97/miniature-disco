@@ -325,3 +325,33 @@ def timeout_pending_commands() -> dict[str, int]:
 
     logger.info("Command timeout check complete: timed_out=%d", timed_out)
     return {"timed_out": timed_out}
+
+
+@shared_task(name="iot.evaluate_automation_rules")
+def evaluate_automation_rules(reading_id: int) -> dict[str, int]:
+    """Evaluate automation rules for a newly created sensor reading.
+
+    Delegates to :func:`~automation_engine.evaluate_rules_for_reading`
+    which checks matching active rules, respects cooldowns, and creates
+    commands when conditions are met.
+
+    Args:
+        reading_id: Primary key of the SensorReading to evaluate.
+
+    Returns:
+        Dict with ``triggered`` count of rules that fired.
+    """
+    try:
+        reading = (
+            SensorReading.objects
+            .select_related("sensor", "sensor__zone")
+            .get(pk=reading_id)
+        )
+    except SensorReading.DoesNotExist:
+        logger.warning("SensorReading %s not found — skipping automation evaluation", reading_id)
+        return {"triggered": 0}
+
+    from .automation_engine import evaluate_rules_for_reading
+
+    command_ids = evaluate_rules_for_reading(reading)
+    return {"triggered": len(command_ids)}
