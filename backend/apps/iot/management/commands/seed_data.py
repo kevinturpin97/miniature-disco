@@ -16,8 +16,8 @@ from apps.iot.models import Actuator, AutomationRule, Greenhouse, Sensor, Zone
 User = get_user_model()
 
 SEED_USERNAME = "demo"
-SEED_EMAIL = "demo@greenhouse.local"
-SEED_PASSWORD = "demo1234"
+SEED_EMAIL = "demo@test.fr"
+SEED_PASSWORD = "motdepasse"
 
 
 class Command(BaseCommand):

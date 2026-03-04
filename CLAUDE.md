@@ -701,16 +701,16 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 13 — Multi-Tenancy & Organisation
 **Objectif : passer d'un modèle "utilisateur solo" à un vrai SaaS collaboratif**
 
-- [ ] Modèle `Organization` avec `slug`, `plan` (FREE/PRO/ENTERPRISE), `max_greenhouses`, `max_zones`
-- [ ] Modèle `Membership` (user ↔ org) avec rôles : OWNER, ADMIN, OPERATOR, VIEWER
-- [ ] Migration des `Greenhouse` : owner → organization (rétrocompat)
-- [ ] Permission system revu : `IsOrganizationMember`, `HasRole(role)`
-- [ ] Invitation par email (token signé, expiry 48h)
-- [ ] API endpoints : `/api/orgs/`, `/api/orgs/{slug}/members/`, `/api/orgs/{slug}/invite/`
-- [ ] Frontend : page "Team Management" (invitations, rôles, revoke)
-- [ ] Frontend : switcher d'organisation dans le header
-- [ ] Tests : permissions croisées entre orgs, invitations expirées
-- [ ] Quotas enforced côté API (ex : 403 si FREE + > 3 serres)
+- [x] Modèle `Organization` avec `slug`, `plan` (FREE/PRO/ENTERPRISE), `max_greenhouses`, `max_zones`
+- [x] Modèle `Membership` (user ↔ org) avec rôles : OWNER, ADMIN, OPERATOR, VIEWER
+- [x] Migration des `Greenhouse` : owner → organization (rétrocompat)
+- [x] Permission system revu : `IsOrganizationMember`, `HasRole(role)`
+- [x] Invitation par email (token signé, expiry 48h)
+- [x] API endpoints : `/api/orgs/`, `/api/orgs/{slug}/members/`, `/api/orgs/{slug}/invite/`
+- [x] Frontend : page "Team Management" (invitations, rôles, revoke)
+- [x] Frontend : switcher d'organisation dans le header
+- [x] Tests : permissions croisées entre orgs, invitations expirées
+- [x] Quotas enforced côté API (ex : 403 si FREE + > 3 serres)
 
 ---
 
