@@ -10,7 +10,7 @@ import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import SensorReading
+from .models import Command, SensorReading
 
 logger = logging.getLogger(__name__)
 
@@ -35,3 +35,25 @@ def trigger_threshold_evaluation(
     from .tasks import evaluate_sensor_thresholds
 
     evaluate_sensor_thresholds.delay(instance.pk)
+
+
+@receiver(post_save, sender=Command)
+def trigger_send_command_to_mqtt(
+    sender: type,
+    instance: Command,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Dispatch the send_command_to_mqtt Celery task for new commands.
+
+    Args:
+        sender: The Command model class.
+        instance: The newly created Command.
+        created: True if the instance was just created.
+    """
+    if not created:
+        return
+
+    from .tasks import send_command_to_mqtt
+
+    send_command_to_mqtt.delay(instance.pk)

@@ -25,3 +25,5 @@ MQTT_TOPIC_COMMANDS: str = config("MQTT_TOPIC_COMMANDS", default="greenhouse/com
 
 # Logging
 LOG_LEVEL: str = config("LOG_LEVEL", default="INFO")
+
+MQTT_TOPIC_ACK: str = config("MQTT_TOPIC_ACK", default="greenhouse/relay/{relay_id}/ack")

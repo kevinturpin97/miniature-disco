@@ -120,6 +120,39 @@ class MqttClient:
         logger.error("mqtt_publish_failed", rc=result.rc, topic=topic)
         return False
 
+    def publish_command_ack(
+        self, relay_id: int, command_id: int, success: bool
+    ) -> bool:
+        """Publish a command acknowledgment from a relay node.
+
+        Args:
+            relay_id: The relay node identifier.
+            command_id: The command ID being acknowledged.
+            success: True if the relay executed the command successfully.
+
+        Returns:
+            True if the message was queued for delivery.
+        """
+        topic = config.MQTT_TOPIC_ACK.format(relay_id=relay_id)
+        payload = json.dumps({
+            "command_id": command_id,
+            "status": "ACK" if success else "FAILED",
+        })
+
+        result = self._client.publish(topic, payload, qos=1)
+        if result.rc == mqtt.MQTT_ERR_SUCCESS:
+            logger.info(
+                "mqtt_ack_published",
+                topic=topic,
+                relay_id=relay_id,
+                command_id=command_id,
+                success=success,
+            )
+            return True
+
+        logger.error("mqtt_ack_publish_failed", rc=result.rc, topic=topic)
+        return False
+
     # ── Sending commands via serial (relay back) ────────────────
 
     def send_command_to_serial(

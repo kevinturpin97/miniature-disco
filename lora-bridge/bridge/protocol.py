@@ -32,6 +32,7 @@ MSG_COMMAND: Final[int] = 0x80
 ACTION_OFF: Final[int] = 0x00
 ACTION_ON: Final[int] = 0x01
 ACTION_SET_VALUE: Final[int] = 0x02
+MSG_COMMAND_ACK: Final[int] = 0x82
 
 SENSOR_TYPE_MAP: Final[dict[int, str]] = {
     0x01: "TEMP",
@@ -69,6 +70,15 @@ class CommandFrame:
     actuator_pin: int
     action: int       # ACTION_ON / ACTION_OFF / ACTION_SET_VALUE
     value: int = 0    # Only for ACTION_SET_VALUE (raw int16, already × 100)
+
+
+@dataclass
+class AckFrame:
+    """A decoded command acknowledgment frame from a relay node."""
+
+    relay_id: int
+    command_id: int
+    success: bool
 
 
 # ── CRC-8/MAXIM ────────────────────────────────────────────────
@@ -196,3 +206,56 @@ def encode_command(cmd: CommandFrame) -> bytes:
         length=len(buf),
     )
     return bytes(buf)
+
+
+def decode_ack_frame(raw: bytes) -> AckFrame | None:
+    """Decode a command acknowledgment frame from a relay node.
+
+    Frame format:
+        [RELAY_ID][0x82][CMD_ID_HI][CMD_ID_LO][STATUS(0=fail,1=ok)][CRC8]
+
+    Args:
+        raw: Raw bytes received from the serial port.
+
+    Returns:
+        AckFrame on success, None if the frame is invalid.
+    """
+    if len(raw) < 6:
+        logger.warning("ack_frame_too_short", length=len(raw))
+        return None
+
+    relay_id = raw[0]
+    msg_type = raw[1]
+
+    if msg_type != MSG_COMMAND_ACK:
+        return None
+
+    # Validate CRC
+    payload = raw[:5]
+    expected_crc = crc8_maxim(payload)
+    actual_crc = raw[5]
+
+    if expected_crc != actual_crc:
+        logger.warning(
+            "ack_crc_mismatch",
+            expected=hex(expected_crc),
+            actual=hex(actual_crc),
+            relay_id=relay_id,
+        )
+        return None
+
+    command_id = struct.unpack(">H", raw[2:4])[0]
+    status = raw[4]
+
+    frame = AckFrame(
+        relay_id=relay_id,
+        command_id=command_id,
+        success=(status == 1),
+    )
+    logger.info(
+        "ack_frame_decoded",
+        relay_id=relay_id,
+        command_id=command_id,
+        success=frame.success,
+    )
+    return frame

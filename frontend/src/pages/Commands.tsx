@@ -10,6 +10,8 @@ import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
 import { listActuators } from "@/api/actuators";
 import { createCommand, listCommands } from "@/api/commands";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@/components/ui/Spinner";
 import { ACTUATOR_TYPE_LABELS, COMMAND_STATUS_LABELS } from "@/utils/constants";
 import { formatDate } from "@/utils/formatters";
@@ -40,6 +42,7 @@ const COMMAND_REFRESH_INTERVAL = 5_000;
 export default function Commands() {
   const { t } = useTranslation();
   const { t: tp } = useTranslation("pages");
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   /* ---- structure state ---- */
   const [greenhouses, setGreenhouses] = useState<GreenhouseWithZones[]>([]);
@@ -138,6 +141,35 @@ export default function Commands() {
       }
     };
   }, [selectedZoneId]);
+
+  /* ---- WebSocket for real-time command status updates ---- */
+  useWebSocket({
+    url: "/ws/commands/",
+    enabled: isAuthenticated,
+    onMessage: (data: Record<string, unknown>) => {
+      if (data.type === "command_status_update") {
+        const commandId = data.command_id as number;
+        const status = data.status as CommandStatus;
+        const sentAt = (data.sent_at as string | null) ?? null;
+        const acknowledgedAt = (data.acknowledged_at as string | null) ?? null;
+        const errorMessage = (data.error_message as string) ?? "";
+
+        setCommands((prev) =>
+          prev.map((cmd) =>
+            cmd.id === commandId
+              ? {
+                  ...cmd,
+                  status,
+                  sent_at: sentAt ?? cmd.sent_at,
+                  acknowledged_at: acknowledgedAt ?? cmd.acknowledged_at,
+                  error_message: errorMessage || cmd.error_message,
+                }
+              : cmd,
+          ),
+        );
+      }
+    },
+  });
 
   /* ---- send command handler ---- */
   async function handleSendCommand(actuatorId: number, commandType: "ON" | "OFF") {
@@ -348,9 +380,13 @@ export default function Commands() {
                           <td className="px-4 py-3">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}
+                              title={cmd.error_message || undefined}
                             >
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
+                            {cmd.error_message && (
+                              <p className="mt-1 text-xs text-red-500">{cmd.error_message}</p>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-gray-500">
                             {formatDate(cmd.created_at)}

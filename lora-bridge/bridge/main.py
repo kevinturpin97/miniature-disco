@@ -18,7 +18,9 @@ import structlog
 from . import config
 from .mqtt_client import MqttClient
 from .protocol import (
+    AckFrame,
     CommandFrame,
+    decode_ack_frame,
     decode_sensor_frame,
     encode_command,
 )
@@ -60,16 +62,22 @@ class LoraBridge:
     # ── Serial → MQTT (sensor data) ────────────────────────────
 
     def _handle_serial_frame(self, raw: bytes) -> None:
-        """Decode a raw serial frame and publish sensor data via MQTT."""
+        """Decode a raw serial frame and publish sensor data or ACK via MQTT."""
         frame = decode_sensor_frame(raw)
-        if frame is None:
+        if frame is not None:
+            readings = [
+                {"sensor_type": r.sensor_type, "value": r.value}
+                for r in frame.readings
+            ]
+            self._mqtt.publish_sensor_data(frame.relay_id, readings)
             return
 
-        readings = [
-            {"sensor_type": r.sensor_type, "value": r.value}
-            for r in frame.readings
-        ]
-        self._mqtt.publish_sensor_data(frame.relay_id, readings)
+        ack = decode_ack_frame(raw)
+        if ack is not None:
+            self._mqtt.publish_command_ack(ack.relay_id, ack.command_id, ack.success)
+            return
+
+        logger.warning("unrecognized_serial_frame", length=len(raw))
 
     # ── MQTT → Serial (commands) ────────────────────────────────
 

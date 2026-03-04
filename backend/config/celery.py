@@ -18,4 +18,8 @@ app.conf.beat_schedule = {
         "task": "iot.detect_offline_relays",
         "schedule": 60.0,  # Every 60 seconds
     },
+    "timeout-pending-commands": {
+        "task": "iot.timeout_pending_commands",
+        "schedule": 30.0,  # Every 30 seconds
+    },
 }

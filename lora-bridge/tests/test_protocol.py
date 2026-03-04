@@ -9,10 +9,13 @@ from bridge.protocol import (
     ACTION_ON,
     ACTION_SET_VALUE,
     MSG_COMMAND,
+    MSG_COMMAND_ACK,
     MSG_SENSOR_DATA,
+    AckFrame,
     CommandFrame,
     SensorFrame,
     crc8_maxim,
+    decode_ack_frame,
     decode_sensor_frame,
     encode_command,
 )
@@ -200,3 +203,60 @@ class TestRoundTrip:
         assert frame.relay_id == 42
         assert frame.readings[0].value == pytest.approx(21.50)
         assert frame.readings[1].value == pytest.approx(75.30)
+
+
+# ── Decode ACK frame ──────────────────────────────────────────────
+
+
+class TestDecodeAckFrame:
+    """decode_ack_frame() — relay → gateway ACK."""
+
+    @staticmethod
+    def _build_ack_frame(relay_id: int, command_id: int, success: bool) -> bytes:
+        """Helper to build a valid ACK frame with correct CRC."""
+        buf = bytearray()
+        buf.append(relay_id)
+        buf.append(MSG_COMMAND_ACK)
+        buf.extend(struct.pack(">H", command_id))
+        buf.append(1 if success else 0)
+        buf.append(crc8_maxim(buf))
+        return bytes(buf)
+
+    def test_valid_ack_success(self) -> None:
+        raw = self._build_ack_frame(relay_id=5, command_id=123, success=True)
+        frame = decode_ack_frame(raw)
+        assert frame is not None
+        assert frame.relay_id == 5
+        assert frame.command_id == 123
+        assert frame.success is True
+
+    def test_valid_ack_failure(self) -> None:
+        raw = self._build_ack_frame(relay_id=10, command_id=456, success=False)
+        frame = decode_ack_frame(raw)
+        assert frame is not None
+        assert frame.relay_id == 10
+        assert frame.command_id == 456
+        assert frame.success is False
+
+    def test_crc_mismatch_rejected(self) -> None:
+        raw = bytearray(self._build_ack_frame(relay_id=1, command_id=100, success=True))
+        raw[-1] ^= 0xFF  # corrupt CRC
+        assert decode_ack_frame(bytes(raw)) is None
+
+    def test_too_short_rejected(self) -> None:
+        assert decode_ack_frame(b"\x01\x82\x00") is None
+        assert decode_ack_frame(b"") is None
+
+    def test_wrong_msg_type_rejected(self) -> None:
+        """Frame with wrong msg_type returns None."""
+        raw = bytearray(self._build_ack_frame(relay_id=1, command_id=100, success=True))
+        raw[1] = 0x01  # sensor data msg type instead of ACK
+        raw[-1] = crc8_maxim(raw[:-1])  # fix CRC
+        assert decode_ack_frame(bytes(raw)) is None
+
+    def test_large_command_id(self) -> None:
+        """16-bit command_id at max value."""
+        raw = self._build_ack_frame(relay_id=1, command_id=65535, success=True)
+        frame = decode_ack_frame(raw)
+        assert frame is not None
+        assert frame.command_id == 65535

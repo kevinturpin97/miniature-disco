@@ -133,3 +133,51 @@ class AlertConsumer(AsyncJsonWebsocketConsumer):
     async def alert_notification(self, event: dict) -> None:
         """Push an alert notification event to the WebSocket client."""
         await self.send_json(event)
+
+
+class CommandConsumer(AsyncJsonWebsocketConsumer):
+    """WebSocket consumer for live command status updates.
+
+    URL: ``/ws/commands/``
+
+    Clients must connect with ``?token=<JWT>`` query parameter.
+    The user receives command status updates for all their greenhouses.
+
+    Messages pushed to the client::
+
+        {
+            "type": "command_status_update",
+            "command_id": 1,
+            "actuator_id": 1,
+            "status": "SENT",
+            "sent_at": "2024-01-01T00:00:00Z",
+            "acknowledged_at": null,
+            "error_message": ""
+        }
+    """
+
+    async def connect(self) -> None:
+        """Join the user's command group after authentication."""
+        user = self.scope.get("user", AnonymousUser())
+
+        if isinstance(user, AnonymousUser) or not user.is_authenticated:
+            await self.close(code=4001)
+            return
+
+        self.group_name = f"commands_{user.pk}"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+        logger.info("WebSocket commands connected: user=%s", user.pk)
+
+    async def disconnect(self, code: int) -> None:
+        """Leave the command group on disconnect."""
+        if hasattr(self, "group_name"):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive_json(self, content: dict, **kwargs: Any) -> None:
+        """Client-to-server messages are not expected; ignore them."""
+        pass
+
+    async def command_status_update(self, event: dict) -> None:
+        """Push a command status update event to the WebSocket client."""
+        await self.send_json(event)

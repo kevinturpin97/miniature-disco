@@ -672,12 +672,12 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [x] Docker build: all 6 containers built successfully
 
 ### SPRINT 10 — Commandes & Actionneurs
-- [ ] Page commandes : interface par zone
-- [ ] Boutons ON/OFF par actionneur
-- [ ] Pipeline complet : UI → API → MQTT → LoRa Bridge → LoRa → Relais
-- [ ] Feedback de status (PENDING → SENT → ACK/FAILED)
-- [ ] Historique des commandes par zone
-- [ ] Timeout des commandes (Celery task)
+- [x] Page commandes : interface par zone
+- [x] Boutons ON/OFF par actionneur
+- [x] Pipeline complet : UI → API → MQTT → LoRa Bridge → LoRa → Relais
+- [x] Feedback de status (PENDING → SENT → ACK/FAILED)
+- [x] Historique des commandes par zone
+- [x] Timeout des commandes (Celery task)
 
 ### SPRINT 11 — Automatisations
 - [ ] Page création/édition de règles

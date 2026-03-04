@@ -19,12 +19,13 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Alert, Sensor, SensorReading, Zone
+from .models import Actuator, Alert, Command, Sensor, SensorReading, Zone
 
 logger = logging.getLogger(__name__)
 
 # MQTT topic patterns
 TOPIC_SENSORS = "greenhouse/relay/+/sensors"
+TOPIC_COMMAND_ACK = "greenhouse/relay/+/ack"
 
 
 class MqttWorker:
@@ -93,10 +94,11 @@ class MqttWorker:
         rc: mqtt.ReasonCode,
         properties: mqtt.Properties | None = None,
     ) -> None:
-        """Subscribe to sensor topics on successful connection."""
+        """Subscribe to sensor and ACK topics on successful connection."""
         if rc == mqtt.ReasonCode(mqtt.CONNACK_ACCEPTED):
             client.subscribe(TOPIC_SENSORS, qos=1)
-            logger.info("MQTT connected — subscribed to %s", TOPIC_SENSORS)
+            client.subscribe(TOPIC_COMMAND_ACK, qos=1)
+            logger.info("MQTT connected — subscribed to %s, %s", TOPIC_SENSORS, TOPIC_COMMAND_ACK)
         else:
             logger.error("MQTT connection refused: %s", rc)
 
@@ -118,28 +120,34 @@ class MqttWorker:
         userdata: object,
         msg: mqtt.MQTTMessage,
     ) -> None:
-        """Process an incoming sensor data message.
+        """Process an incoming MQTT message (sensor data or command ACK).
 
-        Expected topic: ``greenhouse/relay/{relay_id}/sensors``
-        Expected payload::
-
-            {
-                "relay_id": 1,
-                "readings": [
-                    {"sensor_type": "TEMP", "value": 23.45},
-                    {"sensor_type": "HUM_AIR", "value": 67.5}
-                ]
-            }
+        Routes to the appropriate handler based on the topic pattern.
         """
         try:
             payload = json.loads(msg.payload.decode())
-            relay_id = payload["relay_id"]
-            readings = payload["readings"]
-        except (json.JSONDecodeError, KeyError, UnicodeDecodeError) as exc:
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             logger.error("Invalid MQTT payload on %s: %s", msg.topic, exc)
             return
 
-        self._process_readings(relay_id, readings)
+        if "/sensors" in msg.topic:
+            try:
+                relay_id = payload["relay_id"]
+                readings = payload["readings"]
+            except KeyError as exc:
+                logger.error("Missing key in sensor payload on %s: %s", msg.topic, exc)
+                return
+            self._process_readings(relay_id, readings)
+        elif "/ack" in msg.topic:
+            try:
+                parts = msg.topic.split("/")
+                relay_id = int(parts[2])  # greenhouse/relay/{relay_id}/ack
+            except (IndexError, ValueError) as exc:
+                logger.error("Invalid ACK topic %s: %s", msg.topic, exc)
+                return
+            self._process_command_ack(relay_id, payload)
+        else:
+            logger.warning("Unknown MQTT topic: %s", msg.topic)
 
     # ── Data processing ──────────────────────────────────────────
 
@@ -314,5 +322,92 @@ class MqttWorker:
                 "zone_name": zone.name,
                 "message": alert.message,
                 "created_at": alert.created_at.isoformat() if alert.created_at else None,
+            },
+        )
+
+    # ── Command ACK processing ────────────────────────────────────
+
+    def _process_command_ack(self, relay_id: int, payload: dict) -> None:
+        """Process a command acknowledgment from a relay node.
+
+        Args:
+            relay_id: The LoRa relay node identifier.
+            payload: Dict with ``command_id`` and ``status`` (ACK or FAILED).
+        """
+        command_id = payload.get("command_id")
+        ack_status = payload.get("status", "ACK")
+
+        if command_id is None:
+            logger.warning("ACK payload missing command_id: %s", payload)
+            return
+
+        try:
+            command = (
+                Command.objects
+                .select_related("actuator__zone__greenhouse")
+                .get(pk=command_id)
+            )
+        except Command.DoesNotExist:
+            logger.warning("Command %s not found for ACK — skipping", command_id)
+            return
+
+        # Verify the command belongs to this relay
+        zone = command.actuator.zone
+        if zone.relay_id != relay_id:
+            logger.warning(
+                "ACK relay_id mismatch: expected=%s got=%s command=%s",
+                zone.relay_id, relay_id, command_id,
+            )
+            return
+
+        now = timezone.now()
+
+        if ack_status == "ACK":
+            command.status = Command.CommandStatus.ACKNOWLEDGED
+            command.acknowledged_at = now
+            command.save(update_fields=["status", "acknowledged_at"])
+
+            # Update actuator state
+            actuator = command.actuator
+            if command.command_type == Command.CommandType.ON:
+                actuator.state = True
+            elif command.command_type == Command.CommandType.OFF:
+                actuator.state = False
+            elif command.command_type == Command.CommandType.SET_VALUE:
+                actuator.state = True
+            actuator.save(update_fields=["state"])
+        else:
+            command.status = Command.CommandStatus.FAILED
+            command.error_message = f"Relay returned: {ack_status}"
+            command.save(update_fields=["status", "error_message"])
+
+        self._push_command_status(command, zone)
+        logger.info(
+            "Command ACK processed: command=%s status=%s relay=%s",
+            command_id, ack_status, relay_id,
+        )
+
+    def _push_command_status(self, command: Command, zone: Zone) -> None:
+        """Push a command status update to the WebSocket channel layer.
+
+        Args:
+            command: The updated Command instance.
+            zone: The zone containing the actuator.
+        """
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        owner_id = zone.greenhouse.owner_id
+        group_name = f"commands_{owner_id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "command_status_update",
+                "command_id": command.pk,
+                "actuator_id": command.actuator_id,
+                "status": command.status,
+                "sent_at": command.sent_at.isoformat() if command.sent_at else None,
+                "acknowledged_at": command.acknowledged_at.isoformat() if command.acknowledged_at else None,
+                "error_message": command.error_message,
             },
         )

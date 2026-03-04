@@ -8,9 +8,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.iot.models import Alert, Sensor, SensorReading, Zone
+from apps.iot.models import Actuator, Alert, Command, Sensor, SensorReading, Zone
 from apps.iot.mqtt_worker import MqttWorker
 from conftest import (
+    ActuatorFactory,
+    CommandFactory,
     GreenhouseFactory,
     SensorFactory,
     ZoneFactory,
@@ -191,3 +193,91 @@ class TestOnMessage:
         worker._on_message(client=MagicMock(), userdata=None, msg=msg)
 
         assert SensorReading.objects.count() == 0
+
+
+# ── _process_command_ack tests ──────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestProcessCommandAck:
+    """Tests for MqttWorker._process_command_ack."""
+
+    def test_valid_ack_updates_command_status(self, worker):
+        """ACK payload updates command to ACKNOWLEDGED."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh, relay_id=42)
+        actuator = ActuatorFactory(zone=zone, state=False)
+        command = CommandFactory(actuator=actuator, command_type="ON", status="SENT")
+
+        worker._process_command_ack(
+            relay_id=42,
+            payload={"command_id": command.pk, "status": "ACK"},
+        )
+
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.ACKNOWLEDGED
+        assert command.acknowledged_at is not None
+        actuator.refresh_from_db()
+        assert actuator.state is True
+
+    def test_failed_ack_updates_status(self, worker):
+        """FAILED ACK marks command as FAILED with error_message."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh, relay_id=42)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, command_type="ON", status="SENT")
+
+        worker._process_command_ack(
+            relay_id=42,
+            payload={"command_id": command.pk, "status": "FAILED"},
+        )
+
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.FAILED
+        assert "FAILED" in command.error_message
+
+    def test_invalid_command_id_skipped(self, worker, db):
+        """Non-existent command ID is handled gracefully."""
+        worker._process_command_ack(
+            relay_id=42,
+            payload={"command_id": 999999, "status": "ACK"},
+        )
+        # Should not raise
+
+    def test_missing_command_id_skipped(self, worker, db):
+        """Payload without command_id is skipped."""
+        worker._process_command_ack(
+            relay_id=42,
+            payload={"status": "ACK"},
+        )
+        # Should not raise
+
+    def test_relay_id_mismatch_skipped(self, worker):
+        """ACK from wrong relay_id is rejected."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh, relay_id=42)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, command_type="ON", status="SENT")
+
+        worker._process_command_ack(
+            relay_id=99,  # Wrong relay_id
+            payload={"command_id": command.pk, "status": "ACK"},
+        )
+
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.SENT  # Unchanged
+
+    def test_off_command_ack_sets_state_false(self, worker):
+        """ACK for OFF command sets actuator state to False."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh, relay_id=42)
+        actuator = ActuatorFactory(zone=zone, state=True)
+        command = CommandFactory(actuator=actuator, command_type="OFF", status="SENT")
+
+        worker._process_command_ack(
+            relay_id=42,
+            payload={"command_id": command.pk, "status": "ACK"},
+        )
+
+        actuator.refresh_from_db()
+        assert actuator.state is False

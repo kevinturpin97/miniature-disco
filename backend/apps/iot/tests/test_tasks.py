@@ -3,13 +3,26 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.utils import timezone
 
-from apps.iot.models import Alert
-from apps.iot.tasks import detect_offline_relays, evaluate_sensor_thresholds
-from conftest import GreenhouseFactory, SensorFactory, SensorReadingFactory, ZoneFactory
+from apps.iot.models import Alert, Command
+from apps.iot.tasks import (
+    detect_offline_relays,
+    evaluate_sensor_thresholds,
+    send_command_to_mqtt,
+    timeout_pending_commands,
+)
+from conftest import (
+    ActuatorFactory,
+    CommandFactory,
+    GreenhouseFactory,
+    SensorFactory,
+    SensorReadingFactory,
+    ZoneFactory,
+)
 
 
 @pytest.mark.django_db
@@ -238,3 +251,184 @@ class TestEvaluateSensorThresholds:
 
         assert result == {"high": False, "low": False}
         assert Alert.objects.count() == 0
+
+
+@pytest.mark.django_db
+class TestSendCommandToMqtt:
+    """Tests for the send_command_to_mqtt Celery task."""
+
+    @patch("apps.iot.tasks.mqtt.Client")
+    def test_command_published_to_mqtt(self, mock_mqtt_cls):
+        """Command is published to the correct MQTT topic."""
+        mock_client = MagicMock()
+        mock_mqtt_cls.return_value = mock_client
+        mock_result = MagicMock()
+        mock_client.publish.return_value = mock_result
+
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh, relay_id=10)
+        actuator = ActuatorFactory(zone=zone, gpio_pin=5)
+        command = CommandFactory(actuator=actuator, command_type="ON")
+
+        send_command_to_mqtt(command.pk)
+
+        mock_client.publish.assert_called_once()
+        topic = mock_client.publish.call_args[0][0]
+        assert topic == "greenhouse/commands/10"
+
+    @patch("apps.iot.tasks.mqtt.Client")
+    def test_command_status_updated_to_sent(self, mock_mqtt_cls):
+        """After successful publish, command status becomes SENT."""
+        mock_client = MagicMock()
+        mock_mqtt_cls.return_value = mock_client
+        mock_result = MagicMock()
+        mock_client.publish.return_value = mock_result
+
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, command_type="ON")
+
+        send_command_to_mqtt(command.pk)
+
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.SENT
+        assert command.sent_at is not None
+
+    @patch("apps.iot.tasks.mqtt.Client")
+    def test_actuator_state_updated_on(self, mock_mqtt_cls):
+        """Actuator state set to True for ON command."""
+        mock_client = MagicMock()
+        mock_mqtt_cls.return_value = mock_client
+        mock_result = MagicMock()
+        mock_client.publish.return_value = mock_result
+
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone, state=False)
+        command = CommandFactory(actuator=actuator, command_type="ON")
+
+        send_command_to_mqtt(command.pk)
+
+        actuator.refresh_from_db()
+        assert actuator.state is True
+
+    @patch("apps.iot.tasks.mqtt.Client")
+    def test_actuator_state_updated_off(self, mock_mqtt_cls):
+        """Actuator state set to False for OFF command."""
+        mock_client = MagicMock()
+        mock_mqtt_cls.return_value = mock_client
+        mock_result = MagicMock()
+        mock_client.publish.return_value = mock_result
+
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone, state=True)
+        command = CommandFactory(actuator=actuator, command_type="OFF")
+
+        send_command_to_mqtt(command.pk)
+
+        actuator.refresh_from_db()
+        assert actuator.state is False
+
+    def test_command_not_found_handled(self):
+        """Non-existent command ID does not raise."""
+        send_command_to_mqtt(999999)
+
+    @patch("apps.iot.tasks.mqtt.Client")
+    def test_mqtt_publish_failure_marks_failed(self, mock_mqtt_cls):
+        """MQTT error marks command as FAILED with error_message."""
+        mock_client = MagicMock()
+        mock_mqtt_cls.return_value = mock_client
+        mock_client.connect.side_effect = OSError("Connection refused")
+
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, command_type="ON")
+
+        send_command_to_mqtt(command.pk)
+
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.FAILED
+        assert "Connection refused" in command.error_message
+
+
+@pytest.mark.django_db
+class TestTimeoutPendingCommands:
+    """Tests for the timeout_pending_commands periodic task."""
+
+    def test_old_pending_command_times_out(self):
+        """PENDING command older than 60s is timed out."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, status="PENDING")
+        Command.objects.filter(pk=command.pk).update(
+            created_at=timezone.now() - timedelta(seconds=120)
+        )
+
+        result = timeout_pending_commands()
+
+        assert result["timed_out"] == 1
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.TIMEOUT
+
+    def test_old_sent_command_times_out(self):
+        """SENT command older than 60s is timed out."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, status="SENT")
+        Command.objects.filter(pk=command.pk).update(
+            created_at=timezone.now() - timedelta(seconds=120)
+        )
+
+        result = timeout_pending_commands()
+
+        assert result["timed_out"] == 1
+        command.refresh_from_db()
+        assert command.status == Command.CommandStatus.TIMEOUT
+
+    def test_recent_command_not_timed_out(self):
+        """Command created within 60s is not timed out."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        CommandFactory(actuator=actuator, status="PENDING")
+
+        result = timeout_pending_commands()
+
+        assert result["timed_out"] == 0
+
+    def test_already_ack_not_timed_out(self):
+        """ACK command is not timed out regardless of age."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        command = CommandFactory(actuator=actuator, status="ACK")
+        Command.objects.filter(pk=command.pk).update(
+            created_at=timezone.now() - timedelta(seconds=120)
+        )
+
+        result = timeout_pending_commands()
+
+        assert result["timed_out"] == 0
+
+    def test_alert_created_on_timeout(self):
+        """A COMMAND_FAILED alert is created for each timeout."""
+        gh = GreenhouseFactory()
+        zone = ZoneFactory(greenhouse=gh)
+        actuator = ActuatorFactory(zone=zone)
+        CommandFactory(actuator=actuator, status="PENDING")
+        Command.objects.update(
+            created_at=timezone.now() - timedelta(seconds=120)
+        )
+
+        timeout_pending_commands()
+
+        assert Alert.objects.count() == 1
+        alert = Alert.objects.first()
+        assert alert.alert_type == Alert.AlertType.COMMAND_FAILED
+        assert alert.severity == Alert.Severity.WARNING
+        assert alert.zone == zone
