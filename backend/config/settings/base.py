@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django_filters",
     "channels",
     "django_celery_beat",
+    "django_prometheus",
     # Local
     "apps.iot",
     "apps.api",
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -50,6 +52,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "utils.middleware.ContentSecurityPolicyMiddleware",
+    "utils.middleware.AuditLoggingMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -76,7 +81,7 @@ ASGI_APPLICATION = "config.asgi.application"
 # Database
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django_zero_downtime_migrations.backends.postgres",
         "NAME": config("POSTGRES_DB", default="greenhouse"),
         "USER": config("POSTGRES_USER", default="greenhouse"),
         "PASSWORD": config("POSTGRES_PASSWORD", default="greenhouse_dev_password"),

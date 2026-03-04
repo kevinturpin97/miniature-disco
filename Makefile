@@ -1,4 +1,4 @@
-.PHONY: help up down build logs restart migrate makemigrations shell test test-backend test-frontend lint format superuser seed simulate prod-up prod-down prod-build
+.PHONY: help up down build logs restart migrate makemigrations shell test test-backend test-frontend lint format superuser seed simulate prod-up prod-down prod-build backup loadtest
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -116,3 +116,15 @@ prod-logs: ## Show production logs
 
 ssl: ## Generate self-signed SSL certificates
 	./scripts/generate-ssl.sh
+
+# Observability (Sprint 18)
+backup: ## Run PostgreSQL backup manually
+	docker compose -f docker-compose.prod.yml exec pg-backup /scripts/backup-postgres.sh
+
+loadtest: ## Run Locust load tests (opens web UI on :8089)
+	locust -f locustfile.py --host=http://localhost:8000
+
+health: ## Check all health endpoints
+	@echo "Liveness:" && curl -s http://localhost:8000/api/health/ | python -m json.tool
+	@echo "\nReadiness:" && curl -s http://localhost:8000/api/health/ready/ | python -m json.tool
+	@echo "\nDetailed:" && curl -s http://localhost:8000/api/health/detailed/ | python -m json.tool

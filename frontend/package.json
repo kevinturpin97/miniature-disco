@@ -13,6 +13,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "@sentry/react": "^8.30.0",
     "axios": "^1.7.7",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",

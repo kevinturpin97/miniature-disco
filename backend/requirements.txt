@@ -21,3 +21,10 @@ reportlab==4.2
 django-celery-beat==2.7
 pywebpush==2.0.1
 py-vapid==1.9.2
+# Sprint 18 — Observability & Production Hardening
+structlog==24.4
+sentry-sdk[django,celery]==2.14
+django-prometheus==2.3
+django-ratelimit==4.1
+django-pg-zero-downtime-migrations==0.19
+locust==2.31

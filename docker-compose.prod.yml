@@ -213,9 +213,81 @@ services:
     # Copy built files to shared volume, then exit
     command: sh -c "cp -r /usr/share/nginx/html/* /output/ && echo 'Frontend assets copied.'"
 
+  # --- Monitoring stack ---
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.size=1GB"
+    ports:
+      - "9090:9090"
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-greenhouse}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # --- Backup service (runs daily) ---
+
+  pg-backup:
+    image: postgres:16-alpine
+    restart: always
+    entrypoint: /bin/sh
+    command: >
+      -c "while true; do
+        /scripts/backup-postgres.sh;
+        sleep 86400;
+      done"
+    volumes:
+      - ./scripts/backup-postgres.sh:/scripts/backup-postgres.sh:ro
+      - pg-backups:/backups
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
 volumes:
   pgdata:
   redis-data:
   mosquitto-data:
   mosquitto-log:
   frontend-static:
+  prometheus-data:
+  grafana-data:
+  pg-backups:

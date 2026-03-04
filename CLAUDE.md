@@ -800,17 +800,17 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 18 — Observabilité & Production Hardening
 **Objectif : un système qu'on peut opérer sereinement en production réelle**
 
-- [ ] Structured logging unifié : structlog backend + pino frontend → format JSON
-- [ ] Sentry integration (backend + frontend) avec source maps
-- [ ] Healthcheck endpoints enrichis : `/api/health/` (DB, Redis, MQTT, Celery)
-- [ ] Métriques Prometheus : `django-prometheus` + custom metrics (readings/min, commands/min)
-- [ ] Grafana dashboard pré-configuré (docker-compose.prod.yml)
-- [ ] Rate limiting API : `django-ratelimit` par user et par IP
-- [ ] Backup automatique PostgreSQL : script + cron Docker (dump → S3/local)
-- [ ] Migration zéro-downtime : `django-zero-downtime-migrations`
-- [ ] Audit log : modèle `AuditEvent` (qui a fait quoi, quand, sur quoi)
-- [ ] Tests de charge basiques : locust scenario (100 zones, 1000 readings/min)
-- [ ] Hardening sécurité : CORS strict, Content-Security-Policy, HSTS, secrets rotation doc
+- [x] Structured logging unifié : structlog backend + pino frontend → format JSON
+- [x] Sentry integration (backend + frontend) avec source maps
+- [x] Healthcheck endpoints enrichis : `/api/health/` (DB, Redis, MQTT, Celery)
+- [x] Métriques Prometheus : `django-prometheus` + custom metrics (readings/min, commands/min)
+- [x] Grafana dashboard pré-configuré (docker-compose.prod.yml)
+- [x] Rate limiting API : `django-ratelimit` par user et par IP
+- [x] Backup automatique PostgreSQL : script + cron Docker (dump → S3/local)
+- [x] Migration zéro-downtime : `django-zero-downtime-migrations`
+- [x] Audit log : modèle `AuditEvent` (qui a fait quoi, quand, sur quoi)
+- [x] Tests de charge basiques : locust scenario (100 zones, 1000 readings/min)
+- [x] Hardening sécurité : CORS strict, Content-Security-Policy, HSTS, secrets rotation doc
 
 ---
 
@@ -960,6 +960,6 @@ Quand je dis "Commence le Sprint X", tu :
 2. Exécutes chaque tâche dans l'ordre
 3. Écris les tests correspondants
 4. Vérifies la cohérence avec les sprints précédents
-5. Rebuildes tous les containers Docker (`docker compose build`)
+5. Rebuildes tous les containers Docker (`docker compose build`) et met à jour CLAUDE.md sur le sprint en cours
 6. Me donnes un résumé de ce qui a été fait
 7. Me demandes validation avant le sprint suivant
