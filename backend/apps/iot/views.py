@@ -1956,3 +1956,435 @@ class WeatherCorrelationView(viewsets.ViewSet):
             "period_days": days,
             "data": data,
         })
+
+
+# ---------------------------------------------------------------------------
+# Sprint 25 — Compliance & Agricultural Traceability
+# ---------------------------------------------------------------------------
+
+
+class CropCycleViewSet(viewsets.ModelViewSet):
+    """CRUD operations for CropCycle resources, nested under a Zone.
+
+    Endpoints:
+        GET    /api/zones/{zone_id}/crop-cycles/  - List crop cycles.
+        POST   /api/zones/{zone_id}/crop-cycles/  - Create a crop cycle.
+        GET    /api/crop-cycles/{id}/              - Retrieve.
+        PATCH  /api/crop-cycles/{id}/              - Partial update.
+        DELETE /api/crop-cycles/{id}/              - Delete.
+    """
+
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    ordering_fields = ["created_at", "sowing_date", "status"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def get_serializer_class(self):
+        from .serializers import CropCycleSerializer
+        return CropCycleSerializer
+
+    def _get_zone(self):
+        """Return the parent Zone for nested routes, verifying membership."""
+        zone_id = self.kwargs.get("zone_id")
+        if zone_id:
+            org_ids = _user_org_ids(self.request.user)
+            return get_object_or_404(
+                Zone, pk=zone_id, greenhouse__organization_id__in=org_ids
+            )
+        return None
+
+    def get_queryset(self):
+        from .models import CropCycle
+        zone = self._get_zone()
+        if zone:
+            return CropCycle.objects.filter(zone=zone).select_related("zone")
+        org_ids = _user_org_ids(self.request.user)
+        return CropCycle.objects.filter(
+            zone__greenhouse__organization_id__in=org_ids
+        ).select_related("zone")
+
+    def perform_create(self, serializer) -> None:
+        zone = self._get_zone()
+        if not zone:
+            raise DRFValidationError({"zone": "Zone context required."})
+        serializer.save(zone=zone, created_by=self.request.user)
+
+
+class NoteViewSet(viewsets.ModelViewSet):
+    """CRUD operations for Note resources, nested under a Zone.
+
+    Endpoints:
+        GET    /api/zones/{zone_id}/notes/  - List notes.
+        POST   /api/zones/{zone_id}/notes/  - Create a note.
+        GET    /api/notes/{id}/              - Retrieve.
+        PATCH  /api/notes/{id}/              - Partial update.
+        DELETE /api/notes/{id}/              - Delete.
+    """
+
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    ordering_fields = ["observed_at", "created_at"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def get_serializer_class(self):
+        from .serializers import NoteSerializer
+        return NoteSerializer
+
+    def _get_zone(self):
+        zone_id = self.kwargs.get("zone_id")
+        if zone_id:
+            org_ids = _user_org_ids(self.request.user)
+            return get_object_or_404(
+                Zone, pk=zone_id, greenhouse__organization_id__in=org_ids
+            )
+        return None
+
+    def get_queryset(self):
+        from .models import Note
+        zone = self._get_zone()
+        if zone:
+            return Note.objects.filter(zone=zone).select_related("zone", "author")
+        org_ids = _user_org_ids(self.request.user)
+        return Note.objects.filter(
+            zone__greenhouse__organization_id__in=org_ids
+        ).select_related("zone", "author")
+
+    def perform_create(self, serializer) -> None:
+        zone = self._get_zone()
+        if not zone:
+            raise DRFValidationError({"zone": "Zone context required."})
+        serializer.save(zone=zone, author=self.request.user)
+
+
+class CultureLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Read-only culture journal for a zone.
+
+    Endpoints:
+        GET /api/zones/{zone_id}/culture-journal/  - List culture log entries.
+    """
+
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    ordering_fields = ["created_at"]
+    filterset_fields = ["entry_type", "crop_cycle"]
+
+    def get_serializer_class(self):
+        from .serializers import CultureLogSerializer
+        return CultureLogSerializer
+
+    def get_queryset(self):
+        from .models import CultureLog
+        zone_id = self.kwargs.get("zone_id")
+        org_ids = _user_org_ids(self.request.user)
+        if zone_id:
+            get_object_or_404(
+                Zone, pk=zone_id, greenhouse__organization_id__in=org_ids
+            )
+            return CultureLog.objects.filter(zone_id=zone_id).select_related("user")
+        return CultureLog.objects.filter(
+            zone__greenhouse__organization_id__in=org_ids
+        ).select_related("user")
+
+
+class TraceabilityReportView(viewsets.ViewSet):
+    """Generate and download traceability PDF reports for a zone.
+
+    Endpoints:
+        POST /api/zones/{id}/traceability/pdf/   - Generate and download PDF.
+        GET  /api/zones/{id}/traceability/verify/ - Verify a report's SHA256 hash.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request: Request, pk: int = None) -> HttpResponse:
+        """Generate a traceability PDF report for the zone."""
+        from django.db.models import Avg, Count, Max, Min, StdDev
+
+        from .models import CropCycle, CultureLog, Note, SensorReading, TraceabilityReport
+        from .serializers import TraceabilityReportRequestSerializer
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone.objects.select_related("greenhouse"),
+            pk=pk,
+            greenhouse__organization_id__in=org_ids,
+        )
+
+        ser = TraceabilityReportRequestSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        period_start = ser.validated_data["period_start"]
+        period_end = ser.validated_data["period_end"]
+        crop_cycle_id = ser.validated_data.get("crop_cycle")
+
+        # Get crop cycle if specified
+        crop_cycle_data = None
+        crop_cycle_obj = None
+        if crop_cycle_id:
+            crop_cycle_obj = CropCycle.objects.filter(pk=crop_cycle_id, zone=zone).first()
+            if crop_cycle_obj:
+                crop_cycle_data = {
+                    "species": crop_cycle_obj.species,
+                    "variety": crop_cycle_obj.variety,
+                    "status": crop_cycle_obj.get_status_display(),
+                    "sowing_date": crop_cycle_obj.sowing_date,
+                    "transplant_date": crop_cycle_obj.transplant_date,
+                    "harvest_start_date": crop_cycle_obj.harvest_start_date,
+                    "harvest_end_date": crop_cycle_obj.harvest_end_date,
+                    "expected_yield": crop_cycle_obj.expected_yield,
+                    "actual_yield": crop_cycle_obj.actual_yield,
+                }
+
+        # Sensor statistics for the period
+        sensors = zone.sensors.filter(is_active=True)
+        sensor_stats = []
+        for sensor in sensors:
+            stats = SensorReading.objects.filter(
+                sensor=sensor,
+                received_at__date__gte=period_start,
+                received_at__date__lte=period_end,
+            ).aggregate(
+                count=Count("id"),
+                min=Min("value"),
+                max=Max("value"),
+                avg=Avg("value"),
+                stddev=StdDev("value"),
+            )
+            if stats["count"]:
+                sensor_stats.append({
+                    "sensor_type": sensor.get_sensor_type_display(),
+                    "unit": sensor.unit,
+                    **stats,
+                })
+
+        # Culture logs
+        logs_qs = CultureLog.objects.filter(
+            zone=zone,
+            created_at__date__gte=period_start,
+            created_at__date__lte=period_end,
+        ).select_related("user").order_by("created_at")
+        from .serializers import CultureLogSerializer
+        culture_logs = CultureLogSerializer(logs_qs, many=True).data
+
+        # Notes
+        notes_qs = Note.objects.filter(
+            zone=zone,
+            observed_at__date__gte=period_start,
+            observed_at__date__lte=period_end,
+        ).select_related("author").order_by("observed_at")
+        from .serializers import NoteSerializer
+        notes = NoteSerializer(notes_qs, many=True, context={"request": request}).data
+
+        # Generate PDF
+        from .traceability_report import generate_traceability_pdf
+
+        pdf_bytes, sha256_hash, signed_at = generate_traceability_pdf(
+            zone_name=zone.name,
+            greenhouse_name=zone.greenhouse.name,
+            period_start=period_start,
+            period_end=period_end,
+            crop_cycle=crop_cycle_data,
+            sensor_stats=sensor_stats,
+            culture_logs=culture_logs,
+            notes=notes,
+        )
+
+        # Store the report record
+        TraceabilityReport.objects.create(
+            zone=zone,
+            crop_cycle=crop_cycle_obj,
+            period_start=period_start,
+            period_end=period_end,
+            pdf_file=pdf_bytes,
+            sha256_hash=sha256_hash,
+            signed_at=signed_at,
+            generated_by=request.user,
+        )
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        filename = f"traceability_{zone.name}_{period_start}_{period_end}.pdf"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["X-SHA256-Hash"] = sha256_hash
+        response["X-Signed-At"] = signed_at.isoformat()
+        return response
+
+    @action(detail=False, methods=["get"], url_path="verify")
+    def verify(self, request: Request, pk: int = None) -> Response:
+        """Verify a report's SHA256 hash."""
+        from .models import TraceabilityReport
+
+        report_hash = request.query_params.get("hash", "")
+        if not report_hash:
+            return Response(
+                {"detail": "Missing 'hash' query parameter."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        report = TraceabilityReport.objects.filter(sha256_hash=report_hash).first()
+        if report:
+            return Response({
+                "valid": True,
+                "report_id": report.pk,
+                "zone": report.zone.name,
+                "period_start": report.period_start.isoformat(),
+                "period_end": report.period_end.isoformat(),
+                "signed_at": report.signed_at.isoformat(),
+            })
+        return Response({"valid": False, "detail": "No report found with this hash."})
+
+
+class GDPRExportView(viewsets.ViewSet):
+    """GDPR Data Subject Access Request: export all personal data.
+
+    Endpoints:
+        GET /api/auth/gdpr/export/  - Download personal data as JSON.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request) -> Response:
+        """Export all personal data for the authenticated user."""
+        from .gdpr import export_user_data
+
+        data = export_user_data(request.user)
+        return Response(data)
+
+
+class GDPRErasureView(viewsets.ViewSet):
+    """GDPR Right to Erasure: anonymize user data.
+
+    Endpoints:
+        POST /api/auth/gdpr/erasure/  - Anonymize all personal data.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request: Request) -> Response:
+        """Anonymize the authenticated user's personal data."""
+        from .gdpr import anonymize_user
+
+        confirm = request.data.get("confirm", False)
+        if not confirm:
+            return Response(
+                {"detail": "Set 'confirm': true to proceed with data erasure."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        counts = anonymize_user(request.user)
+        return Response({
+            "detail": "Your personal data has been anonymized.",
+            "affected_records": counts,
+        })
+
+
+class GlobalGAPExportView(viewsets.ViewSet):
+    """Export zone data in GlobalG.A.P.-compliant JSON format.
+
+    Endpoints:
+        GET /api/zones/{id}/globalgap/export/  - Export GlobalG.A.P. JSON.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> Response:
+        """Export GlobalG.A.P.-compliant JSON for a zone."""
+        from django.db.models import Avg, Count, Max, Min, StdDev
+
+        from .models import CropCycle, CultureLog, Note, SensorReading
+        from .serializers import CultureLogSerializer, NoteSerializer
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone.objects.select_related("greenhouse", "greenhouse__organization"),
+            pk=pk,
+            greenhouse__organization_id__in=org_ids,
+        )
+
+        period_start_str = request.query_params.get("from")
+        period_end_str = request.query_params.get("to")
+        if not period_start_str or not period_end_str:
+            return Response(
+                {"detail": "Query parameters 'from' and 'to' are required (YYYY-MM-DD)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            from datetime import date as date_type
+            period_start = date_type.fromisoformat(period_start_str)
+            period_end = date_type.fromisoformat(period_end_str)
+        except ValueError:
+            return Response(
+                {"detail": "Invalid date format. Use YYYY-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        crop_cycle_id = request.query_params.get("crop_cycle")
+        crop_cycle_data = None
+        if crop_cycle_id:
+            cc = CropCycle.objects.filter(pk=crop_cycle_id, zone=zone).first()
+            if cc:
+                crop_cycle_data = {
+                    "species": cc.species,
+                    "variety": cc.variety,
+                    "status": cc.get_status_display(),
+                    "sowing_date": cc.sowing_date,
+                    "transplant_date": cc.transplant_date,
+                    "harvest_start_date": cc.harvest_start_date,
+                    "harvest_end_date": cc.harvest_end_date,
+                    "expected_yield": cc.expected_yield,
+                    "actual_yield": cc.actual_yield,
+                }
+
+        # Sensor stats
+        sensors = zone.sensors.filter(is_active=True)
+        sensor_stats = []
+        for sensor in sensors:
+            stats = SensorReading.objects.filter(
+                sensor=sensor,
+                received_at__date__gte=period_start,
+                received_at__date__lte=period_end,
+            ).aggregate(
+                count=Count("id"),
+                min=Min("value"),
+                max=Max("value"),
+                avg=Avg("value"),
+                stddev=StdDev("value"),
+            )
+            if stats["count"]:
+                sensor_stats.append({
+                    "sensor_type": sensor.get_sensor_type_display(),
+                    "unit": sensor.unit,
+                    **stats,
+                })
+
+        # Culture logs
+        logs_qs = CultureLog.objects.filter(
+            zone=zone,
+            created_at__date__gte=period_start,
+            created_at__date__lte=period_end,
+        ).select_related("user").order_by("created_at")
+        culture_logs = CultureLogSerializer(logs_qs, many=True).data
+
+        # Notes
+        notes_qs = Note.objects.filter(
+            zone=zone,
+            observed_at__date__gte=period_start,
+            observed_at__date__lte=period_end,
+        ).select_related("author").order_by("observed_at")
+        notes = NoteSerializer(notes_qs, many=True, context={"request": request}).data
+
+        from .globalgap import export_globalgap
+
+        org_name = zone.greenhouse.organization.name if zone.greenhouse.organization else ""
+        result = export_globalgap(
+            zone_name=zone.name,
+            greenhouse_name=zone.greenhouse.name,
+            organization_name=org_name,
+            period_start=period_start,
+            period_end=period_end,
+            crop_cycle=crop_cycle_data,
+            sensor_stats=sensor_stats,
+            culture_logs=culture_logs,
+            notes=notes,
+        )
+
+        return Response(result)

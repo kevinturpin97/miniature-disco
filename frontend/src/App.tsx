@@ -29,6 +29,7 @@ const Marketplace = lazy(() => import("@/pages/Marketplace"));
 const Developer = lazy(() => import("@/pages/Developer"));
 const Billing = lazy(() => import("@/pages/Billing"));
 const Sites = lazy(() => import("@/pages/Sites"));
+const CultureJournal = lazy(() => import("@/pages/CultureJournal"));
 
 function PageFallback() {
   return (
@@ -146,6 +147,7 @@ function App() {
               <Route path="scenarios" element={<Scenarios />} />
               <Route path="marketplace" element={<Marketplace />} />
               <Route path="sites" element={<Sites />} />
+              <Route path="culture-journal" element={<CultureJournal />} />
               <Route path="developer" element={<Developer />} />
               <Route path="billing" element={<Billing />} />
               <Route path="settings" element={<Settings />} />

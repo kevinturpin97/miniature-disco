@@ -15,6 +15,15 @@ from .models import Alert, Command, SensorReading
 logger = logging.getLogger(__name__)
 
 
+def _get_active_crop_cycle(zone_id: int):
+    """Return the active crop cycle for a zone, or None."""
+    from .models import CropCycle
+
+    return CropCycle.objects.filter(
+        zone_id=zone_id, status=CropCycle.Status.ACTIVE
+    ).first()
+
+
 @receiver(post_save, sender=SensorReading)
 def trigger_threshold_evaluation(
     sender: type,
@@ -270,3 +279,154 @@ def trigger_webhook_command_ack(
         from apps.api.tasks import dispatch_webhooks
 
         dispatch_webhooks.delay("command_ack", payload, organization_id)
+
+
+# ---------------------------------------------------------------------------
+# Sprint 25 — Culture Journal auto-logging signals
+# ---------------------------------------------------------------------------
+
+
+@receiver(post_save, sender=Command)
+def log_command_to_culture_journal(
+    sender: type,
+    instance: Command,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Create a CultureLog entry when a new command is created.
+
+    Args:
+        sender: The Command model class.
+        instance: The newly created Command.
+        created: True if the instance was just created.
+    """
+    if not created:
+        return
+
+    from .models import CultureLog
+
+    try:
+        zone = instance.actuator.zone
+    except Exception:
+        return
+
+    crop_cycle = _get_active_crop_cycle(zone.pk)
+    CultureLog.objects.create(
+        zone=zone,
+        crop_cycle=crop_cycle,
+        entry_type=CultureLog.EntryType.COMMAND,
+        summary=f"{instance.get_command_type_display()} command sent to {instance.actuator.name}",
+        details={
+            "command_id": instance.pk,
+            "actuator_id": instance.actuator_id,
+            "actuator_name": instance.actuator.name,
+            "command_type": instance.command_type,
+            "value": instance.value,
+        },
+        user=instance.created_by,
+    )
+
+
+@receiver(post_save, sender=Alert)
+def log_alert_to_culture_journal(
+    sender: type,
+    instance: Alert,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Create a CultureLog entry when a new alert is triggered.
+
+    Args:
+        sender: The Alert model class.
+        instance: The newly created Alert.
+        created: True if the instance was just created.
+    """
+    if not created:
+        return
+
+    from .models import CultureLog
+
+    crop_cycle = _get_active_crop_cycle(instance.zone_id)
+    CultureLog.objects.create(
+        zone=instance.zone,
+        crop_cycle=crop_cycle,
+        entry_type=CultureLog.EntryType.ALERT,
+        summary=f"[{instance.get_severity_display()}] {instance.message[:100]}",
+        details={
+            "alert_id": instance.pk,
+            "alert_type": instance.alert_type,
+            "severity": instance.severity,
+            "value": instance.value,
+            "sensor_id": instance.sensor_id,
+        },
+    )
+
+
+@receiver(post_save, sender="iot.Note")
+def log_note_to_culture_journal(
+    sender: type,
+    instance: object,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Create a CultureLog entry when a manual note is added.
+
+    Args:
+        sender: The Note model class.
+        instance: The newly created Note.
+        created: True if the instance was just created.
+    """
+    if not created:
+        return
+
+    from .models import CultureLog, Note
+
+    note: Note = instance  # type: ignore[assignment]
+    crop_cycle = _get_active_crop_cycle(note.zone_id)
+    CultureLog.objects.create(
+        zone=note.zone,
+        crop_cycle=crop_cycle or note.crop_cycle,
+        entry_type=CultureLog.EntryType.NOTE,
+        summary=f"Note: {note.content[:100]}",
+        details={
+            "note_id": note.pk,
+            "content": note.content,
+            "observed_at": note.observed_at.isoformat() if note.observed_at else None,
+        },
+        user=note.author,
+    )
+
+
+@receiver(post_save, sender="iot.CropCycle")
+def log_crop_cycle_to_culture_journal(
+    sender: type,
+    instance: object,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Create a CultureLog entry when a crop cycle is created or updated.
+
+    Args:
+        sender: The CropCycle model class.
+        instance: The CropCycle.
+        created: True if the instance was just created.
+    """
+    from .models import CropCycle, CultureLog
+
+    cc: CropCycle = instance  # type: ignore[assignment]
+    action = "started" if created else f"updated (status: {cc.get_status_display()})"
+    variety_str = f" ({cc.variety})" if cc.variety else ""
+    CultureLog.objects.create(
+        zone=cc.zone,
+        crop_cycle=cc,
+        entry_type=CultureLog.EntryType.CROP_CYCLE,
+        summary=f"Crop cycle {action}: {cc.species}{variety_str}",
+        details={
+            "crop_cycle_id": cc.pk,
+            "species": cc.species,
+            "variety": cc.variety,
+            "status": cc.status,
+            "sowing_date": str(cc.sowing_date) if cc.sowing_date else None,
+        },
+        user=cc.created_by,
+    )

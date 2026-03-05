@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
 import { getMe, updateMe, changePassword } from "@/api/auth";
+import { exportGDPRData, requestGDPRErasure } from "@/api/compliance";
 import {
   listGreenhouses,
   createGreenhouse,
@@ -41,7 +42,7 @@ import type {
   ActuatorType,
 } from "@/types";
 
-type TabKey = "profile" | "resources";
+type TabKey = "profile" | "resources" | "privacy";
 
 /* ------------------------------------------------------------------ */
 /*  Chevron icon used for accordion expand / collapse                  */
@@ -1405,6 +1406,107 @@ function ResourcesTab() {
 }
 
 /* ================================================================== */
+/*  Privacy Tab (GDPR)                                                 */
+/* ================================================================== */
+
+function PrivacyTab() {
+  const { t } = useTranslation();
+  const { t: tp } = useTranslation("pages");
+
+  const [exporting, setExporting] = useState(false);
+  const [erasing, setErasing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const data = await exportGDPRData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `gdpr_export_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(tp("gdpr.exported"));
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleErasure = async () => {
+    setErasing(true);
+    try {
+      await requestGDPRErasure();
+      toast.success(tp("gdpr.erasureSuccess"));
+      setConfirmOpen(false);
+      // Redirect to login after a short delay since account is deactivated
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setErasing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Export Data */}
+      <div className="rounded-xl border border-border bg-card p-6 shadow-xs">
+        <h2 className="text-lg font-semibold text-foreground">
+          {tp("gdpr.exportData")}
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {tp("gdpr.exportDescription")}
+        </p>
+        <div className="mt-4">
+          <button
+            onClick={handleExportData}
+            disabled={exporting}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {exporting ? tp("gdpr.exporting") : tp("gdpr.exportData")}
+          </button>
+        </div>
+      </div>
+
+      {/* Erase Data */}
+      <div className="rounded-xl border border-destructive/30 bg-card p-6 shadow-xs">
+        <h2 className="text-lg font-semibold text-destructive">
+          {tp("gdpr.erasure")}
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {tp("gdpr.erasureDescription")}
+        </p>
+        <div className="mt-4">
+          <button
+            onClick={() => setConfirmOpen(true)}
+            className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-xs hover:bg-destructive/90 transition-colors"
+          >
+            {tp("gdpr.erasure")}
+          </button>
+        </div>
+      </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleErasure}
+        title={tp("gdpr.erasure")}
+        message={tp("gdpr.erasureConfirm")}
+        loading={erasing}
+      />
+    </div>
+  );
+}
+
+/* ================================================================== */
 /*  Main Settings Page                                                 */
 /* ================================================================== */
 
@@ -1416,6 +1518,7 @@ export default function Settings() {
   const tabs: { key: TabKey; label: string }[] = [
     { key: "profile", label: tp("settings.tabs.profile") },
     { key: "resources", label: tp("settings.tabs.resources") },
+    { key: "privacy", label: tp("gdpr.title") },
   ];
 
   return (
@@ -1449,6 +1552,7 @@ export default function Settings() {
       {/* Tab content */}
       {activeTab === "profile" && <ProfileTab />}
       {activeTab === "resources" && <ResourcesTab />}
+      {activeTab === "privacy" && <PrivacyTab />}
     </div>
   );
 }

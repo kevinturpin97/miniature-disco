@@ -997,3 +997,150 @@ class WeatherCorrelationSerializer(serializers.Serializer):
     precipitation = serializers.FloatField(allow_null=True)
     uv_index = serializers.FloatField(allow_null=True)
     sensor_readings = serializers.DictField(child=serializers.FloatField(allow_null=True))
+
+
+# ---------------------------------------------------------------------------
+# Sprint 25 — Compliance & Agricultural Traceability
+# ---------------------------------------------------------------------------
+
+
+class CropCycleSerializer(serializers.ModelSerializer):
+    """Serializer for the CropCycle model.
+
+    Fields:
+        id, zone, species, variety, status, sowing_date, transplant_date,
+        harvest_start_date, harvest_end_date, expected_yield, actual_yield,
+        notes, created_by, created_at, updated_at.
+    """
+
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        from .models import CropCycle
+
+        model = CropCycle
+        fields = (
+            "id",
+            "zone",
+            "species",
+            "variety",
+            "status",
+            "sowing_date",
+            "transplant_date",
+            "harvest_start_date",
+            "harvest_end_date",
+            "expected_yield",
+            "actual_yield",
+            "notes",
+            "created_by",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "zone", "created_at", "updated_at")
+
+
+class NoteSerializer(serializers.ModelSerializer):
+    """Serializer for the Note model.
+
+    Fields:
+        id, zone, crop_cycle, author, author_username, content,
+        observed_at, created_at, updated_at.
+    """
+
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    author_username = serializers.CharField(source="author.username", read_only=True, default="")
+
+    class Meta:
+        from .models import Note
+
+        model = Note
+        fields = (
+            "id",
+            "zone",
+            "crop_cycle",
+            "author",
+            "author_username",
+            "content",
+            "observed_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "zone", "created_at", "updated_at")
+
+
+class CultureLogSerializer(serializers.ModelSerializer):
+    """Serializer for the CultureLog model (read-only).
+
+    Fields:
+        id, zone, crop_cycle, entry_type, entry_type_display,
+        summary, details, user, username, created_at.
+    """
+
+    entry_type_display = serializers.CharField(
+        source="get_entry_type_display", read_only=True
+    )
+    username = serializers.CharField(source="user.username", read_only=True, default="")
+
+    class Meta:
+        from .models import CultureLog
+
+        model = CultureLog
+        fields = (
+            "id",
+            "zone",
+            "crop_cycle",
+            "entry_type",
+            "entry_type_display",
+            "summary",
+            "details",
+            "user",
+            "username",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class TraceabilityReportSerializer(serializers.ModelSerializer):
+    """Serializer for TraceabilityReport (read-only, excludes binary PDF).
+
+    Fields:
+        id, zone, crop_cycle, period_start, period_end, sha256_hash,
+        signed_at, generated_by, created_at.
+    """
+
+    class Meta:
+        from .models import TraceabilityReport
+
+        model = TraceabilityReport
+        fields = (
+            "id",
+            "zone",
+            "crop_cycle",
+            "period_start",
+            "period_end",
+            "sha256_hash",
+            "signed_at",
+            "generated_by",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class TraceabilityReportRequestSerializer(serializers.Serializer):
+    """Serializer for requesting a traceability PDF report.
+
+    Fields:
+        period_start, period_end, crop_cycle.
+    """
+
+    period_start = serializers.DateField()
+    period_end = serializers.DateField()
+    crop_cycle = serializers.IntegerField(required=False, allow_null=True, default=None)
+
+    def validate(self, attrs: dict) -> dict:
+        """Ensure period_start is before period_end."""
+        if attrs["period_start"] > attrs["period_end"]:
+            raise serializers.ValidationError(
+                {"period_end": "End date must be after start date."}
+            )
+        return attrs

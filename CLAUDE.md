@@ -906,15 +906,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 25 — Conformité & Traçabilité Agricole
 **Objectif : répondre aux exigences réglementaires (filière bio, certifications)**
 
-- [ ] Modèle `CropCycle` : culture en cours par zone (espèce, variété, date semis/récolte)
-- [ ] Journal de culture automatique : log de toutes les interventions (commandes + alertes + notes manuelles)
-- [ ] Rapport de traçabilité PDF : conditions de culture sur une période donnée
-- [ ] Conformité RGPD : export de toutes les données utilisateur (DSAR), droit à l'oubli
-- [ ] Modèle `Note` : annotation manuelle sur une zone à un instant t (observations terrain)
-- [ ] Signature électronique des rapports (hash SHA256 + timestamp)
-- [ ] API export conforme GlobalG.A.P. (JSON schema normalisé)
-- [ ] Frontend : page "Journal de Culture" avec timeline chronologique
-- [ ] Tests : génération rapports, conformité RGPD, intégrité hash
+- [x] Modèle `CropCycle` : culture en cours par zone (espèce, variété, date semis/récolte)
+- [x] Journal de culture automatique : log de toutes les interventions (commandes + alertes + notes manuelles)
+- [x] Rapport de traçabilité PDF : conditions de culture sur une période donnée
+- [x] Conformité RGPD : export de toutes les données utilisateur (DSAR), droit à l'oubli
+- [x] Modèle `Note` : annotation manuelle sur une zone à un instant t (observations terrain)
+- [x] Signature électronique des rapports (hash SHA256 + timestamp)
+- [x] API export conforme GlobalG.A.P. (JSON schema normalisé)
+- [x] Frontend : page "Journal de Culture" avec timeline chronologique
+- [x] Tests : génération rapports, conformité RGPD, intégrité hash
 
 ---
 

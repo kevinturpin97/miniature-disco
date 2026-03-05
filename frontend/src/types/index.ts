@@ -787,3 +787,134 @@ export interface SiteWeatherResponse {
   current: WeatherData | null;
   forecast: WeatherData[];
 }
+
+// --- Sprint 25: Compliance & Agricultural Traceability ---
+
+export type CropCycleStatus =
+  | "PLANNED"
+  | "ACTIVE"
+  | "HARVESTED"
+  | "COMPLETED"
+  | "CANCELLED";
+
+export interface CropCycle {
+  id: number;
+  zone: number;
+  species: string;
+  variety: string;
+  status: CropCycleStatus;
+  sowing_date: string | null;
+  transplant_date: string | null;
+  harvest_start_date: string | null;
+  harvest_end_date: string | null;
+  expected_yield: string;
+  actual_yield: string;
+  notes: string;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CropCyclePayload {
+  species: string;
+  variety?: string;
+  status?: CropCycleStatus;
+  sowing_date?: string | null;
+  transplant_date?: string | null;
+  harvest_start_date?: string | null;
+  harvest_end_date?: string | null;
+  expected_yield?: string;
+  actual_yield?: string;
+  notes?: string;
+}
+
+export interface ZoneNote {
+  id: number;
+  zone: number;
+  crop_cycle: number | null;
+  author_username: string;
+  content: string;
+  observed_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotePayload {
+  content: string;
+  observed_at: string;
+  crop_cycle?: number | null;
+}
+
+export type CultureLogEntryType =
+  | "COMMAND"
+  | "ALERT"
+  | "NOTE"
+  | "THRESHOLD"
+  | "CROP"
+  | "AUTOMATION";
+
+export interface CultureLogEntry {
+  id: number;
+  zone: number;
+  crop_cycle: number | null;
+  entry_type: CultureLogEntryType;
+  entry_type_display: string;
+  summary: string;
+  details: Record<string, unknown>;
+  user: number | null;
+  username: string;
+  created_at: string;
+}
+
+export interface TraceabilityReportMeta {
+  id: number;
+  zone: number;
+  crop_cycle: number | null;
+  period_start: string;
+  period_end: string;
+  sha256_hash: string;
+  signed_at: string;
+  generated_by: number | null;
+  created_at: string;
+}
+
+export interface TraceabilityReportRequest {
+  period_start: string;
+  period_end: string;
+  crop_cycle?: number | null;
+}
+
+export interface GDPRExportData {
+  export_date: string;
+  user: Record<string, unknown>;
+  memberships: Record<string, unknown>[];
+  commands: Record<string, unknown>[];
+  acknowledged_alerts: Record<string, unknown>[];
+  crop_cycles: Record<string, unknown>[];
+  notes: Record<string, unknown>[];
+  culture_logs: Record<string, unknown>[];
+  traceability_reports: Record<string, unknown>[];
+}
+
+export interface GDPRErasureResponse {
+  detail: string;
+  affected_records: Record<string, number>;
+}
+
+export interface GlobalGAPExport {
+  schema_version: string;
+  export_timestamp: string;
+  producer: {
+    organization: string;
+    facility: string;
+    production_unit: string;
+  };
+  reporting_period: {
+    start: string;
+    end: string;
+  };
+  production_record: Record<string, unknown>;
+  environmental_monitoring: Record<string, unknown>[];
+  interventions: Record<string, unknown>[];
+  observations: Record<string, unknown>[];
+}

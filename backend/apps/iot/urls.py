@@ -136,6 +136,32 @@ weather_alert_list = WeatherAlertViewSet.as_view({"get": "list"})
 weather_alert_acknowledge = WeatherAlertViewSet.as_view({"patch": "acknowledge"})
 weather_correlation = WeatherCorrelationView.as_view({"get": "retrieve"})
 
+# Sprint 25 — Compliance & Agricultural Traceability
+from .views import (
+    CropCycleViewSet,
+    CultureLogViewSet,
+    GDPRExportView,
+    GDPRErasureView,
+    GlobalGAPExportView,
+    NoteViewSet,
+    TraceabilityReportView,
+)
+
+crop_cycle_list = CropCycleViewSet.as_view({"get": "list", "post": "create"})
+crop_cycle_detail = CropCycleViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+note_list = NoteViewSet.as_view({"get": "list", "post": "create"})
+note_detail = NoteViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+culture_journal = CultureLogViewSet.as_view({"get": "list"})
+traceability_pdf = TraceabilityReportView.as_view({"post": "create"})
+traceability_verify = TraceabilityReportView.as_view({"get": "verify"})
+gdpr_export = GDPRExportView.as_view({"get": "list"})
+gdpr_erasure = GDPRErasureView.as_view({"post": "create"})
+globalgap_export = GlobalGAPExportView.as_view({"get": "retrieve"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -210,4 +236,15 @@ urlpatterns = [
     path("weather-alerts/", weather_alert_list, name="weather-alert-list"),
     path("weather-alerts/<int:pk>/acknowledge/", weather_alert_acknowledge, name="weather-alert-acknowledge"),
     path("zones/<int:pk>/weather-correlation/", weather_correlation, name="zone-weather-correlation"),
+    # Sprint 25 — Compliance & Agricultural Traceability
+    path("zones/<int:zone_id>/crop-cycles/", crop_cycle_list, name="crop-cycle-list"),
+    path("crop-cycles/<int:pk>/", crop_cycle_detail, name="crop-cycle-detail"),
+    path("zones/<int:zone_id>/notes/", note_list, name="note-list"),
+    path("notes/<int:pk>/", note_detail, name="note-detail"),
+    path("zones/<int:zone_id>/culture-journal/", culture_journal, name="culture-journal"),
+    path("zones/<int:pk>/traceability/pdf/", traceability_pdf, name="traceability-pdf"),
+    path("zones/<int:pk>/traceability/verify/", traceability_verify, name="traceability-verify"),
+    path("zones/<int:pk>/globalgap/export/", globalgap_export, name="globalgap-export"),
+    path("auth/gdpr/export/", gdpr_export, name="gdpr-export"),
+    path("auth/gdpr/erasure/", gdpr_erasure, name="gdpr-erasure"),
 ]

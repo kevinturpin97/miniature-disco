@@ -14,7 +14,8 @@
     "quickActions": "Quick Actions",
     "developer": "Developer",
     "billing": "Billing",
-    "sites": "Sites"
+    "sites": "Sites",
+    "cultureJournal": "Culture Journal"
   },
   "actions": {
     "save": "Save",
@@ -122,5 +123,13 @@
   "language": {
     "en": "English",
     "fr": "French"
+  },
+  "entryTypes": {
+    "command": "Command",
+    "alert": "Alert",
+    "note": "Note",
+    "threshold": "Threshold",
+    "crop": "Crop Cycle",
+    "automation": "Automation"
   }
 }

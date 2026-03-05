@@ -9,8 +9,11 @@ from .models import (
     AuditEvent,
     AutomationRule,
     Command,
+    CropCycle,
+    CultureLog,
     Greenhouse,
     MLModel,
+    Note,
     NotificationChannel,
     NotificationLog,
     NotificationRule,
@@ -27,6 +30,7 @@ from .models import (
     Template,
     TemplateCategory,
     TemplateRating,
+    TraceabilityReport,
     WeatherAlert,
     WeatherData,
     Zone,
@@ -276,3 +280,49 @@ class WeatherAlertAdmin(admin.ModelAdmin):
     list_filter = ("alert_level", "is_acknowledged", "site")
     search_fields = ("title", "message", "site__name")
     readonly_fields = ("created_at",)
+
+
+# Sprint 25 — Compliance & Agricultural Traceability
+
+
+@admin.register(CropCycle)
+class CropCycleAdmin(admin.ModelAdmin):
+    list_display = ("species", "variety", "zone", "status", "sowing_date", "harvest_start_date", "created_at")
+    list_filter = ("status", "zone__greenhouse")
+    search_fields = ("species", "variety", "zone__name")
+    readonly_fields = ("created_at", "updated_at")
+    date_hierarchy = "created_at"
+
+
+@admin.register(Note)
+class NoteAdmin(admin.ModelAdmin):
+    list_display = ("zone", "author", "content_preview", "observed_at", "created_at")
+    list_filter = ("zone__greenhouse",)
+    search_fields = ("content", "zone__name", "author__username")
+    readonly_fields = ("created_at", "updated_at")
+    date_hierarchy = "observed_at"
+
+    @admin.display(description="Content")
+    def content_preview(self, obj) -> str:
+        return obj.content[:80] if obj.content else ""
+
+
+@admin.register(CultureLog)
+class CultureLogAdmin(admin.ModelAdmin):
+    list_display = ("entry_type", "zone", "summary_preview", "user", "created_at")
+    list_filter = ("entry_type", "zone__greenhouse")
+    search_fields = ("summary", "zone__name")
+    readonly_fields = ("created_at",)
+    date_hierarchy = "created_at"
+
+    @admin.display(description="Summary")
+    def summary_preview(self, obj) -> str:
+        return obj.summary[:80] if obj.summary else ""
+
+
+@admin.register(TraceabilityReport)
+class TraceabilityReportAdmin(admin.ModelAdmin):
+    list_display = ("zone", "period_start", "period_end", "sha256_hash", "signed_at", "generated_by", "created_at")
+    list_filter = ("zone__greenhouse",)
+    search_fields = ("zone__name", "sha256_hash")
+    readonly_fields = ("created_at", "sha256_hash", "signed_at")
