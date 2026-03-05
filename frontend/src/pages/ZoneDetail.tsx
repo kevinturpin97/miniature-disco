@@ -31,6 +31,7 @@ import { SmartSuggestionCard } from "@/components/ui/SmartSuggestionCard";
 import { PredictionChart } from "@/components/charts/PredictionChart";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS, ACTUATOR_TYPE_LABELS } from "@/utils/constants";
 import { formatDate, formatRelativeTime, formatSensorValue } from "@/utils/formatters";
+import { lttbDownsample, BIG_DATA_THRESHOLD, BIG_DATA_TARGET_POINTS } from "@/utils/downsample";
 import type { Zone, Sensor, SensorReading, Actuator, ZonePredictions, ZoneAnomalies, ZoneSuggestions } from "@/types";
 
 type Period = "1h" | "24h" | "7d" | "custom";
@@ -61,6 +62,7 @@ export default function ZoneDetail() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [bigDataMode, setBigDataMode] = useState(false);
 
   // Threshold editing state
   const [editingThresholds, setEditingThresholds] = useState<number | null>(null);
@@ -203,6 +205,18 @@ export default function ZoneDetail() {
     [sensors],
   );
 
+  // Apply client-side LTTB downsampling when big data mode is on
+  const displayChartData = useMemo(() => {
+    if (!bigDataMode || chartData.length <= BIG_DATA_THRESHOLD) return chartData;
+    const firstLabel = chartLabels[0];
+    if (!firstLabel) return chartData;
+    const withValue = chartData.map((p) => ({
+      ...p,
+      value: (p[firstLabel] as number) ?? 0,
+    }));
+    return lttbDownsample(withValue, BIG_DATA_TARGET_POINTS);
+  }, [chartData, bigDataMode, chartLabels]);
+
   const handleExportCsv = useCallback(async () => {
     if (!numericZoneId) return;
     setExporting(true);
@@ -342,12 +356,28 @@ export default function ZoneDetail() {
         )}
       </div>
 
+      {/* Big Data mode toggle */}
+      <label className="flex cursor-pointer items-center gap-2" title={tp("history.bigDataModeHint")}>
+        <input
+          type="checkbox"
+          checked={bigDataMode}
+          onChange={(e) => setBigDataMode(e.target.checked)}
+          className="h-4 w-4 rounded border-border text-primary accent-primary focus:ring-2 focus:ring-ring"
+        />
+        <span className="text-sm text-foreground/80">{tp("history.bigDataMode")}</span>
+        {bigDataMode && displayChartData.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            ({tp("history.pointsDisplayed", { count: displayChartData.length })})
+          </span>
+        )}
+      </label>
+
       {/* Combined Chart */}
-      {sensors.length > 0 && chartData.length > 0 ? (
+      {sensors.length > 0 && displayChartData.length > 0 ? (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-foreground">{tp("zoneDetail.sensorHistory")}</h2>
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={chartData}>
+            <LineChart data={displayChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="time" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
@@ -379,7 +409,7 @@ export default function ZoneDetail() {
           {sensors.map((sensor, i) => {
             const sensorLabel = SENSOR_TYPE_LABELS[sensor.sensor_type] ?? sensor.sensor_type;
             const unit = SENSOR_TYPE_UNITS[sensor.sensor_type] ?? sensor.unit;
-            const sensorChartData = chartData
+            const sensorChartData = displayChartData
               .filter((d) => d[sensorLabel] !== undefined)
               .map((d) => ({ time: d.time, value: d[sensorLabel] }));
 

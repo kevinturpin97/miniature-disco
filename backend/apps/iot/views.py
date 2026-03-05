@@ -296,13 +296,15 @@ class SensorViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="readings")
     def readings(self, request: Request, pk: int = None, **kwargs) -> Response:
-        """List sensor readings with optional time range and aggregation.
+        """List sensor readings with optional time range, aggregation, and downsampling.
 
         Query params:
             from (ISO 8601 datetime): Filter readings after this timestamp.
             to   (ISO 8601 datetime): Filter readings before this timestamp.
             interval (str): Aggregate readings — ``hour`` or ``day``.
                 Returns ``{"period", "avg_value"}`` instead of raw readings.
+            max_points (int): Apply LTTB downsampling to reduce the result
+                to at most this many points. Useful for large date ranges.
         """
         sensor = self.get_object()
         qs = SensorReading.objects.filter(sensor=sensor).order_by("-received_at")
@@ -310,6 +312,7 @@ class SensorViewSet(viewsets.ModelViewSet):
         from_dt = request.query_params.get("from")
         to_dt = request.query_params.get("to")
         interval = request.query_params.get("interval")
+        max_points_raw = request.query_params.get("max_points")
 
         if from_dt:
             try:
@@ -323,23 +326,65 @@ class SensorViewSet(viewsets.ModelViewSet):
             except ValueError:
                 raise serializers.ValidationError({"to": "Invalid ISO 8601 datetime."})
 
+        # Parse max_points for LTTB downsampling
+        max_points = None
+        if max_points_raw is not None:
+            try:
+                max_points = int(max_points_raw)
+                if max_points < 3:
+                    raise ValueError
+            except (ValueError, TypeError):
+                raise serializers.ValidationError(
+                    {"max_points": "Must be an integer >= 3."}
+                )
+
         # Aggregation mode
         if interval in ("hour", "day"):
             trunc_fn = TruncHour if interval == "hour" else TruncDay
-            aggregated = (
+            aggregated = list(
                 qs.annotate(period=trunc_fn("received_at"))
                 .values("period")
                 .annotate(avg_value=Avg("value"))
-                .order_by("-period")
+                .order_by("period")
             )
-            page = self.paginate_queryset(list(aggregated))
+            # Apply LTTB downsampling if requested
+            if max_points and len(aggregated) > max_points:
+                from .data_pipeline import lttb_downsample
+
+                lttb_data = [
+                    {"timestamp": row["period"].timestamp(), "value": row["avg_value"], "_row": row}
+                    for row in aggregated
+                ]
+                downsampled = lttb_downsample(lttb_data, max_points)
+                aggregated = [d["_row"] for d in downsampled]
+
+            # Reverse to -period for pagination consistency
+            aggregated.reverse()
+            page = self.paginate_queryset(aggregated)
             if page is not None:
                 return self.get_paginated_response(page)
-            return Response(list(aggregated))
+            return Response(aggregated)
         elif interval is not None:
             raise serializers.ValidationError(
                 {"interval": "Must be 'hour' or 'day'."}
             )
+
+        # Raw readings — apply LTTB if max_points requested
+        if max_points:
+            raw_list = list(qs.order_by("received_at").values("id", "value", "received_at", "relay_timestamp", "sensor_id"))
+            if len(raw_list) > max_points:
+                from .data_pipeline import lttb_downsample
+
+                lttb_data = [
+                    {"timestamp": row["received_at"].timestamp(), "value": row["value"], "_row": row}
+                    for row in raw_list
+                ]
+                downsampled = lttb_downsample(lttb_data, max_points)
+                raw_list = [d["_row"] for d in downsampled]
+
+            # Reverse for -received_at ordering
+            raw_list.reverse()
+            return Response({"count": len(raw_list), "next": None, "previous": None, "results": raw_list})
 
         page = self.paginate_queryset(qs)
         if page is not None:

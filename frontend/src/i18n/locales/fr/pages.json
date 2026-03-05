@@ -83,6 +83,9 @@
     "period": "Période",
     "noData": "Aucune donnée disponible pour les filtres sélectionnés.",
     "noZonesSelected": "Sélectionnez au moins une zone pour voir les données historiques.",
+    "bigDataMode": "Mode Big Data",
+    "bigDataModeHint": "Sous-échantillonne les grands jeux de données pour des graphiques plus fluides",
+    "pointsDisplayed": "{{count}} points affichés",
     "periods": {
       "1h": "Dernière heure",
       "24h": "Dernières 24h",

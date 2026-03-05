@@ -22,6 +22,7 @@ import { listZones } from "@/api/zones";
 import { listSensors, getSensorReadings } from "@/api/sensors";
 import { Spinner } from "@/components/ui/Spinner";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS } from "@/utils/constants";
+import { lttbDownsample, BIG_DATA_THRESHOLD, BIG_DATA_TARGET_POINTS } from "@/utils/downsample";
 import type { Greenhouse, Zone, SensorType, SensorReading } from "@/types";
 
 /* ---------- local types ---------- */
@@ -62,6 +63,7 @@ export default function History() {
   const [selectedZoneIds, setSelectedZoneIds] = useState<Set<number>>(new Set());
   const [sensorType, setSensorType] = useState<SensorType>("TEMP");
   const [period, setPeriod] = useState<Period>("24h");
+  const [bigDataMode, setBigDataMode] = useState(false);
 
   /* ---- chart data state ---- */
   const [chartReadings, setChartReadings] = useState<Record<number, SensorReading[]>>({});
@@ -136,6 +138,7 @@ export default function History() {
             from: timeRange.from,
             to: timeRange.to,
             interval: timeRange.interval,
+            ...(bigDataMode ? { max_points: BIG_DATA_TARGET_POINTS } : {}),
           });
           result[zoneId] = readingsResponse.results;
         } catch {
@@ -146,11 +149,17 @@ export default function History() {
 
     setChartReadings(result);
     setLoadingReadings(false);
-  }, [selectedZoneIds, sensorType, timeRange]);
+  }, [selectedZoneIds, sensorType, timeRange, bigDataMode]);
 
   useEffect(() => {
     fetchReadings();
   }, [fetchReadings]);
+
+  /* ---- zone names for legend lines ---- */
+  const selectedZoneNames = useMemo(
+    () => Array.from(selectedZoneIds).map((id) => zoneNameMap.get(id) ?? `Zone ${id}`),
+    [selectedZoneIds, zoneNameMap],
+  );
 
   /* ---- build merged chart data ---- */
   const chartData = useMemo(() => {
@@ -180,14 +189,23 @@ export default function History() {
       });
     });
 
-    return Array.from(timeMap.values()).sort((a, b) => a.timestamp - b.timestamp);
-  }, [selectedZoneIds, chartReadings, zoneNameMap, period]);
+    let sorted = Array.from(timeMap.values()).sort((a, b) => a.timestamp - b.timestamp);
 
-  /* ---- zone names for legend lines ---- */
-  const selectedZoneNames = useMemo(
-    () => Array.from(selectedZoneIds).map((id) => zoneNameMap.get(id) ?? `Zone ${id}`),
-    [selectedZoneIds, zoneNameMap],
-  );
+    // Apply client-side LTTB downsampling on the merged dataset when big data mode is on
+    if (bigDataMode && sorted.length > BIG_DATA_THRESHOLD) {
+      // Downsample using the first zone's values to pick key points
+      const firstZoneName = selectedZoneNames[0];
+      if (firstZoneName) {
+        const withValue = sorted.map((p) => ({
+          ...p,
+          value: (p[firstZoneName] as number) ?? 0,
+        }));
+        sorted = lttbDownsample(withValue, BIG_DATA_TARGET_POINTS);
+      }
+    }
+
+    return sorted;
+  }, [selectedZoneIds, chartReadings, zoneNameMap, period, bigDataMode, selectedZoneNames]);
 
   /* ---- toggle zone selection ---- */
   function toggleZone(zoneId: number) {
@@ -298,6 +316,22 @@ export default function History() {
               </button>
             ))}
           </div>
+
+          {/* Big Data mode toggle */}
+          <label className="mt-3 flex cursor-pointer items-center gap-2" title={tp("history.bigDataModeHint")}>
+            <input
+              type="checkbox"
+              checked={bigDataMode}
+              onChange={(e) => setBigDataMode(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary accent-primary focus:ring-2 focus:ring-ring"
+            />
+            <span className="text-sm text-foreground/80">{tp("history.bigDataMode")}</span>
+          </label>
+          {bigDataMode && chartData.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {tp("history.pointsDisplayed", { count: chartData.length })}
+            </p>
+          )}
         </div>
       </div>
 

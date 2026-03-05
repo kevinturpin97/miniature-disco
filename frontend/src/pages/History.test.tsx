@@ -165,9 +165,9 @@ describe("History page", () => {
       expect(screen.getByText("GH1")).toBeInTheDocument();
     });
 
-    // Zone checkbox
-    const checkbox = screen.getByRole("checkbox");
-    expect(checkbox).toBeInTheDocument();
+    // Zone checkbox (there may be multiple checkboxes including Big Data mode)
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Zone A")).toBeInTheDocument();
   });
 

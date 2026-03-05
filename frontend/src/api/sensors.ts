@@ -38,6 +38,8 @@ interface ReadingsParams {
   from?: string;
   to?: string;
   interval?: "hour" | "day";
+  /** Apply LTTB server-side downsampling to at most this many points. */
+  max_points?: number;
 }
 
 export async function getSensorReadings(

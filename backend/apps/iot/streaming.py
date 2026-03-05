@@ -11,17 +11,45 @@ import logging
 import time
 from datetime import timedelta
 
+from django.contrib.auth import get_user_model
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import exceptions
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.api.models import Membership
 
 from .models import Sensor, SensorReading, Zone
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
+
+
+class QueryParamJWTAuthentication(BaseAuthentication):
+    """Authenticate via JWT token passed as a ``?token=`` query parameter.
+
+    This is needed because the browser ``EventSource`` API does not support
+    custom headers, so we cannot use the standard ``Authorization`` header.
+    """
+
+    def authenticate(self, request: Request):
+        token_str = request.query_params.get("token")
+        if not token_str:
+            return None
+        try:
+            token = AccessToken(token_str)
+            user_id = token["user_id"]
+            user = User.objects.get(pk=user_id)
+            return (user, token)
+        except (InvalidToken, TokenError, User.DoesNotExist, KeyError):
+            raise exceptions.AuthenticationFailed("Invalid or expired token.")
 
 # How often to check for new readings (seconds)
 POLL_INTERVAL = 2.0
@@ -159,6 +187,7 @@ def _stream_readings(zone_id: int, user):
 
 
 @api_view(["GET"])
+@authentication_classes([QueryParamJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def stream_zone_readings(request, pk: int):
     """Stream sensor readings for a zone via Server-Sent Events.
