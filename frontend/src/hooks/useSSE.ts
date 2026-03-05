@@ -14,6 +14,7 @@ export interface SSEReading {
   sensor_type: string;
   value: number;
   received_at: string;
+  [key: string]: unknown;
 }
 
 export interface SSEEvent {

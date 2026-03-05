@@ -410,8 +410,8 @@ export default function ZoneDetail() {
             const sensorLabel = SENSOR_TYPE_LABELS[sensor.sensor_type] ?? sensor.sensor_type;
             const unit = SENSOR_TYPE_UNITS[sensor.sensor_type] ?? sensor.unit;
             const sensorChartData = displayChartData
-              .filter((d) => d[sensorLabel] !== undefined)
-              .map((d) => ({ time: d.time, value: d[sensorLabel] }));
+              .filter((d) => (d as Record<string, unknown>)[sensorLabel] !== undefined)
+              .map((d) => ({ time: d.time, value: (d as Record<string, unknown>)[sensorLabel] }));
 
             return (
               <div key={sensor.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">

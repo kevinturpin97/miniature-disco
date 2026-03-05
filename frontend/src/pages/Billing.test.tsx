@@ -32,7 +32,8 @@ import { getBillingOverview, createCheckoutSession, createCustomerPortal } from 
 
 const mockedGetOverview = vi.mocked(getBillingOverview);
 const mockedCreateCheckout = vi.mocked(createCheckoutSession);
-const mockedCreatePortal = vi.mocked(createCustomerPortal);
+// createCustomerPortal is mocked via vi.mock above; direct reference only needed when tested
+vi.mocked(createCustomerPortal);
 
 const freeOverview: BillingOverview = {
   plan: "FREE",
