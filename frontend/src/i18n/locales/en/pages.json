@@ -536,6 +536,8 @@
     "exportMap": "Export Map",
     "exporting": "Exporting...",
     "exportSuccess": "Map exported successfully.",
-    "exportError": "Failed to export map."
+    "exportError": "Failed to export map.",
+    "geocoding": "Looking up address...",
+    "mapClickHint": "Click on the map to add a new site"
   }
 }

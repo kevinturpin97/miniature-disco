@@ -536,6 +536,8 @@
     "exportMap": "Exporter la carte",
     "exporting": "Export en cours...",
     "exportSuccess": "Carte exportée avec succès.",
-    "exportError": "Échec de l'export de la carte."
+    "exportError": "Échec de l'export de la carte.",
+    "geocoding": "Recherche de l'adresse...",
+    "mapClickHint": "Cliquez sur la carte pour ajouter un nouveau site"
   }
 }

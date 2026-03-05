@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { toPng } from "html-to-image";
 import toast from "react-hot-toast";
@@ -25,7 +25,7 @@ import type { Site, SiteDashboard, SiteWeatherResponse, WeatherAlert } from "@/t
 import "leaflet/dist/leaflet.css";
 
 // Fix default marker icon for Leaflet in bundled builds
-delete (L.Icon.Default.prototype as Record<string, unknown>)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -37,11 +37,25 @@ function FitBounds({ sites }: { sites: SiteDashboard[] }) {
   const map = useMap();
   useEffect(() => {
     if (sites.length === 0) return;
+    if (sites.length === 1) {
+      map.setView([sites[0].latitude, sites[0].longitude], 12);
+      return;
+    }
     const bounds = L.latLngBounds(
       sites.map((s) => [s.latitude, s.longitude] as [number, number]),
     );
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
   }, [sites, map]);
+  return null;
+}
+
+/** Capture clicks on the map to create a new site at that location. */
+function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (e) => {
+      onClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
   return null;
 }
 
@@ -70,6 +84,7 @@ export default function Sites() {
   const [editSite, setEditSite] = useState<Site | null>(null);
   const [deleteSiteId, setDeleteSiteId] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -117,6 +132,34 @@ export default function Sites() {
     setFormLng("");
     setFormTz("UTC");
   };
+
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+    resetForm();
+    setEditSite(null);
+    setFormLat(lat.toFixed(6));
+    setFormLng(lng.toFixed(6));
+    setFormTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    setShowCreateModal(true);
+
+    // Reverse geocode via Nominatim (non-blocking)
+    setGeocoding(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
+        { headers: { "Accept-Language": "en" } },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.display_name) {
+          setFormAddress(data.display_name);
+        }
+      }
+    } catch {
+      // Geocoding failure is non-critical — address stays empty
+    } finally {
+      setGeocoding(false);
+    }
+  }, []);
 
   const openEdit = (site: Site) => {
     setEditSite(site);
@@ -239,7 +282,7 @@ export default function Sites() {
 
       {/* Map */}
       <div className="card bg-base-100 shadow-sm overflow-hidden">
-        <div ref={mapRef} className="h-[400px] w-full">
+        <div ref={mapRef} className="h-[400px] w-full cursor-crosshair">
           {loading ? (
             <div className="flex h-full items-center justify-center">
               <span className="loading loading-spinner loading-lg" />
@@ -256,6 +299,7 @@ export default function Sites() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               <FitBounds sites={dashboard} />
+              <MapClickHandler onClick={handleMapClick} />
               {dashboard.map((site) => (
                 <Marker
                   key={site.site_id}
@@ -292,6 +336,7 @@ export default function Sites() {
             </MapContainer>
           )}
         </div>
+        <p className="px-3 py-1.5 text-xs text-base-content/40">{t("sites.mapClickHint")}</p>
       </div>
 
       {/* Dashboard grid */}
@@ -465,7 +510,7 @@ export default function Sites() {
 
       {/* Create/Edit modal */}
       <Modal
-        isOpen={showCreateModal}
+        open={showCreateModal}
         onClose={() => {
           setShowCreateModal(false);
           setEditSite(null);
@@ -489,12 +534,18 @@ export default function Sites() {
             <label className="label">
               <span className="label-text">{t("sites.address")}</span>
             </label>
-            <input
-              className="input input-bordered w-full"
-              value={formAddress}
-              onChange={(e) => setFormAddress(e.target.value)}
-              placeholder="123 Farm Road, City"
-            />
+            <div className="relative">
+              <input
+                className="input input-bordered w-full"
+                value={formAddress}
+                onChange={(e) => setFormAddress(e.target.value)}
+                placeholder={geocoding ? t("sites.geocoding") : "123 Farm Road, City"}
+                disabled={geocoding}
+              />
+              {geocoding && (
+                <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="form-control">
@@ -559,7 +610,7 @@ export default function Sites() {
 
       {/* Delete confirmation */}
       <ConfirmDialog
-        isOpen={deleteSiteId !== null}
+        open={deleteSiteId !== null}
         onClose={() => setDeleteSiteId(null)}
         onConfirm={handleDelete}
         title={t("common:confirm.deleteTitle")}
