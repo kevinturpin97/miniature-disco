@@ -22,10 +22,13 @@ from .models import (
     SensorPrediction,
     SensorReading,
     SensorReadingHourly,
+    Site,
     SmartSuggestion,
     Template,
     TemplateCategory,
     TemplateRating,
+    WeatherAlert,
+    WeatherData,
     Zone,
 )
 
@@ -245,4 +248,31 @@ class SmartSuggestionAdmin(admin.ModelAdmin):
     list_display = ("sensor", "suggestion_type", "suggested_min", "suggested_max", "confidence", "is_applied", "created_at")
     list_filter = ("suggestion_type", "is_applied")
     search_fields = ("sensor__zone__name", "message")
+    readonly_fields = ("created_at",)
+
+
+# Sprint 24 — Multi-Site & Cartography
+
+
+@admin.register(Site)
+class SiteAdmin(admin.ModelAdmin):
+    list_display = ("name", "organization", "latitude", "longitude", "timezone", "is_active", "created_at")
+    list_filter = ("is_active", "organization")
+    search_fields = ("name", "address", "organization__name")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(WeatherData)
+class WeatherDataAdmin(admin.ModelAdmin):
+    list_display = ("site", "timestamp", "temperature", "humidity", "precipitation", "uv_index", "is_forecast")
+    list_filter = ("is_forecast", "site")
+    readonly_fields = ("fetched_at",)
+    date_hierarchy = "timestamp"
+
+
+@admin.register(WeatherAlert)
+class WeatherAlertAdmin(admin.ModelAdmin):
+    list_display = ("title", "site", "alert_level", "forecast_date", "is_acknowledged", "created_at")
+    list_filter = ("alert_level", "is_acknowledged", "site")
+    search_fields = ("title", "message", "site__name")
     readonly_fields = ("created_at",)

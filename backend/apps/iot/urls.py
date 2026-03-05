@@ -122,6 +122,20 @@ retention_policy_detail = RetentionPolicyView.as_view({
 })
 data_pipeline_status = DataPipelineView.as_view({"get": "list"})
 
+# Sprint 24 — Multi-Site & Cartography
+from .views import SiteDashboardView, SiteViewSet, WeatherAlertViewSet, WeatherCorrelationView
+
+site_list = SiteViewSet.as_view({"get": "list", "post": "create"})
+site_detail = SiteViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+site_weather = SiteViewSet.as_view({"get": "weather"})
+site_weather_history = SiteViewSet.as_view({"get": "weather_history"})
+site_dashboard = SiteDashboardView.as_view({"get": "list"})
+weather_alert_list = WeatherAlertViewSet.as_view({"get": "list"})
+weather_alert_acknowledge = WeatherAlertViewSet.as_view({"patch": "acknowledge"})
+weather_correlation = WeatherCorrelationView.as_view({"get": "retrieve"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -187,4 +201,13 @@ urlpatterns = [
     path("zones/<int:pk>/readings/stream/", stream_zone_readings, name="zone-readings-stream"),
     path("orgs/<slug:slug>/retention-policy/", retention_policy_detail, name="retention-policy"),
     path("orgs/<slug:slug>/data-pipeline/", data_pipeline_status, name="data-pipeline-status"),
+    # Sprint 24 — Multi-Site & Cartography
+    path("sites/", site_list, name="site-list"),
+    path("sites/dashboard/", site_dashboard, name="site-dashboard"),
+    path("sites/<int:pk>/", site_detail, name="site-detail"),
+    path("sites/<int:pk>/weather/", site_weather, name="site-weather"),
+    path("sites/<int:pk>/weather/history/", site_weather_history, name="site-weather-history"),
+    path("weather-alerts/", weather_alert_list, name="weather-alert-list"),
+    path("weather-alerts/<int:pk>/acknowledge/", weather_alert_acknowledge, name="weather-alert-acknowledge"),
+    path("zones/<int:pk>/weather-correlation/", weather_correlation, name="zone-weather-correlation"),
 ]

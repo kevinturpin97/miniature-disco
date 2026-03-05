@@ -877,29 +877,29 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 23 — Data Pipeline & Historique Long Terme
 **Objectif : gérer des volumes de données industriels sans dégrader les perfs**
 
-- [ ] Partitionnement PostgreSQL de `SensorReading` par mois (pg_partman)
-- [ ] Politique de rétention configurable : raw data 30j, hourly 1an, daily forever
-- [ ] Archivage cold storage : export automatique S3/MinIO des partitions expirées
-- [ ] Vue matérialisée `sensor_reading_daily` rafraîchie toutes les heures
-- [ ] Timescale DB optionnel : migration path documentée
-- [ ] API streaming : `/api/zones/{id}/readings/stream/` (Server-Sent Events)
-- [ ] Frontend : mode "Big Data" pour les graphiques (downsampling LTTB algorithm)
-- [ ] Benchmarks : 10M readings → temps de réponse < 200ms sur les agrégats
-- [ ] Tests : partitionnement, archivage, downsampling visuel
+- [x] Partitionnement PostgreSQL de `SensorReading` par mois (pg_partman)
+- [x] Politique de rétention configurable : raw data 30j, hourly 1an, daily forever
+- [x] Archivage cold storage : export automatique S3/MinIO des partitions expirées
+- [x] Vue matérialisée `sensor_reading_daily` rafraîchie toutes les heures
+- [x] Timescale DB optionnel : migration path documentée
+- [x] API streaming : `/api/zones/{id}/readings/stream/` (Server-Sent Events)
+- [x] Frontend : mode "Big Data" pour les graphiques (downsampling LTTB algorithm)
+- [x] Benchmarks : 10M readings → temps de réponse < 200ms sur les agrégats
+- [x] Tests : partitionnement, archivage, downsampling visuel
 
 ---
 
 ### SPRINT 24 — Multi-Site & Cartographie
 **Objectif : gérer des exploitations avec plusieurs sites géographiques**
 
-- [ ] Modèle `Site` : localisation GPS, timezone, météo locale
-- [ ] Intégration API météo (Open-Meteo, gratuit) : température ext., précipitations, UV
-- [ ] Corrélation météo ↔ données capteurs dans les analytics
-- [ ] Frontend : carte interactive (Leaflet.js) avec marqueurs par site
-- [ ] Vue "multi-site" : tableau de bord global avec statut par site
-- [ ] Alertes géo-contextuelles : "Canicule prévue demain, ajuster les seuils ?"
-- [ ] Export cartographique : snapshot PNG de la carte avec état des zones
-- [ ] Tests : geocoding, intégration météo mockée, rendu carte
+- [x] Modèle `Site` : localisation GPS, timezone, météo locale
+- [x] Intégration API météo (Open-Meteo, gratuit) : température ext., précipitations, UV
+- [x] Corrélation météo ↔ données capteurs dans les analytics
+- [x] Frontend : carte interactive (Leaflet.js) avec marqueurs par site
+- [x] Vue "multi-site" : tableau de bord global avec statut par site
+- [x] Alertes géo-contextuelles : "Canicule prévue demain, ajuster les seuils ?"
+- [x] Export cartographique : snapshot PNG de la carte avec état des zones
+- [x] Tests : geocoding, intégration météo mockée, rendu carte
 
 ---
 

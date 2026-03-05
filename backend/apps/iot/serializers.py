@@ -21,9 +21,12 @@ from .models import (
     Schedule,
     Sensor,
     SensorReading,
+    Site,
     Template,
     TemplateCategory,
     TemplateRating,
+    WeatherAlert,
+    WeatherData,
     Zone,
 )
 
@@ -45,6 +48,7 @@ class GreenhouseSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "organization",
+            "site",
             "name",
             "location",
             "description",
@@ -864,3 +868,132 @@ class DataArchiveLogSerializer(serializers.ModelSerializer):
             "completed_at",
         )
         read_only_fields = fields
+
+
+# ---------------------------------------------------------------------------
+# Sprint 24 — Multi-Site & Cartography
+# ---------------------------------------------------------------------------
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    """Serializer for the Site model.
+
+    Fields:
+        id, organization, name, address, latitude, longitude, timezone,
+        is_active, greenhouse_count, created_at, updated_at.
+    """
+
+    greenhouse_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Site
+        fields = (
+            "id",
+            "organization",
+            "name",
+            "address",
+            "latitude",
+            "longitude",
+            "timezone",
+            "is_active",
+            "greenhouse_count",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "organization", "created_at", "updated_at", "greenhouse_count")
+
+    def get_greenhouse_count(self, obj: Site) -> int:
+        """Return the number of greenhouses at this site."""
+        return obj.greenhouses.count()
+
+
+class WeatherDataSerializer(serializers.ModelSerializer):
+    """Serializer for WeatherData model."""
+
+    weather_description = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WeatherData
+        fields = (
+            "id",
+            "site",
+            "timestamp",
+            "temperature",
+            "humidity",
+            "precipitation",
+            "wind_speed",
+            "uv_index",
+            "cloud_cover",
+            "weather_code",
+            "weather_description",
+            "is_forecast",
+            "fetched_at",
+        )
+        read_only_fields = fields
+
+    def get_weather_description(self, obj: WeatherData) -> str:
+        """Convert WMO weather code to human-readable description."""
+        from .weather_service import weather_code_description
+
+        return weather_code_description(obj.weather_code)
+
+
+class WeatherAlertSerializer(serializers.ModelSerializer):
+    """Serializer for geo-contextual weather alerts."""
+
+    site_name = serializers.CharField(source="site.name", read_only=True)
+
+    class Meta:
+        model = WeatherAlert
+        fields = (
+            "id",
+            "site",
+            "site_name",
+            "alert_level",
+            "title",
+            "message",
+            "forecast_date",
+            "is_acknowledged",
+            "acknowledged_by",
+            "acknowledged_at",
+            "created_at",
+        )
+        read_only_fields = (
+            "id",
+            "site",
+            "site_name",
+            "alert_level",
+            "title",
+            "message",
+            "forecast_date",
+            "acknowledged_by",
+            "acknowledged_at",
+            "created_at",
+        )
+
+
+class SiteDashboardSerializer(serializers.Serializer):
+    """Serializer for site dashboard summary data."""
+
+    site_id = serializers.IntegerField()
+    site_name = serializers.CharField()
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+    timezone = serializers.CharField()
+    greenhouse_count = serializers.IntegerField()
+    zone_count = serializers.IntegerField()
+    zones_online = serializers.IntegerField()
+    active_alerts = serializers.IntegerField()
+    weather_alerts = serializers.IntegerField()
+    current_weather = WeatherDataSerializer(allow_null=True)
+
+
+class WeatherCorrelationSerializer(serializers.Serializer):
+    """Serializer for weather-sensor correlation data."""
+
+    timestamp = serializers.DateTimeField()
+    external_temperature = serializers.FloatField(allow_null=True)
+    external_humidity = serializers.FloatField(allow_null=True)
+    precipitation = serializers.FloatField(allow_null=True)
+    uv_index = serializers.FloatField(allow_null=True)
+    sensor_readings = serializers.DictField(child=serializers.FloatField(allow_null=True))

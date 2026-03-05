@@ -14,6 +14,7 @@ from apps.iot.models import (
     Greenhouse,
     Sensor,
     SensorReading,
+    Site,
     Zone,
 )
 
@@ -53,6 +54,21 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: f"Organization {n}")
     slug = factory.Sequence(lambda n: f"org-{n}")
     plan = Organization.Plan.FREE
+
+
+class SiteFactory(factory.django.DjangoModelFactory):
+    """Factory for creating Site instances."""
+
+    class Meta:
+        model = Site
+
+    organization = factory.SubFactory(OrganizationFactory)
+    name = factory.Sequence(lambda n: f"Site {n}")
+    address = "123 Test Street"
+    latitude = 48.8566
+    longitude = 2.3522
+    timezone = "Europe/Paris"
+    is_active = True
 
 
 class MembershipFactory(factory.django.DjangoModelFactory):
@@ -243,3 +259,10 @@ def sensor(zone, db):
 def actuator(zone, db):
     """Return a Valve Actuator in `zone`."""
     return ActuatorFactory(zone=zone)
+
+
+@pytest.fixture
+def site(user, db):
+    """Return a Site owned by the user's organization."""
+    org = Membership.objects.filter(user=user).first().organization
+    return SiteFactory(organization=org)

@@ -709,3 +709,81 @@ export interface SandboxInfo {
   zone_count: number;
   api_keys_count: number;
 }
+
+// --- Sprint 24: Multi-Site & Cartography ---
+
+export interface Site {
+  id: number;
+  organization: number;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  is_active: boolean;
+  greenhouse_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeatherData {
+  id: number;
+  site: number;
+  timestamp: string;
+  temperature: number | null;
+  humidity: number | null;
+  precipitation: number | null;
+  wind_speed: number | null;
+  uv_index: number | null;
+  cloud_cover: number | null;
+  weather_code: number | null;
+  weather_description: string;
+  is_forecast: boolean;
+  fetched_at: string;
+}
+
+export type WeatherAlertLevel = "INFO" | "WARNING" | "CRITICAL";
+
+export interface WeatherAlert {
+  id: number;
+  site: number;
+  site_name: string;
+  alert_level: WeatherAlertLevel;
+  title: string;
+  message: string;
+  forecast_date: string;
+  is_acknowledged: boolean;
+  acknowledged_by: number | null;
+  acknowledged_at: string | null;
+  created_at: string;
+}
+
+export interface SiteDashboard {
+  site_id: number;
+  site_name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  greenhouse_count: number;
+  zone_count: number;
+  zones_online: number;
+  active_alerts: number;
+  weather_alerts: number;
+  current_weather: WeatherData | null;
+}
+
+export interface WeatherCorrelationEntry {
+  timestamp: string;
+  external_temperature: number | null;
+  external_humidity: number | null;
+  precipitation: number | null;
+  uv_index: number | null;
+  sensor_readings: Record<string, number | null>;
+}
+
+export interface SiteWeatherResponse {
+  site_id: number;
+  site_name: string;
+  current: WeatherData | null;
+  forecast: WeatherData[];
+}

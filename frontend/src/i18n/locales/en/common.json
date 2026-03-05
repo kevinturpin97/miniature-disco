@@ -13,7 +13,8 @@
     "marketplace": "Marketplace",
     "quickActions": "Quick Actions",
     "developer": "Developer",
-    "billing": "Billing"
+    "billing": "Billing",
+    "sites": "Sites"
   },
   "actions": {
     "save": "Save",

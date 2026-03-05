@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 from asgiref.sync import async_to_sync
 from celery import shared_task
@@ -1132,3 +1132,132 @@ def drop_old_partitions_task() -> dict:
     result = drop_old_partitions(months_to_keep=6)
     logger.info("Partition cleanup: %s", result)
     return result
+
+
+# ---------------------------------------------------------------------------
+# Sprint 24 — Multi-Site Weather Tasks
+# ---------------------------------------------------------------------------
+
+
+@shared_task(name="iot.fetch_weather_for_all_sites")
+def fetch_weather_for_all_sites() -> dict[str, int]:
+    """Fetch weather data from Open-Meteo for all active sites.
+
+    Runs every 30 minutes via Celery beat. Stores current conditions and
+    hourly forecast data. Also analyzes forecasts for geo-contextual alerts.
+
+    Returns:
+        Dict with sites_processed, readings_stored, alerts_created counts.
+    """
+    from .models import Site, WeatherAlert, WeatherData
+    from .weather_service import (
+        analyze_forecast_for_alerts,
+        fetch_weather,
+        parse_current_weather,
+        parse_hourly_forecast,
+    )
+
+    sites = Site.objects.filter(is_active=True)
+    sites_processed = 0
+    readings_stored = 0
+    alerts_created = 0
+
+    for site in sites:
+        data = fetch_weather(
+            latitude=site.latitude,
+            longitude=site.longitude,
+            timezone_str=site.timezone,
+            forecast_days=3,
+        )
+        if not data:
+            logger.warning("Failed to fetch weather for site %s", site.name)
+            continue
+
+        sites_processed += 1
+
+        # Store current weather
+        current = parse_current_weather(data)
+        if current:
+            ts_str = current.pop("timestamp", None)
+            if ts_str:
+                from django.utils.dateparse import parse_datetime
+                ts = parse_datetime(ts_str) or timezone.now()
+                WeatherData.objects.create(
+                    site=site,
+                    timestamp=ts,
+                    **current,
+                )
+                readings_stored += 1
+
+        # Store and analyze hourly forecast
+        hourly = parse_hourly_forecast(data)
+
+        # Delete old forecast data for this site before storing new
+        WeatherData.objects.filter(site=site, is_forecast=True).delete()
+
+        for entry in hourly:
+            ts_str = entry.pop("timestamp", None)
+            if ts_str:
+                from django.utils.dateparse import parse_datetime
+                ts = parse_datetime(ts_str)
+                if ts:
+                    WeatherData.objects.create(
+                        site=site,
+                        timestamp=ts,
+                        **entry,
+                    )
+                    readings_stored += 1
+
+        # Analyze forecast for geo-contextual alerts
+        alert_defs = analyze_forecast_for_alerts(hourly, site.name)
+        for alert_def in alert_defs:
+            # Avoid duplicate alerts
+            exists = WeatherAlert.objects.filter(
+                site=site,
+                title=alert_def["title"],
+                forecast_date=alert_def["forecast_date"],
+                is_acknowledged=False,
+            ).exists()
+            if not exists:
+                WeatherAlert.objects.create(
+                    site=site,
+                    alert_level=alert_def["alert_level"],
+                    title=alert_def["title"],
+                    message=alert_def["message"],
+                    forecast_date=alert_def["forecast_date"],
+                )
+                alerts_created += 1
+
+    logger.info(
+        "Weather fetch complete: %d sites, %d readings, %d alerts",
+        sites_processed, readings_stored, alerts_created,
+    )
+    return {
+        "sites_processed": sites_processed,
+        "readings_stored": readings_stored,
+        "alerts_created": alerts_created,
+    }
+
+
+@shared_task(name="iot.cleanup_old_weather_data")
+def cleanup_old_weather_data(days: int = 30) -> dict[str, int]:
+    """Delete weather data older than the specified number of days.
+
+    Runs daily via Celery beat.
+
+    Args:
+        days: Number of days to keep weather history.
+
+    Returns:
+        Dict with deleted count.
+    """
+    from .models import WeatherData
+
+    cutoff = timezone.now() - timedelta(days=days)
+    deleted_count, _ = WeatherData.objects.filter(
+        is_forecast=False,
+        timestamp__lt=cutoff,
+    ).delete()
+
+    logger.info("Cleaned up %d old weather records", deleted_count)
+    return {"deleted": deleted_count}

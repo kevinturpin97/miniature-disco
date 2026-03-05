@@ -6,7 +6,7 @@ belonging to greenhouses owned by organizations they are a member of.
 """
 
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db.models import Avg
 from django.db.models.functions import TruncDay, TruncHour
@@ -67,6 +67,7 @@ from .serializers import (
     TemplatePublishSerializer,
     TemplateRatingSerializer,
     TemplateSerializer,
+    WeatherDataSerializer,
     ZoneSerializer,
 )
 
@@ -1617,4 +1618,296 @@ class DataPipelineView(viewsets.ViewSet):
             "retention_policy": policy_data,
             "archive_logs": archive_data,
             "partitions": partitions,
+        })
+
+
+# ---------------------------------------------------------------------------
+# Sprint 24 — Multi-Site & Cartography
+# ---------------------------------------------------------------------------
+
+
+class SiteViewSet(viewsets.ModelViewSet):
+    """CRUD operations for Site resources within the user's organizations.
+
+    Endpoints:
+        GET    /api/sites/                  - List all sites.
+        POST   /api/sites/                  - Create a site.
+        GET    /api/sites/{id}/             - Retrieve a site.
+        PATCH  /api/sites/{id}/             - Update a site.
+        DELETE /api/sites/{id}/             - Delete a site.
+        GET    /api/sites/{id}/weather/     - Current + forecast weather.
+        GET    /api/sites/{id}/weather/history/  - Weather history.
+    """
+
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["name", "address"]
+    ordering_fields = ["name", "created_at"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def get_serializer_class(self):
+        from .serializers import SiteSerializer
+        return SiteSerializer
+
+    def get_queryset(self):
+        from .models import Site
+        org_ids = _user_org_ids(self.request.user)
+        return Site.objects.filter(organization_id__in=org_ids)
+
+    def perform_create(self, serializer):
+        org_ids = _user_org_ids(self.request.user)
+        org_id = self.request.data.get("organization")
+        if org_id and int(org_id) in org_ids:
+            org = Organization.objects.get(pk=org_id)
+        else:
+            org = Organization.objects.filter(pk__in=org_ids).first()
+        serializer.save(organization=org)
+
+    @action(detail=True, methods=["get"], url_path="weather")
+    def weather(self, request: Request, pk=None) -> Response:
+        """Return current weather and forecast for a site."""
+        from .models import Site, WeatherData
+        from .serializers import WeatherDataSerializer
+
+        site = self.get_object()
+
+        # Get most recent current weather
+        current = WeatherData.objects.filter(
+            site=site, is_forecast=False,
+        ).first()
+
+        # Get forecast data
+        forecast = WeatherData.objects.filter(
+            site=site, is_forecast=True,
+        ).order_by("timestamp")[:72]
+
+        return Response({
+            "site_id": site.id,
+            "site_name": site.name,
+            "current": WeatherDataSerializer(current).data if current else None,
+            "forecast": WeatherDataSerializer(forecast, many=True).data,
+        })
+
+    @action(detail=True, methods=["get"], url_path="weather/history")
+    def weather_history(self, request: Request, pk=None) -> Response:
+        """Return historical weather data for a site."""
+        from .models import WeatherData
+        from .serializers import WeatherDataSerializer
+
+        site = self.get_object()
+        days = int(request.query_params.get("days", 7))
+        days = min(days, 30)
+        since = django_tz.now() - timedelta(days=days)
+
+        history = WeatherData.objects.filter(
+            site=site,
+            is_forecast=False,
+            timestamp__gte=since,
+        ).order_by("timestamp")
+
+        return Response({
+            "site_id": site.id,
+            "site_name": site.name,
+            "period_days": days,
+            "data": WeatherDataSerializer(history, many=True).data,
+        })
+
+
+class SiteDashboardView(viewsets.ViewSet):
+    """Multi-site dashboard with global status.
+
+    Endpoints:
+        GET /api/sites/dashboard/  - Aggregated status for all sites.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request) -> Response:
+        """Return dashboard summary for all sites in the user's organizations."""
+        from .models import Alert, Site, WeatherAlert, WeatherData, Zone
+
+        org_ids = _user_org_ids(request.user)
+        sites = Site.objects.filter(
+            organization_id__in=org_ids, is_active=True,
+        ).prefetch_related("greenhouses__zones")
+
+        results = []
+        now = django_tz.now()
+
+        for site in sites:
+            greenhouses = site.greenhouses.all()
+            zones = Zone.objects.filter(greenhouse__in=greenhouses)
+            zone_ids = list(zones.values_list("id", flat=True))
+
+            zones_online = 0
+            for z in zones:
+                if z.last_seen and (now - z.last_seen).total_seconds() < z.transmission_interval * 2:
+                    zones_online += 1
+
+            active_alerts = Alert.objects.filter(
+                zone_id__in=zone_ids,
+                is_acknowledged=False,
+            ).count()
+
+            weather_alerts_count = WeatherAlert.objects.filter(
+                site=site,
+                is_acknowledged=False,
+            ).count()
+
+            current_weather = WeatherData.objects.filter(
+                site=site, is_forecast=False,
+            ).first()
+
+            results.append({
+                "site_id": site.id,
+                "site_name": site.name,
+                "latitude": site.latitude,
+                "longitude": site.longitude,
+                "timezone": site.timezone,
+                "greenhouse_count": greenhouses.count(),
+                "zone_count": zones.count(),
+                "zones_online": zones_online,
+                "active_alerts": active_alerts,
+                "weather_alerts": weather_alerts_count,
+                "current_weather": WeatherDataSerializer(current_weather).data if current_weather else None,
+            })
+
+        return Response(results)
+
+
+class WeatherAlertViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """List and acknowledge weather alerts.
+
+    Endpoints:
+        GET   /api/weather-alerts/                     - List weather alerts.
+        PATCH /api/weather-alerts/{id}/acknowledge/     - Acknowledge an alert.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        from .serializers import WeatherAlertSerializer
+        return WeatherAlertSerializer
+
+    def get_queryset(self):
+        from .models import WeatherAlert
+        org_ids = _user_org_ids(self.request.user)
+        qs = WeatherAlert.objects.filter(
+            site__organization_id__in=org_ids,
+        ).select_related("site")
+
+        # Filters
+        site_id = self.request.query_params.get("site")
+        if site_id:
+            qs = qs.filter(site_id=site_id)
+
+        acknowledged = self.request.query_params.get("acknowledged")
+        if acknowledged is not None:
+            qs = qs.filter(is_acknowledged=acknowledged.lower() == "true")
+
+        return qs
+
+    @action(detail=True, methods=["patch"])
+    def acknowledge(self, request: Request, pk=None) -> Response:
+        """Acknowledge a weather alert."""
+        from .models import WeatherAlert
+        from .serializers import WeatherAlertSerializer
+
+        org_ids = _user_org_ids(request.user)
+        alert = get_object_or_404(
+            WeatherAlert, pk=pk, site__organization_id__in=org_ids,
+        )
+        alert.is_acknowledged = True
+        alert.acknowledged_by = request.user
+        alert.acknowledged_at = django_tz.now()
+        alert.save(update_fields=["is_acknowledged", "acknowledged_by", "acknowledged_at"])
+        return Response(WeatherAlertSerializer(alert).data)
+
+
+class WeatherCorrelationView(viewsets.ViewSet):
+    """Weather-sensor data correlation for a zone.
+
+    Endpoints:
+        GET /api/zones/{id}/weather-correlation/  - Correlated data.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk=None) -> Response:
+        """Return weather data correlated with sensor readings for a zone.
+
+        Aligns hourly weather data with hourly sensor readings for the zone,
+        so that external conditions can be compared with internal measurements.
+        """
+        from .models import SensorReadingHourly, Site, WeatherData
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone.objects.select_related("greenhouse"),
+            pk=pk,
+            greenhouse__organization_id__in=org_ids,
+        )
+
+        days = int(request.query_params.get("days", 7))
+        days = min(days, 30)
+        since = django_tz.now() - timedelta(days=days)
+
+        # Find the site for this zone's greenhouse
+        site = zone.greenhouse.site
+        if not site:
+            return Response({
+                "zone_id": zone.id,
+                "zone_name": zone.name,
+                "period_days": days,
+                "message": "No site associated with this greenhouse.",
+                "data": [],
+            })
+
+        # Get hourly weather data
+        weather_hourly = WeatherData.objects.filter(
+            site=site,
+            is_forecast=False,
+            timestamp__gte=since,
+        ).order_by("timestamp")
+
+        # Get sensor hourly readings
+        sensors = zone.sensors.filter(is_active=True)
+        sensor_map = {s.id: f"{s.get_sensor_type_display()} ({s.label or s.sensor_type})" for s in sensors}
+
+        hourly_readings = SensorReadingHourly.objects.filter(
+            sensor__in=sensors,
+            hour__gte=since,
+        ).order_by("hour")
+
+        # Build a lookup of sensor readings by hour
+        readings_by_hour: dict[str, dict[str, float]] = {}
+        for reading in hourly_readings:
+            hour_key = reading.hour.isoformat()
+            if hour_key not in readings_by_hour:
+                readings_by_hour[hour_key] = {}
+            label = sensor_map.get(reading.sensor_id, str(reading.sensor_id))
+            readings_by_hour[hour_key][label] = reading.avg_value
+
+        # Correlate weather with sensor data
+        data = []
+        for w in weather_hourly:
+            hour_key = w.timestamp.isoformat()
+            data.append({
+                "timestamp": w.timestamp,
+                "external_temperature": w.temperature,
+                "external_humidity": w.humidity,
+                "precipitation": w.precipitation,
+                "uv_index": w.uv_index,
+                "sensor_readings": readings_by_hour.get(hour_key, {}),
+            })
+
+        return Response({
+            "zone_id": zone.id,
+            "zone_name": zone.name,
+            "site_name": site.name,
+            "period_days": days,
+            "data": data,
         })
