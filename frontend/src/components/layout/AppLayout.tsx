@@ -1,6 +1,7 @@
 /**
  * Main application layout with sidebar, header, bottom nav (mobile),
  * and content area with framer-motion page transitions.
+ * Sidebar supports collapsible compact mode on desktop.
  */
 
 import { useState } from "react";
@@ -9,13 +10,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
+import { OnboardingWizard, useOnboardingVisible } from "@/components/ui/OnboardingWizard";
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCompact, setSidebarCompact] = useState(false);
   const location = useLocation();
+  const { visible: onboardingVisible, dismiss: dismissOnboarding } = useOnboardingVisible();
 
   return (
     <div className="flex h-screen bg-background">
+      {/* First-login onboarding wizard */}
+      <AnimatePresence>
+        {onboardingVisible && (
+          <OnboardingWizard onDismiss={dismissOnboarding} />
+        )}
+      </AnimatePresence>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -30,7 +40,11 @@ export function AppLayout() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
+        <Sidebar
+          onClose={() => setSidebarOpen(false)}
+          compact={sidebarCompact}
+          onToggleCompact={() => setSidebarCompact((v) => !v)}
+        />
       </aside>
 
       {/* Main content area */}

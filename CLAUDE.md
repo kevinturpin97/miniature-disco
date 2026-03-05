@@ -918,6 +918,143 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 
 ---
 
+### SPRINT 26 — Refonte UX/Navigation & Cohérence Produit
+- [x] Réduction du menu à 5 items groupés : Vue d'ensemble, Supervision, Contrôle, Données, Administration
+- [x] Sidebar repliable avec icônes seules en mode compact (gain d'espace sur tablette)
+- [x] Mobile Navigation : réduire aux 5 items et ne pas afficher les sous-items (ex : Sites, Analytics, Commands dans Supervision), juste les icones et badges si notifications / alertes
+- [x] Breadcrumb contextuel sur toutes les pages profondes (Serre > Zone > Capteur)
+- [x] Pages 404 et erreur globale brandées
+- [x] Redirection intelligente post-login selon le rôle (OPERATOR → Contrôle, VIEWER → Dashboard)
+- [x] Variable d'env `EDGE_MODE` (backend) + `VITE_EDGE_MODE` (frontend)
+- [x] Hook `useAppMode()` : expose `isEdgeMode`, `isCloudMode`, `features`
+- [x] Composant `<FeatureGate feature="...">` pour conditionner l'affichage selon le mode
+- [x] Menu dynamique : items LoRa Bridge et MQTT visibles uniquement en Edge mode
+- [x] Menu dynamique : items CRM et Sync visibles uniquement en Cloud mode
+- [x] Badge contextuel dans le header : "Edge — Site principal" vs "Cloud — Accès distant"
+- [x] Settings restructuré en 4 onglets : Profil / Organisation / Notifications / Sécurité
+- [x] Suppression création de serre dans Settings → déplacée dans le Dashboard uniquement
+- [x] Page `/billing` dédiée dans Administration (sortie des Settings)
+- [x] Page `/team` dédiée dans Administration (sortie des Settings)
+- [x] Page `/developer` dédiée dans Administration (sortie des Settings)
+- [x] Index `/administration` : hub avec cards vers chaque section + résumé usage du plan
+- [x] Page `Sites` : carte Leaflet full-width + liste des sites en sidebar + statut + météo locale
+- [x] Page `Sites` : clic sur une card → zoom animé `flyTo` vers le marqueur (zoom 15, durée 0.8s, popup auto)
+- [x] Page `Sites` : marqueur sélectionné mis en surbrillance avec pulse animation
+- [x] Page `Sites` : lien bidirectionnel — clic sur marqueur map → scroll vers la card correspondante
+- [x] Page `Sites` : bouton "Vue globale" pour dezoom sur tous les sites
+- [x] Page `Journal de Culture` : timeline chronologique avec filtres
+- [x] Page `Marketplace` : grid de cards avec filtres latéraux, preview modale, notation étoiles
+- [x] Page `Predictions` : graphe confidence interval + explication IA en langage naturel
+- [x] Page `Developer` : code snippets, logs d'appels en temps réel
+- [x] Onboarding first-login : wizard 3 étapes (créer org → créer serre → créer zone)
+- [x] Empty states sur toutes les pages (illustration + CTA quand pas de données)
+- [x] Confirmation systématique sur les actions destructives (supprimer serre, révoquer membre)
+- [x] Feedback toast unifié sur toutes les mutations API (succès, erreur, loading)
+- [x] Validation inline temps réel (Zod) sur tous les formulaires, pas seulement au submit
+- [x] Commandes actionneurs : animation feedback 3 états (PENDING → SENT → ACK/FAILED)
+- [x] Audit complet mobile : toutes les pages testées sur 375px, 768px, 1280px
+- [x] Navigation mobile : bottom bar avec les 5 groupes, swipe entre onglets
+- [x] Tableaux responsives : version card sur petits écrans
+- [x] Labels ARIA sur tous les graphiques Recharts
+- [x] Skeleton loaders cohérents sur toutes les pages
+- [x] Tests Vitest sur `useAppMode()` et `<FeatureGate>`
+- [x] Tests navigation : routes protégées par rôle
+- [x] Tests empty states
+- [x] Lighthouse CI : Performance > 90, Accessibility > 90, PWA ✅
+
+---
+
+### SPRINT 27 — Edge Sync Agent
+- [ ] Modèle `EdgeDevice` : `device_id` (UUID), `organization`, `name`, `secret_key` (HMAC), `last_sync_at`, `firmware_version`, `is_active`
+- [ ] Champ `cloud_synced` (BooleanField, db_index) sur `SensorReading`, `Command`, `Alert`, `AuditEvent`
+- [ ] Champ `cloud_synced_at` (DateTimeField, null) sur les mêmes modèles
+- [ ] Migration et vérification sans régression sur les tests existants
+- [ ] Celery task `sync_to_cloud` : collecte les enregistrements `cloud_synced=False`, envoie en batch HTTPS vers l'API cloud
+- [ ] Compression gzip des payloads de sync
+- [ ] Authentification edge → cloud : HMAC-SHA256 sur chaque requête (clé longue durée, pas de JWT)
+- [ ] Store-and-forward : si cloud injoignable, retry exponentiel (1min → 5min → 15min → 1h)
+- [ ] Celery beat : sync automatique toutes les 5 minutes + bulk sync nocturne à 2h
+- [ ] Gestion des conflits : "edge wins" sur les readings, "cloud wins" sur les configs
+- [ ] Management command `force_sync` : déclenche une sync immédiate manuelle
+- [ ] Endpoint `/api/sync/status/` : dernière sync, backlog en attente, nb enregistrements
+- [ ] Widget "Sync Status" dans le header : ✅ synced / ⏳ X en attente / ❌ offline
+- [ ] Page `/sync` dans Administration : historique des syncs, taille des batches, erreurs
+- [ ] Indicateur visuel sur les données non encore synchronisées (badge discret)
+- [ ] Test sync réussie : mock API cloud, vérifier `cloud_synced=True` après task
+- [ ] Test retry sur timeout : mock API cloud down, vérifier backlog replay
+- [ ] Test auth HMAC : requête sans signature → 403
+- [ ] Test compression : payload gzip décodé correctement côté cloud
+- [ ] Test management command `force_sync`
+
+---
+
+### SPRINT 28 — Cloud CRM Platform
+- [ ] Settings `config/settings/cloud.py` séparé de `production.py` : `EDGE_MODE=False`, `CLOUD_MODE=True`
+- [ ] `docker-compose.cloud.yml` : Django cloud + PostgreSQL + Redis + Celery + Nginx
+- [ ] HTTPS Let's Encrypt via Certbot sur domaine `cloud.ton-domaine.com`
+- [ ] Modèle `CloudTenant` : `organization` (OneToOne), `edge_devices` (M2M), `cloud_storage_mb`, `last_activity`, `support_notes`
+- [ ] Modèle `SyncBatch` : `edge_device`, `received_at`, `records_count`, `payload_size_kb`, `status`, `error_message`
+- [ ] Déduplication des readings : `unique_together(edge_device_id, edge_reading_id)`
+- [ ] Endpoint `/api/edge/register/` : enregistrement Raspberry Pi, génère UUID + secret HMAC
+- [ ] Endpoint `/api/edge/sync/` : reçoit les batches, valide HMAC, insère via Celery worker dédié
+- [ ] Endpoint `/api/edge/config/` : push de config vers l'edge (seuils, schedules, automation rules)
+- [ ] Endpoint `/api/crm/tenants/` : liste clients avec stats (serres, zones, dernière activité, plan)
+- [ ] Endpoint `/api/crm/tenants/{id}/health/` : état de santé site client (sync, devices online, alertes)
+- [ ] Endpoint `/api/crm/stats/` : métriques globales (nb clients, readings/jour, uptime moyen)
+- [ ] Endpoint `/api/crm/tenants/{id}/impersonate/` : token temporaire 30min pour voir les données d'un client
+- [ ] Page `/crm` (Cloud only, `<FeatureGate feature="crm">`) : liste tous les clients, statut sync, plan, dernière activité
+- [ ] Page `/crm/{id}` : serres, zones, devices, historique syncs, notes support
+- [ ] Carte mondiale Leaflet : tous les sites clients avec statut (réutilise Sprint 24 ✅)
+- [ ] Métriques globales : graphique readings/jour par client, taux alertes, uptime
+- [ ] Gestion plans : upgrade/downgrade manuel d'un client depuis le CRM
+- [ ] Outil support : bouton "Voir comme ce client" (impersonate, expiry 30min)
+- [ ] Alertes opérateur : client sans sync 24h, device offline, espace disque critique
+- [ ] Export CSV liste clients
+- [ ] Bandeau client accès distant : "Données synchronisées — dernière mise à jour il y a Xmin"
+- [ ] Page "Mes Devices" : liste Raspberry Pi enregistrés, statut sync, version firmware
+- [ ] Script `onboard_client.sh` : génère credentials edge, injecte dans le `.env` du Raspberry
+- [ ] Backup cloud : pg_dump quotidien vers S3, rétention 30 jours
+- [ ] Rétention différenciée : raw 90j cloud vs 30j edge, agrégats permanents
+- [ ] Documentation `docs/deployment-cloud.md`
+- [ ] Test ingestion batch : mock edge device, vérifier données insérées en base cloud
+- [ ] Test déduplication : même batch envoyé deux fois → pas de doublon
+- [ ] Test auth HMAC : requête sans signature → 403
+- [ ] Test impersonate : token expiré après 30min
+- [ ] Test dashboard CRM : accès réservé aux opérateurs
+
+---
+
+### SPRINT 29 — Polish Final & Mise en Production
+- [ ] Audit complet des TODO restants dans la codebase (zéro TODO sans ticket associé)
+- [ ] Optimisation requêtes Django : audit `django-silk`, éliminer les N+1 restants
+- [ ] Bundle frontend : analyse `vite-bundle-analyzer`, lazy loading sur pages lourdes (Leaflet, Recharts)
+- [ ] Suppression des `console.log` et `print()` de debug restants
+- [ ] Mise à jour toutes les dépendances mineures (npm audit fix, pip-audit)
+- [ ] `docs/roadmap.md` : roadmap complète sprints 1-29 à jour
+- [ ] `docs/architecture.md` : schéma Edge + Cloud mis à jour avec feature flags
+- [ ] `docs/deployment.md` : guide déploiement edge sur Raspberry Pi (< 1h chrono)
+- [ ] `docs/deployment-cloud.md` : guide déploiement cloud sur VPS (< 30min chrono)
+- [ ] `docs/onboarding.md` : guide premier client pas à pas (de l'achat matériel à la première donnée)
+- [ ] `README.md` : badges CI, screenshot dashboard, lien démo live
+- [ ] Seed data enrichi : 3 clients fictifs, 5 serres, 20 zones, 6 mois de données simulées
+- [ ] Script de démo `make demo` : lance tout + seed + ouvre le browser automatiquement
+- [ ] Compte démo public : `demo@greenhouse-saas.com` / `demo1234` en read-only
+- [ ] Checklist OWASP Top 10 manuelle
+- [ ] Headers sécurité vérifiés : CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- [ ] Procédure rotation secrets documentée : JWT_SECRET, HMAC_KEY, Stripe keys
+- [ ] Audit RGPD final : données personnelles cartographiées, rétention vérifiée
+- [ ] Rate limiting vérifié sur tous les endpoints publics (register, login, edge/sync)
+- [ ] GitHub Actions : lint + test + build sur chaque PR
+- [ ] GitHub Actions : deploy automatique sur VPS cloud sur merge main
+- [ ] Healthcheck monitoring : UptimeRobot sur `/api/health/`
+- [ ] Alertes Sentry configurées : nouveaux types d'erreurs → email opérateur
+- [ ] Suite E2E Playwright : scénario capteur simulé → dashboard cloud
+- [ ] Test de charge Locust : 50 clients simultanés, 10 000 readings/min
+- [ ] Tests cross-browser : Chrome, Firefox, Safari, Edge + iOS Safari + Android Chrome
+- [ ] Tous les tests passent : pytest + vitest + Playwright, 0 failures
+
+---
+
 ## CONVENTIONS DE CODE
 
 ### Python (Backend + Bridge)

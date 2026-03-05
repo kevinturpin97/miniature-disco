@@ -133,6 +133,7 @@ services:
       - "5173:5173"
     environment:
       - VITE_BACKEND_URL=http://backend:8000
+      - VITE_EDGE_MODE=${VITE_EDGE_MODE:-false}
     env_file:
       - .env
     command: npm run dev -- --host 0.0.0.0

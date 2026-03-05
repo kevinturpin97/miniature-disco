@@ -97,8 +97,18 @@
     "title": "Settings",
     "tabs": {
       "profile": "Profile",
-      "resources": "Resources"
+      "resources": "Resources",
+      "organisation": "Organisation",
+      "notifications": "Notifications",
+      "security": "Security"
     },
+    "noOrg": "No organization selected.",
+    "orgInfo": "Organization Details",
+    "plan": "Plan",
+    "manageBilling": "Manage billing",
+    "notificationsTitle": "Notification Channels",
+    "notificationsDesc": "Configure email, webhook, and Telegram channels for your organization.",
+    "configureNotifications": "Configure notifications",
     "profile": {
       "title": "User Profile",
       "subtitle": "Update your personal information.",
@@ -578,5 +588,68 @@
     "erasureDescription": "Permanently anonymize your account and all personal data. This action cannot be undone.",
     "erasureConfirm": "Are you sure? This will anonymize all your personal data and deactivate your account.",
     "erasureSuccess": "Your personal data has been anonymized."
+  },
+  "admin": {
+    "title": "Administration",
+    "subtitle": "Manage your organization, team, billing, and developer tools.",
+    "plan": "Current plan",
+    "greenhouses": "Greenhouses",
+    "members": "Members",
+    "trialActive": "Trial active — upgrade to unlock full features.",
+    "cards": {
+      "settings": {
+        "title": "Settings",
+        "desc": "Profile, organization preferences, notifications and security."
+      },
+      "team": {
+        "title": "Team",
+        "desc": "Manage members, roles, and invitations."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "desc": "Configure email, webhook, and Telegram channels."
+      },
+      "developer": {
+        "title": "Developer",
+        "desc": "API keys, webhooks, and call logs."
+      },
+      "billing": {
+        "title": "Billing",
+        "desc": "Manage your subscription, plan, and invoices."
+      },
+      "crm": {
+        "title": "CRM",
+        "desc": "Manage all client organizations and devices."
+      },
+      "sync": {
+        "title": "Sync",
+        "desc": "Cloud sync status, history, and batch management."
+      }
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "subtitle": "The page you're looking for doesn't exist or has been moved.",
+    "backHome": "Back to Dashboard"
+  },
+  "onboarding": {
+    "step1Title": "Create your organization",
+    "step1Desc": "An organization groups all your greenhouses and your team.",
+    "step2Title": "Add a greenhouse",
+    "step2Desc": "A greenhouse represents a physical growing space.",
+    "step3Title": "Create your first zone",
+    "step3Desc": "Zones are sections inside your greenhouse with their own sensors.",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Get started",
+    "skip": "Skip setup",
+    "orgName": "Organization name",
+    "ghName": "Greenhouse name",
+    "ghLocation": "Location (optional)",
+    "zoneName": "Zone name",
+    "errorOrg": "Failed to create organization.",
+    "errorGh": "Failed to create greenhouse.",
+    "errorZone": "Failed to create zone.",
+    "successMessage": "All set! Welcome to Greenhouse SaaS."
   }
 }

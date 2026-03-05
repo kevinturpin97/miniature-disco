@@ -26,6 +26,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Spinner } from "@/components/ui/Spinner";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS } from "@/utils/constants";
 import type { Greenhouse, Zone, Sensor } from "@/types";
 
@@ -309,27 +310,19 @@ export default function Dashboard() {
 
       {/* ---------- empty state ---------- */}
       {data.length === 0 && (
-        <div className="text-center py-12">
-          <svg
-            className="mx-auto h-12 w-12 text-muted-foreground/60"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1}
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-medium text-foreground">
-            {tp("dashboard.noGreenhouses")}
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {tp("dashboard.noGreenhousesHint")}
-          </p>
-        </div>
+        <EmptyState
+          icon="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          title={tp("dashboard.noGreenhouses")}
+          description={tp("dashboard.noGreenhousesHint")}
+          action={
+            <button
+              onClick={openCreateGreenhouse}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              {tp("dashboard.addGreenhouse")}
+            </button>
+          }
+        />
       )}
 
       {/* ---------- greenhouse sections ---------- */}

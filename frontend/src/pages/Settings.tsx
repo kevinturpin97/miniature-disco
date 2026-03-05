@@ -1,17 +1,16 @@
 /**
- * Settings page with two tabs: Profile and Resources.
- *
- * Profile tab allows editing user info and changing password.
- * Resources tab provides an accordion/tree view for managing
- * greenhouses, zones, sensors, and actuators.
+ * Settings page with 4 tabs: Profile / Organisation / Notifications / Security.
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
 import { getMe, updateMe, changePassword } from "@/api/auth";
 import { exportGDPRData, requestGDPRErasure } from "@/api/compliance";
+import { updateOrganization } from "@/api/organizations";
+import { useAuthStore } from "@/stores/authStore";
 import {
   listGreenhouses,
   createGreenhouse,
@@ -42,7 +41,7 @@ import type {
   ActuatorType,
 } from "@/types";
 
-type TabKey = "profile" | "resources" | "privacy";
+type TabKey = "profile" | "organisation" | "notifications" | "security";
 
 /* ------------------------------------------------------------------ */
 /*  Chevron icon used for accordion expand / collapse                  */
@@ -1507,6 +1506,116 @@ function PrivacyTab() {
 }
 
 /* ================================================================== */
+/* ================================================================== */
+/*  Organisation Tab                                                   */
+/* ================================================================== */
+
+function OrganisationTab() {
+  const { t } = useTranslation();
+  const { t: tp } = useTranslation("pages");
+  const org = useAuthStore((s) => s.currentOrganization);
+  const fetchOrganizations = useAuthStore((s) => s.fetchOrganizations);
+  const [name, setName] = useState(org?.name ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (org) setName(org.name);
+  }, [org]);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!org || !name.trim()) return;
+    setSaving(true);
+    try {
+      await updateOrganization(org.slug, { name: name.trim() });
+      await fetchOrganizations();
+      toast.success(t("success.updated"));
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!org) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        {tp("settings.noOrg")}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="mb-4 font-semibold text-foreground">{tp("settings.orgInfo")}</h2>
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-card-foreground">
+              {t("labels.name")}
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              {tp("settings.plan")}: <span className="font-medium text-foreground">{org.plan}</span>
+            </div>
+            <Link
+              to="/billing"
+              className="text-sm text-primary hover:underline"
+            >
+              {tp("settings.manageBilling")}
+            </Link>
+          </div>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {saving ? t("status.loading") : t("actions.save")}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Notifications Tab                                                  */
+/* ================================================================== */
+
+function NotificationsTab() {
+  const { t: tp } = useTranslation("pages");
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6">
+      <h2 className="mb-2 font-semibold text-foreground">{tp("settings.notificationsTitle")}</h2>
+      <p className="mb-4 text-sm text-muted-foreground">{tp("settings.notificationsDesc")}</p>
+      <Link
+        to="/notifications"
+        className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
+        </svg>
+        {tp("settings.configureNotifications")}
+      </Link>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Security Tab (password + GDPR/privacy)                            */
+/* ================================================================== */
+
+function SecurityTab() {
+  return <PrivacyTab />;
+}
+
 /*  Main Settings Page                                                 */
 /* ================================================================== */
 
@@ -1517,8 +1626,9 @@ export default function Settings() {
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "profile", label: tp("settings.tabs.profile") },
-    { key: "resources", label: tp("settings.tabs.resources") },
-    { key: "privacy", label: tp("gdpr.title") },
+    { key: "organisation", label: tp("settings.tabs.organisation") },
+    { key: "notifications", label: tp("settings.tabs.notifications") },
+    { key: "security", label: tp("settings.tabs.security") },
   ];
 
   return (
@@ -1532,7 +1642,7 @@ export default function Settings() {
 
       {/* Tabs */}
       <div className="border-b border-border">
-        <nav className="-mb-px flex gap-6" aria-label="Tabs">
+        <nav className="-mb-px flex gap-6 overflow-x-auto" aria-label="Tabs">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -1551,8 +1661,9 @@ export default function Settings() {
 
       {/* Tab content */}
       {activeTab === "profile" && <ProfileTab />}
-      {activeTab === "resources" && <ResourcesTab />}
-      {activeTab === "privacy" && <PrivacyTab />}
+      {activeTab === "organisation" && <OrganisationTab />}
+      {activeTab === "notifications" && <NotificationsTab />}
+      {activeTab === "security" && <SecurityTab />}
     </div>
   );
 }

@@ -233,3 +233,6 @@ STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 STRIPE_PRICE_PRO = config("STRIPE_PRICE_PRO", default="")
 STRIPE_PRICE_ENTERPRISE = config("STRIPE_PRICE_ENTERPRISE", default="")
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
+
+# Deployment mode — True for Raspberry Pi / LoRa edge, False for cloud SaaS.
+EDGE_MODE = config("EDGE_MODE", default=False, cast=bool)

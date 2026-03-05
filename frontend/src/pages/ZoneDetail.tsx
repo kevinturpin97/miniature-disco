@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import {
   LineChart,
   Line,
@@ -286,11 +287,13 @@ export default function ZoneDetail() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-primary">{t("nav.dashboard")}</Link>
-            <span>/</span>
-            <span>{zone.name}</span>
-          </div>
+          <Breadcrumb
+            segments={[
+              { label: t("nav.dashboard"), to: "/", isCurrent: false },
+              { label: zone.name, to: `/zones/${zone.id}`, isCurrent: true },
+            ]}
+            className="mb-1"
+          />
           <h1 className="mt-1 text-2xl font-bold text-foreground">{zone.name}</h1>
           <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
             <span>Relay #{zone.relay_id}</span>

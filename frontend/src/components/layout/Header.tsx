@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useAlerts } from "@/hooks/useAlerts";
 import { useAuthStore } from "@/stores/authStore";
+import { useAppMode } from "@/hooks/useAppMode";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { cn } from "@/utils/cn";
@@ -21,6 +22,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const { unacknowledgedCount } = useAlerts();
   const { t } = useTranslation();
+  const { isEdgeMode, modeBadge } = useAppMode();
   const organizations = useAuthStore((s) => s.organizations);
   const currentOrganization = useAuthStore((s) => s.currentOrganization);
   const switchOrganization = useAuthStore((s) => s.switchOrganization);
@@ -66,7 +68,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <span className="max-w-[200px] truncate">
+                <span className="max-w-50 truncate">
                   {currentOrganization?.name ?? t("team.noOrg")}
                 </span>
                 {currentOrganization?.my_role && (
@@ -114,8 +116,27 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </div>
 
-      {/* Right: lang switcher, dark mode, alerts, user dropdown */}
+      {/* Right: mode badge, lang switcher, dark mode, alerts, user dropdown */}
       <div className="flex items-center gap-1.5">
+        {/* Edge / Cloud mode badge */}
+        <span
+          className={cn(
+            "hidden items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium sm:flex",
+            isEdgeMode
+              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+              : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
+          )}
+          title={isEdgeMode ? t("header.edgeMode") : t("header.cloudMode")}
+        >
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {isEdgeMode ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+            )}
+          </svg>
+          {modeBadge}
+        </span>
         <LanguageSwitcher />
         <DarkModeToggle />
 

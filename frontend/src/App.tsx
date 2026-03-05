@@ -30,6 +30,8 @@ const Developer = lazy(() => import("@/pages/Developer"));
 const Billing = lazy(() => import("@/pages/Billing"));
 const Sites = lazy(() => import("@/pages/Sites"));
 const CultureJournal = lazy(() => import("@/pages/CultureJournal"));
+const Administration = lazy(() => import("@/pages/Administration"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function PageFallback() {
   return (
@@ -151,10 +153,11 @@ function App() {
               <Route path="developer" element={<Developer />} />
               <Route path="billing" element={<Billing />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="administration" element={<Administration />} />
             </Route>
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </AppInit>

@@ -15,7 +15,24 @@
     "developer": "Developer",
     "billing": "Billing",
     "sites": "Sites",
-    "cultureJournal": "Culture Journal"
+    "cultureJournal": "Culture Journal",
+    "administration": "Administration",
+    "crm": "CRM",
+    "sync": "Sync",
+    "mqtt": "MQTT",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "groups": {
+      "overview": "Overview",
+      "supervision": "Supervision",
+      "control": "Control",
+      "data": "Data",
+      "administration": "Administration"
+    }
+  },
+  "header": {
+    "edgeMode": "Edge — Local site",
+    "cloudMode": "Cloud — Remote access"
   },
   "actions": {
     "save": "Save",

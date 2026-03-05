@@ -155,7 +155,7 @@ describe("ZoneDetail page", () => {
     mockedListSensors.mockReturnValue(new Promise(() => {}));
     mockedListActuators.mockReturnValue(new Promise(() => {}));
     renderZoneDetail();
-    expect(document.querySelector("span.loading")).toBeInTheDocument();
+    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("renders zone header with name and relay ID", async () => {

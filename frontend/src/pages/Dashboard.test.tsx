@@ -50,7 +50,7 @@ describe("Dashboard page", () => {
     mockedListGreenhouses.mockReturnValue(new Promise(() => {}));
     renderDashboard();
     // The Spinner component renders a DaisyUI loading span
-    expect(document.querySelector("span.loading")).toBeInTheDocument();
+    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("shows empty state when no greenhouses", async () => {

@@ -152,7 +152,7 @@ describe("Marketplace page", () => {
     mockedListCategories.mockResolvedValue(paginatedResponse([]));
     mockedListGreenhouses.mockResolvedValue(paginatedResponse([]));
     renderMarketplace();
-    expect(document.querySelector("span.loading")).toBeInTheDocument();
+    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("shows empty state when no templates", async () => {

@@ -20,6 +20,19 @@ vi.mock("@/api/greenhouses", () => ({
   deleteGreenhouse: vi.fn(),
 }));
 
+vi.mock("@/api/organizations", () => ({
+  updateOrganization: vi.fn(),
+}));
+
+vi.mock("@/stores/authStore", () => ({
+  useAuthStore: (selector: (s: unknown) => unknown) =>
+    selector({
+      currentOrganization: null,
+      fetchOrganizations: vi.fn(),
+      organizations: [],
+    }),
+}));
+
 vi.mock("@/api/zones", () => ({
   listZones: vi.fn(),
   createZone: vi.fn(),
@@ -89,7 +102,7 @@ describe("Settings page", () => {
     mockedGetMe.mockReturnValue(new Promise(() => {}));
     renderSettings();
     // The Spinner component renders an SVG with animate-spin class
-    expect(document.querySelector("span.loading")).toBeInTheDocument();
+    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("renders user profile form after loading", async () => {
@@ -119,56 +132,35 @@ describe("Settings page", () => {
     // After API failure, loading finishes but no user data is loaded
     // (error toast is displayed by the global Axios interceptor)
     await waitFor(() => {
-      expect(document.querySelector("span.loading")).not.toBeInTheDocument();
+      expect(document.querySelector("svg.animate-spin")).not.toBeInTheDocument();
     });
   });
 
-  it("renders Resources tab when clicked", async () => {
-    // Profile tab needs to resolve so the page is interactive
+  it("renders all 4 tabs", async () => {
     mockedGetMe.mockResolvedValue(fakeUser);
-    mockedListGreenhouses.mockResolvedValue(fakeGreenhousesResponse);
-
     renderSettings();
 
-    // Wait for profile to finish loading
     await waitFor(() => {
-      expect(screen.getByText("User Profile")).toBeInTheDocument();
+      expect(screen.getByText("Profile")).toBeInTheDocument();
     });
 
-    // Click on the Resources tab
-    fireEvent.click(screen.getByText("Resources"));
-
-    // Wait for the Resources tab content to appear
-    await waitFor(() => {
-      expect(screen.getByText("Resource Management")).toBeInTheDocument();
-    });
-
-    // Profile tab content should no longer be visible
-    expect(screen.queryByText("User Profile")).not.toBeInTheDocument();
+    expect(screen.getByText("Organisation")).toBeInTheDocument();
+    expect(screen.getByText("Notifications")).toBeInTheDocument();
+    expect(screen.getByText("Security")).toBeInTheDocument();
   });
 
-  it("shows greenhouses in accordion on Resources tab", async () => {
+  it("switches to Notifications tab", async () => {
     mockedGetMe.mockResolvedValue(fakeUser);
-    mockedListGreenhouses.mockResolvedValue(fakeGreenhousesResponse);
-
     renderSettings();
 
-    // Wait for profile to load then switch to Resources tab
     await waitFor(() => {
-      expect(screen.getByText("User Profile")).toBeInTheDocument();
+      expect(screen.getByText("Profile")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText("Resources"));
+    fireEvent.click(screen.getByText("Notifications"));
 
-    // Wait for greenhouses to load and display
     await waitFor(() => {
-      expect(screen.getByText("GH1")).toBeInTheDocument();
+      expect(screen.getByText("Notification Channels")).toBeInTheDocument();
     });
-
-    // Verify greenhouse location is shown
-    expect(screen.getByText("Roof")).toBeInTheDocument();
-
-    // Verify listGreenhouses was called
-    expect(mockedListGreenhouses).toHaveBeenCalledTimes(1);
   });
 });

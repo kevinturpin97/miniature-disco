@@ -7,6 +7,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useAuthStore } from "@/stores/authStore";
+import type { MemberRole } from "@/types";
+
+/** Redirect destination based on the user's role in their current org. */
+function getPostLoginPath(role: MemberRole | null | undefined): string {
+  if (role === "OPERATOR") return "/commands";
+  if (role === "VIEWER") return "/";
+  return "/"; // OWNER, ADMIN, or no org → Dashboard
+}
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -20,6 +28,7 @@ export default function Login() {
   const { t } = useTranslation();
   const { t: tp } = useTranslation("pages");
   const login = useAuthStore((s) => s.login);
+  const currentOrganization = useAuthStore((s) => s.currentOrganization);
   const [form, setForm] = useState<LoginForm>({ username: "", password: "" });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginForm, string>>>({});
   const [serverError, setServerError] = useState("");
@@ -48,7 +57,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(form.username, form.password);
-      navigate("/");
+      const role = currentOrganization?.my_role;
+      navigate(getPostLoginPath(role));
     } catch {
       setServerError(t("errors.invalidCredentials"));
     } finally {

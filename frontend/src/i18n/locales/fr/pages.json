@@ -97,8 +97,18 @@
     "title": "Paramètres",
     "tabs": {
       "profile": "Profil",
-      "resources": "Ressources"
+      "resources": "Ressources",
+      "organisation": "Organisation",
+      "notifications": "Notifications",
+      "security": "Sécurité"
     },
+    "noOrg": "Aucune organisation sélectionnée.",
+    "orgInfo": "Informations de l'organisation",
+    "plan": "Plan",
+    "manageBilling": "Gérer la facturation",
+    "notificationsTitle": "Canaux de notification",
+    "notificationsDesc": "Configurez les canaux email, webhook et Telegram pour votre organisation.",
+    "configureNotifications": "Configurer les notifications",
     "profile": {
       "title": "Profil utilisateur",
       "subtitle": "Mettez à jour vos informations personnelles.",
@@ -578,5 +588,68 @@
     "erasureDescription": "Anonymiser définitivement votre compte et toutes vos données personnelles. Cette action est irréversible.",
     "erasureConfirm": "Êtes-vous sûr ? Cela anonymisera toutes vos données personnelles et désactivera votre compte.",
     "erasureSuccess": "Vos données personnelles ont été anonymisées."
+  },
+  "admin": {
+    "title": "Administration",
+    "subtitle": "Gérez votre organisation, équipe, facturation et outils développeur.",
+    "plan": "Plan actuel",
+    "greenhouses": "Serres",
+    "members": "Membres",
+    "trialActive": "Essai en cours — passez à la version complète pour débloquer toutes les fonctionnalités.",
+    "cards": {
+      "settings": {
+        "title": "Paramètres",
+        "desc": "Profil, préférences d'organisation, notifications et sécurité."
+      },
+      "team": {
+        "title": "Équipe",
+        "desc": "Gérer les membres, les rôles et les invitations."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "desc": "Configurer les canaux email, webhook et Telegram."
+      },
+      "developer": {
+        "title": "Développeur",
+        "desc": "Clés API, webhooks et journaux d'appels."
+      },
+      "billing": {
+        "title": "Facturation",
+        "desc": "Gérer votre abonnement, plan et factures."
+      },
+      "crm": {
+        "title": "CRM",
+        "desc": "Gérer toutes les organisations clientes et appareils."
+      },
+      "sync": {
+        "title": "Synchronisation",
+        "desc": "Statut de synchronisation cloud, historique et gestion des lots."
+      }
+    }
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "subtitle": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "backHome": "Retour au tableau de bord"
+  },
+  "onboarding": {
+    "step1Title": "Créez votre organisation",
+    "step1Desc": "Une organisation regroupe toutes vos serres et votre équipe.",
+    "step2Title": "Ajoutez une serre",
+    "step2Desc": "Une serre représente un espace de culture physique.",
+    "step3Title": "Créez votre première zone",
+    "step3Desc": "Les zones sont des sections dans votre serre avec leurs propres capteurs.",
+    "next": "Suivant",
+    "back": "Retour",
+    "finish": "Commencer",
+    "skip": "Passer la configuration",
+    "orgName": "Nom de l'organisation",
+    "ghName": "Nom de la serre",
+    "ghLocation": "Emplacement (optionnel)",
+    "zoneName": "Nom de la zone",
+    "errorOrg": "Échec de la création de l'organisation.",
+    "errorGh": "Échec de la création de la serre.",
+    "errorZone": "Échec de la création de la zone.",
+    "successMessage": "C'est parti ! Bienvenue sur Greenhouse SaaS."
   }
 }

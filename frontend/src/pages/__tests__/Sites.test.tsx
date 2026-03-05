@@ -41,8 +41,14 @@ vi.mock("react-leaflet", () => {
   );
   const useMap = () => ({
     fitBounds: vi.fn(),
+    flyTo: vi.fn(),
+    setView: vi.fn(),
   });
-  return { MapContainer, TileLayer, Marker, Popup, useMap };
+  const useMapEvents = (handlers: Record<string, unknown>) => {
+    void handlers;
+    return null;
+  };
+  return { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents };
 });
 
 vi.mock("leaflet", () => {
@@ -87,16 +93,16 @@ vi.mock("@/api/sites", () => ({
 // ConfirmDialog. Provide lightweight stubs that honour those props.
 vi.mock("@/components/ui/Modal", () => ({
   Modal: ({
-    isOpen,
+    open,
     title,
     children,
   }: {
-    isOpen: boolean;
+    open: boolean;
     onClose: () => void;
     title: string;
     children: React.ReactNode;
   }) =>
-    isOpen ? (
+    open ? (
       <div data-testid="modal">
         <h2>{title}</h2>
         {children}
@@ -106,18 +112,18 @@ vi.mock("@/components/ui/Modal", () => ({
 
 vi.mock("@/components/ui/ConfirmDialog", () => ({
   ConfirmDialog: ({
-    isOpen,
+    open,
     onConfirm,
     title,
     message,
   }: {
-    isOpen: boolean;
+    open: boolean;
     onClose: () => void;
     onConfirm: () => void;
     title: string;
     message: string;
   }) =>
-    isOpen ? (
+    open ? (
       <div data-testid="confirm-dialog">
         <h2>{title}</h2>
         <p>{message}</p>
