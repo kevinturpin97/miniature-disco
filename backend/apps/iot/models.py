@@ -124,12 +124,23 @@ class SensorReading(models.Model):
         help_text="Timestamp from relay if available",
     )
     received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    cloud_synced = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether this record has been synced to the cloud",
+    )
+    cloud_synced_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when this record was successfully synced to the cloud",
+    )
 
     class Meta:
         ordering = ["-received_at"]
         indexes = [
             models.Index(fields=["sensor", "-received_at"]),
             models.Index(fields=["-received_at"]),
+            models.Index(fields=["cloud_synced", "-received_at"]),
         ]
 
     def __str__(self) -> str:
@@ -214,6 +225,16 @@ class Command(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True)
     acknowledged_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(blank=True)
+    cloud_synced = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether this record has been synced to the cloud",
+    )
+    cloud_synced_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when this record was successfully synced to the cloud",
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -318,6 +339,16 @@ class Alert(models.Model):
     )
     acknowledged_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    cloud_synced = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether this record has been synced to the cloud",
+    )
+    cloud_synced_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when this record was successfully synced to the cloud",
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -684,6 +715,16 @@ class AuditEvent(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    cloud_synced = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether this record has been synced to the cloud",
+    )
+    cloud_synced_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when this record was successfully synced to the cloud",
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -691,6 +732,7 @@ class AuditEvent(models.Model):
             models.Index(fields=["user", "-created_at"]),
             models.Index(fields=["resource_type", "resource_id"]),
             models.Index(fields=["action", "-created_at"]),
+            models.Index(fields=["cloud_synced", "-created_at"]),
         ]
 
     def __str__(self) -> str:
@@ -1353,3 +1395,94 @@ class TraceabilityReport(models.Model):
 
     def __str__(self) -> str:
         return f"Report {self.zone.name} ({self.period_start} → {self.period_end})"
+
+
+# ---------------------------------------------------------------------------
+# Sprint 27 — Edge Sync Agent
+# ---------------------------------------------------------------------------
+
+
+class EdgeDevice(models.Model):
+    """Represents a Raspberry Pi edge device registered to an organization.
+
+    Each edge device authenticates with a long-lived HMAC-SHA256 secret key
+    and periodically syncs data to the cloud API.
+    """
+
+    organization = models.ForeignKey(
+        "api.Organization",
+        on_delete=models.CASCADE,
+        related_name="edge_devices",
+    )
+    device_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        db_index=True,
+        help_text="Auto-generated UUID, stable identifier for this device",
+    )
+    name = models.CharField(max_length=150, help_text="Human-friendly device name (e.g. 'Raspberry Pi Site Nord')")
+    secret_key = models.CharField(
+        max_length=64,
+        help_text="HMAC-SHA256 signing key — never expose in API responses",
+    )
+    firmware_version = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Firmware version string reported by the device",
+    )
+    last_sync_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp of the last successful sync",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.device_id})"
+
+
+class SyncBatch(models.Model):
+    """Records each sync batch sent from an edge device to the cloud."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+        RETRY = "RETRY", "Retrying"
+
+    edge_device = models.ForeignKey(
+        EdgeDevice,
+        on_delete=models.CASCADE,
+        related_name="sync_batches",
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    records_count = models.PositiveIntegerField(default=0, help_text="Number of records in the batch")
+    payload_size_kb = models.FloatField(default=0.0, help_text="Compressed payload size in KB")
+    retry_count = models.PositiveIntegerField(default=0, help_text="Number of retry attempts")
+    next_retry_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Scheduled time for next retry attempt",
+    )
+    error_message = models.TextField(blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+        indexes = [
+            models.Index(fields=["edge_device", "-started_at"]),
+            models.Index(fields=["status", "next_retry_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"SyncBatch({self.edge_device.name} {self.status} {self.records_count} records @ {self.started_at})"

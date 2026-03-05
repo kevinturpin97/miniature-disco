@@ -965,26 +965,26 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ---
 
 ### SPRINT 27 — Edge Sync Agent
-- [ ] Modèle `EdgeDevice` : `device_id` (UUID), `organization`, `name`, `secret_key` (HMAC), `last_sync_at`, `firmware_version`, `is_active`
-- [ ] Champ `cloud_synced` (BooleanField, db_index) sur `SensorReading`, `Command`, `Alert`, `AuditEvent`
-- [ ] Champ `cloud_synced_at` (DateTimeField, null) sur les mêmes modèles
-- [ ] Migration et vérification sans régression sur les tests existants
-- [ ] Celery task `sync_to_cloud` : collecte les enregistrements `cloud_synced=False`, envoie en batch HTTPS vers l'API cloud
-- [ ] Compression gzip des payloads de sync
-- [ ] Authentification edge → cloud : HMAC-SHA256 sur chaque requête (clé longue durée, pas de JWT)
-- [ ] Store-and-forward : si cloud injoignable, retry exponentiel (1min → 5min → 15min → 1h)
-- [ ] Celery beat : sync automatique toutes les 5 minutes + bulk sync nocturne à 2h
-- [ ] Gestion des conflits : "edge wins" sur les readings, "cloud wins" sur les configs
-- [ ] Management command `force_sync` : déclenche une sync immédiate manuelle
-- [ ] Endpoint `/api/sync/status/` : dernière sync, backlog en attente, nb enregistrements
-- [ ] Widget "Sync Status" dans le header : ✅ synced / ⏳ X en attente / ❌ offline
-- [ ] Page `/sync` dans Administration : historique des syncs, taille des batches, erreurs
-- [ ] Indicateur visuel sur les données non encore synchronisées (badge discret)
-- [ ] Test sync réussie : mock API cloud, vérifier `cloud_synced=True` après task
-- [ ] Test retry sur timeout : mock API cloud down, vérifier backlog replay
-- [ ] Test auth HMAC : requête sans signature → 403
-- [ ] Test compression : payload gzip décodé correctement côté cloud
-- [ ] Test management command `force_sync`
+- [x] Modèle `EdgeDevice` : `device_id` (UUID), `organization`, `name`, `secret_key` (HMAC), `last_sync_at`, `firmware_version`, `is_active`
+- [x] Champ `cloud_synced` (BooleanField, db_index) sur `SensorReading`, `Command`, `Alert`, `AuditEvent`
+- [x] Champ `cloud_synced_at` (DateTimeField, null) sur les mêmes modèles
+- [x] Migration et vérification sans régression sur les tests existants
+- [x] Celery task `sync_to_cloud` : collecte les enregistrements `cloud_synced=False`, envoie en batch HTTPS vers l'API cloud
+- [x] Compression gzip des payloads de sync
+- [x] Authentification edge → cloud : HMAC-SHA256 sur chaque requête (clé longue durée, pas de JWT)
+- [x] Store-and-forward : si cloud injoignable, retry exponentiel (1min → 5min → 15min → 1h)
+- [x] Celery beat : sync automatique toutes les 5 minutes + bulk sync nocturne à 2h
+- [x] Gestion des conflits : "edge wins" sur les readings, "cloud wins" sur les configs
+- [x] Management command `force_sync` : déclenche une sync immédiate manuelle
+- [x] Endpoint `/api/sync/status/` : dernière sync, backlog en attente, nb enregistrements
+- [x] Widget "Sync Status" dans le header : ✅ synced / ⏳ X en attente / ❌ offline
+- [x] Page `/sync` dans Administration : historique des syncs, taille des batches, erreurs
+- [x] Indicateur visuel sur les données non encore synchronisées (badge discret)
+- [x] Test sync réussie : mock API cloud, vérifier `cloud_synced=True` après task
+- [x] Test retry sur timeout : mock API cloud down, vérifier backlog replay
+- [x] Test auth HMAC : requête sans signature → 403
+- [x] Test compression : payload gzip décodé correctement côté cloud
+- [x] Test management command `force_sync`
 
 ---
 
@@ -1037,14 +1037,14 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 - [ ] `docs/onboarding.md` : guide premier client pas à pas (de l'achat matériel à la première donnée)
 - [ ] `README.md` : badges CI, screenshot dashboard, lien démo live
 - [ ] Seed data enrichi : 3 clients fictifs, 5 serres, 20 zones, 6 mois de données simulées
-- [ ] Script de démo `make demo` : lance tout + seed + ouvre le browser automatiquement
+- [ ] Script de démo `make demo` : lance tout + seed avec donnée sur 6 mois + ouvre le browser automatiquement
 - [ ] Compte démo public : `demo@greenhouse-saas.com` / `demo1234` en read-only
 - [ ] Checklist OWASP Top 10 manuelle
 - [ ] Headers sécurité vérifiés : CSP, HSTS, X-Frame-Options, X-Content-Type-Options
 - [ ] Procédure rotation secrets documentée : JWT_SECRET, HMAC_KEY, Stripe keys
 - [ ] Audit RGPD final : données personnelles cartographiées, rétention vérifiée
 - [ ] Rate limiting vérifié sur tous les endpoints publics (register, login, edge/sync)
-- [ ] GitHub Actions : lint + test + build sur chaque PR
+- [ ] GitHub Actions : lint + test + build sur chaque PR - Pipeline CI/CD complet
 - [ ] GitHub Actions : deploy automatique sur VPS cloud sur merge main
 - [ ] Healthcheck monitoring : UptimeRobot sur `/api/health/`
 - [ ] Alertes Sentry configurées : nouveaux types d'erreurs → email opérateur

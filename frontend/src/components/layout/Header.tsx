@@ -12,6 +12,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useAppMode } from "@/hooks/useAppMode";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
+import { SyncStatusWidget } from "@/components/ui/SyncStatusWidget";
 import { cn } from "@/utils/cn";
 
 interface HeaderProps {
@@ -137,6 +138,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </svg>
           {modeBadge}
         </span>
+        {isEdgeMode && <SyncStatusWidget />}
         <LanguageSwitcher />
         <DarkModeToggle />
 

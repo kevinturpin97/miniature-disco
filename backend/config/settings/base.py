@@ -236,3 +236,13 @@ FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
 # Deployment mode — True for Raspberry Pi / LoRa edge, False for cloud SaaS.
 EDGE_MODE = config("EDGE_MODE", default=False, cast=bool)
+
+# --- Sprint 27: Edge Sync Agent ---
+# URL of the cloud API that edge devices sync data to.
+CLOUD_SYNC_URL = config("CLOUD_SYNC_URL", default="")
+# Timeout for outgoing sync HTTP requests (seconds).
+CLOUD_SYNC_TIMEOUT = config("CLOUD_SYNC_TIMEOUT", default=30, cast=int)
+# Max records per sync batch.
+CLOUD_SYNC_BATCH_SIZE = config("CLOUD_SYNC_BATCH_SIZE", default=500, cast=int)
+# Exponential backoff delays in seconds: [60, 300, 900, 3600].
+CLOUD_SYNC_RETRY_DELAYS = [60, 300, 900, 3600]

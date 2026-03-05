@@ -27,6 +27,8 @@ from .views import (
     ZoneReportPDFView,
     ZoneSuggestionsView,
     ZoneViewSet,
+    EdgeDeviceViewSet,
+    SyncStatusView,
 )
 
 greenhouse_list = GreenhouseViewSet.as_view({"get": "list", "post": "create"})
@@ -247,4 +249,21 @@ urlpatterns = [
     path("zones/<int:pk>/globalgap/export/", globalgap_export, name="globalgap-export"),
     path("auth/gdpr/export/", gdpr_export, name="gdpr-export"),
     path("auth/gdpr/erasure/", gdpr_erasure, name="gdpr-erasure"),
+    # Sprint 27 — Edge Sync Agent
+    path("sync/status/", SyncStatusView.as_view({"get": "list"}), name="sync-status"),
+    path(
+        "orgs/<slug:slug>/edge-devices/",
+        EdgeDeviceViewSet.as_view({"get": "list", "post": "create"}),
+        name="edge-device-list",
+    ),
+    path(
+        "edge-devices/<str:device_id>/",
+        EdgeDeviceViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
+        name="edge-device-detail",
+    ),
+    path(
+        "edge-devices/<str:device_id>/sync-history/",
+        EdgeDeviceViewSet.as_view({"get": "sync_history"}),
+        name="edge-device-sync-history",
+    ),
 ]

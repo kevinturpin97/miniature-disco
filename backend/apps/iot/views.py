@@ -26,9 +26,11 @@ from apps.api.models import Membership, Organization
 from .models import (
     Actuator,
     Alert,
+    AuditEvent,
     AutomationRule,
     Command,
     DataArchiveLog,
+    EdgeDevice,
     Greenhouse,
     NotificationChannel,
     NotificationLog,
@@ -38,6 +40,7 @@ from .models import (
     Schedule,
     Sensor,
     SensorReading,
+    SyncBatch,
     Template,
     TemplateCategory,
     TemplateRating,
@@ -2388,3 +2391,195 @@ class GlobalGAPExportView(viewsets.ViewSet):
         )
 
         return Response(result)
+
+
+# ---------------------------------------------------------------------------
+# Sprint 27 — Edge Sync Agent: API endpoints
+# ---------------------------------------------------------------------------
+
+
+def _user_org_ids_for_view(user) -> list[int]:
+    """Return organization IDs the user is a member of."""
+    return list(
+        Membership.objects.filter(user=user).values_list("organization_id", flat=True)
+    )
+
+
+class SyncStatusView(viewsets.ViewSet):
+    """Sync status for the edge device(s) belonging to the user's organization.
+
+    Endpoint:
+        GET /api/sync/status/  — returns sync backlog, last sync, error state.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request) -> Response:
+        """Return sync status for all active edge devices in the user's orgs."""
+        org_ids = _user_org_ids_for_view(request.user)
+        devices = EdgeDevice.objects.filter(organization_id__in=org_ids, is_active=True)
+
+        # Unsynced backlog counts
+        unsynced_readings = SensorReading.objects.filter(
+            sensor__zone__greenhouse__organization_id__in=org_ids,
+            cloud_synced=False,
+        ).count()
+        unsynced_commands = Command.objects.filter(
+            actuator__zone__greenhouse__organization_id__in=org_ids,
+            cloud_synced=False,
+        ).count()
+        unsynced_alerts = Alert.objects.filter(
+            zone__greenhouse__organization_id__in=org_ids,
+            cloud_synced=False,
+        ).count()
+        unsynced_audit = AuditEvent.objects.filter(
+            cloud_synced=False,
+        ).count()
+
+        total_backlog = unsynced_readings + unsynced_commands + unsynced_alerts + unsynced_audit
+
+        devices_data = []
+        for device in devices:
+            last_batch = (
+                SyncBatch.objects.filter(edge_device=device)
+                .order_by("-started_at")
+                .first()
+            )
+            pending_retries = SyncBatch.objects.filter(
+                edge_device=device,
+                status=SyncBatch.Status.RETRY,
+            ).count()
+            devices_data.append({
+                "device_id": str(device.device_id),
+                "name": device.name,
+                "firmware_version": device.firmware_version,
+                "last_sync_at": device.last_sync_at.isoformat() if device.last_sync_at else None,
+                "pending_retries": pending_retries,
+                "last_batch": {
+                    "status": last_batch.status,
+                    "records_count": last_batch.records_count,
+                    "payload_size_kb": last_batch.payload_size_kb,
+                    "started_at": last_batch.started_at.isoformat(),
+                    "completed_at": last_batch.completed_at.isoformat() if last_batch.completed_at else None,
+                    "error_message": last_batch.error_message,
+                } if last_batch else None,
+            })
+
+        return Response({
+            "total_backlog": total_backlog,
+            "backlog_detail": {
+                "readings": unsynced_readings,
+                "commands": unsynced_commands,
+                "alerts": unsynced_alerts,
+                "audit_events": unsynced_audit,
+            },
+            "devices": devices_data,
+        })
+
+
+class EdgeDeviceViewSet(viewsets.ViewSet):
+    """CRUD for EdgeDevice registrations within an organization.
+
+    Endpoints:
+        GET  /api/orgs/{slug}/edge-devices/
+        POST /api/orgs/{slug}/edge-devices/
+        GET  /api/edge-devices/{device_id}/
+        DELETE /api/edge-devices/{device_id}/
+        GET  /api/edge-devices/{device_id}/sync-history/
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def _get_org_or_403(self, request: Request, slug: str) -> Organization:
+        org = get_object_or_404(Organization, slug=slug)
+        if not Membership.objects.filter(user=request.user, organization=org).exists():
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Not a member of this organization.")
+        return org
+
+    def list(self, request: Request, slug: str = None) -> Response:
+        """List all edge devices for the organization."""
+        org = self._get_org_or_403(request, slug)
+        devices = EdgeDevice.objects.filter(organization=org)
+        data = [
+            {
+                "id": d.id,
+                "device_id": str(d.device_id),
+                "name": d.name,
+                "firmware_version": d.firmware_version,
+                "is_active": d.is_active,
+                "last_sync_at": d.last_sync_at.isoformat() if d.last_sync_at else None,
+                "created_at": d.created_at.isoformat(),
+            }
+            for d in devices
+        ]
+        return Response(data)
+
+    def create(self, request: Request, slug: str = None) -> Response:
+        """Register a new edge device. Returns the secret key only on creation."""
+        import secrets as secrets_mod
+
+        org = self._get_org_or_403(request, slug)
+        name = request.data.get("name", "").strip()
+        if not name:
+            return Response({"detail": "name is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        secret = secrets_mod.token_hex(32)  # 64-char hex → 256 bits
+        device = EdgeDevice.objects.create(
+            organization=org,
+            name=name,
+            secret_key=secret,
+            firmware_version=request.data.get("firmware_version", ""),
+        )
+        return Response(
+            {
+                "id": device.id,
+                "device_id": str(device.device_id),
+                "name": device.name,
+                "secret_key": secret,  # Only returned once at creation
+                "created_at": device.created_at.isoformat(),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    def retrieve(self, request: Request, device_id: str = None) -> Response:
+        """Get edge device details (secret key excluded)."""
+        org_ids = _user_org_ids_for_view(request.user)
+        device = get_object_or_404(EdgeDevice, device_id=device_id, organization_id__in=org_ids)
+        return Response({
+            "id": device.id,
+            "device_id": str(device.device_id),
+            "name": device.name,
+            "firmware_version": device.firmware_version,
+            "is_active": device.is_active,
+            "last_sync_at": device.last_sync_at.isoformat() if device.last_sync_at else None,
+            "created_at": device.created_at.isoformat(),
+        })
+
+    def destroy(self, request: Request, device_id: str = None) -> Response:
+        """Deactivate (soft-delete) an edge device."""
+        org_ids = _user_org_ids_for_view(request.user)
+        device = get_object_or_404(EdgeDevice, device_id=device_id, organization_id__in=org_ids)
+        device.is_active = False
+        device.save(update_fields=["is_active"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def sync_history(self, request: Request, device_id: str = None) -> Response:
+        """Return recent sync batch history for a device."""
+        org_ids = _user_org_ids_for_view(request.user)
+        device = get_object_or_404(EdgeDevice, device_id=device_id, organization_id__in=org_ids)
+        batches = SyncBatch.objects.filter(edge_device=device).order_by("-started_at")[:50]
+        data = [
+            {
+                "id": b.id,
+                "status": b.status,
+                "records_count": b.records_count,
+                "payload_size_kb": b.payload_size_kb,
+                "retry_count": b.retry_count,
+                "error_message": b.error_message,
+                "started_at": b.started_at.isoformat(),
+                "completed_at": b.completed_at.isoformat() if b.completed_at else None,
+            }
+            for b in batches
+        ]
+        return Response(data)

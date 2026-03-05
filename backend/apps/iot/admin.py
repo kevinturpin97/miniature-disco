@@ -11,6 +11,7 @@ from .models import (
     Command,
     CropCycle,
     CultureLog,
+    EdgeDevice,
     Greenhouse,
     MLModel,
     Note,
@@ -27,6 +28,7 @@ from .models import (
     SensorReadingHourly,
     Site,
     SmartSuggestion,
+    SyncBatch,
     Template,
     TemplateCategory,
     TemplateRating,
@@ -326,3 +328,23 @@ class TraceabilityReportAdmin(admin.ModelAdmin):
     list_filter = ("zone__greenhouse",)
     search_fields = ("zone__name", "sha256_hash")
     readonly_fields = ("created_at", "sha256_hash", "signed_at")
+
+
+# --- Sprint 27 — Edge Sync Agent ---
+
+
+@admin.register(EdgeDevice)
+class EdgeDeviceAdmin(admin.ModelAdmin):
+    list_display = ("name", "organization", "device_id", "firmware_version", "is_active", "last_sync_at", "created_at")
+    list_filter = ("is_active", "organization")
+    search_fields = ("name", "device_id", "organization__name")
+    readonly_fields = ("device_id", "created_at", "updated_at", "last_sync_at")
+    exclude = ("secret_key",)  # Never expose in admin UI
+
+
+@admin.register(SyncBatch)
+class SyncBatchAdmin(admin.ModelAdmin):
+    list_display = ("edge_device", "status", "records_count", "payload_size_kb", "retry_count", "started_at", "completed_at")
+    list_filter = ("status", "edge_device")
+    search_fields = ("edge_device__name",)
+    readonly_fields = ("started_at", "completed_at", "edge_device", "records_count", "payload_size_kb")

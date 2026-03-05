@@ -78,4 +78,17 @@ app.conf.beat_schedule = {
         "task": "iot.drop_old_partitions",
         "schedule": crontab(hour=4, minute=0, day_of_month=1),  # Monthly on 1st at 04:00
     },
+    # Sprint 27 — Edge Sync Agent
+    "sync-to-cloud": {
+        "task": "iot.sync_to_cloud",
+        "schedule": 300.0,  # Every 5 minutes
+    },
+    "bulk-sync-to-cloud": {
+        "task": "iot.bulk_sync_to_cloud",
+        "schedule": crontab(hour=2, minute=0),  # Nightly at 02:00 UTC
+    },
+    "retry-failed-syncs": {
+        "task": "iot.retry_failed_syncs",
+        "schedule": 60.0,  # Every 60 seconds to pick up due retries
+    },
 }

@@ -31,6 +31,7 @@ const Billing = lazy(() => import("@/pages/Billing"));
 const Sites = lazy(() => import("@/pages/Sites"));
 const CultureJournal = lazy(() => import("@/pages/CultureJournal"));
 const Administration = lazy(() => import("@/pages/Administration"));
+const Sync = lazy(() => import("@/pages/Sync"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function PageFallback() {
@@ -154,6 +155,7 @@ function App() {
               <Route path="billing" element={<Billing />} />
               <Route path="settings" element={<Settings />} />
               <Route path="administration" element={<Administration />} />
+              <Route path="sync" element={<Sync />} />
             </Route>
 
             {/* 404 */}
