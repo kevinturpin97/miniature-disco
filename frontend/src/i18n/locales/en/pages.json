@@ -624,8 +624,20 @@
       "sync": {
         "title": "Sync",
         "desc": "Cloud sync status, history, and batch management."
+      },
+      "myDevices": {
+        "title": "My Devices",
+        "desc": "Registered Raspberry Pi edge devices and sync history."
       }
     }
+  },
+  "crm": {
+    "title": "CRM — Client Management",
+    "subtitle": "Platform operator view — manage all client tenants"
+  },
+  "myDevices": {
+    "title": "My Edge Devices",
+    "subtitle": "Raspberry Pi devices registered for cloud synchronization"
   },
   "notFound": {
     "title": "Page not found",

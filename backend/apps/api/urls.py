@@ -8,6 +8,17 @@ from .billing_views import (
     CustomerPortalView,
     StripeWebhookView,
 )
+from .cloud_views import (
+    CRMImpersonateView,
+    CRMStatsView,
+    CRMTenantDetailView,
+    CRMTenantExportCSVView,
+    CRMTenantListView,
+    CRMTenantHealthView,
+    EdgeConfigView,
+    EdgeRegisterView,
+    EdgeSyncView,
+)
 from .views import (
     AcceptInvitationView,
     APIKeyLogViewSet,
@@ -63,4 +74,15 @@ urlpatterns = [
     path("webhooks/stripe/", StripeWebhookView.as_view(), name="stripe-webhook"),
     # Sandbox
     path("developer/sandbox/", SandboxInfoView.as_view(), name="developer-sandbox"),
+    # Sprint 28 — Edge endpoints (HMAC auth, no JWT)
+    path("edge/register/", EdgeRegisterView.as_view(), name="edge-register"),
+    path("edge/sync/", EdgeSyncView.as_view(), name="edge-sync"),
+    path("edge/config/", EdgeConfigView.as_view(), name="edge-config"),
+    # Sprint 28 — CRM endpoints (operator/staff only)
+    path("crm/tenants/", CRMTenantListView.as_view(), name="crm-tenant-list"),
+    path("crm/tenants/export/csv/", CRMTenantExportCSVView.as_view(), name="crm-tenant-export-csv"),
+    path("crm/tenants/<int:tenant_id>/", CRMTenantDetailView.as_view(), name="crm-tenant-detail"),
+    path("crm/tenants/<int:tenant_id>/health/", CRMTenantHealthView.as_view(), name="crm-tenant-health"),
+    path("crm/tenants/<int:tenant_id>/impersonate/", CRMImpersonateView.as_view(), name="crm-tenant-impersonate"),
+    path("crm/stats/", CRMStatsView.as_view(), name="crm-stats"),
 ]

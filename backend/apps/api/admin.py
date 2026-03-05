@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Subscription, Webhook, WebhookDelivery
+from .models import APIKey, APIKeyLog, CloudTenant, ImpersonationToken, Invitation, Membership, Organization, Subscription, Webhook, WebhookDelivery
 
 
 @admin.register(Organization)
@@ -57,6 +57,27 @@ class WebhookDeliveryAdmin(admin.ModelAdmin):
     list_display = ("webhook", "event_type", "status", "response_status", "duration_ms", "created_at")
     list_filter = ("status", "event_type")
     readonly_fields = ("webhook", "event_type", "payload", "response_status", "response_body", "status", "error_message", "duration_ms", "created_at")
+
+
+@admin.register(CloudTenant)
+class CloudTenantAdmin(admin.ModelAdmin):
+    list_display = ("organization", "plan_display", "cloud_storage_mb", "last_activity", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("organization__name", "organization__slug")
+    readonly_fields = ("created_at", "updated_at")
+    filter_horizontal = ("edge_devices",)
+
+    def plan_display(self, obj):
+        return obj.organization.plan
+    plan_display.short_description = "Plan"
+
+
+@admin.register(ImpersonationToken)
+class ImpersonationTokenAdmin(admin.ModelAdmin):
+    list_display = ("organization", "created_by", "expires_at", "used_at", "is_revoked", "created_at")
+    list_filter = ("is_revoked",)
+    search_fields = ("organization__name", "created_by__username")
+    readonly_fields = ("token", "created_at")
 
 
 @admin.register(Subscription)

@@ -32,6 +32,9 @@ const Sites = lazy(() => import("@/pages/Sites"));
 const CultureJournal = lazy(() => import("@/pages/CultureJournal"));
 const Administration = lazy(() => import("@/pages/Administration"));
 const Sync = lazy(() => import("@/pages/Sync"));
+const CRM = lazy(() => import("@/pages/CRM"));
+const CRMDetail = lazy(() => import("@/pages/CRMDetail"));
+const MyDevices = lazy(() => import("@/pages/MyDevices"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function PageFallback() {
@@ -156,6 +159,9 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="administration" element={<Administration />} />
               <Route path="sync" element={<Sync />} />
+              <Route path="crm" element={<CRM />} />
+              <Route path="crm/:id" element={<CRMDetail />} />
+              <Route path="my-devices" element={<MyDevices />} />
             </Route>
 
             {/* 404 */}

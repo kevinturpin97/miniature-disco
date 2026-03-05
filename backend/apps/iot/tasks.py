@@ -1261,3 +1261,92 @@ def cleanup_old_weather_data(days: int = 30) -> dict[str, int]:
 
     logger.info("Cleaned up %d old weather records", deleted_count)
     return {"deleted": deleted_count}
+
+
+# ---------------------------------------------------------------------------
+# Sprint 28 — Cloud CRM: sync batch ingestion
+# ---------------------------------------------------------------------------
+
+
+@shared_task(name="iot.ingest_sync_batch", queue="sync_ingest")
+def ingest_sync_batch(batch_id: int, payload: dict) -> dict:
+    """Ingest a sync batch received from an edge device on the cloud side.
+
+    Reads ``payload`` (already decoded JSON from EdgeSyncView), inserts
+    SensorReadings with deduplication, and marks the SyncBatch as SUCCESS or
+    FAILED.
+
+    Deduplication key: (sensor_id, received_at, value) to avoid inserting
+    duplicates when the same batch is retried.
+
+    Args:
+        batch_id: PK of the SyncBatch record created by EdgeSyncView.
+        payload:  Decoded JSON dict with keys: readings, commands, alerts,
+                  audit_events.
+
+    Returns:
+        Summary dict with inserted counts.
+    """
+    from .models import AuditEvent, Command, SyncBatch
+
+    try:
+        batch = SyncBatch.objects.get(pk=batch_id)
+    except SyncBatch.DoesNotExist:
+        logger.error("ingest_sync_batch: SyncBatch %d not found", batch_id)
+        return {"error": f"SyncBatch {batch_id} not found"}
+
+    inserted_readings = 0
+    duplicate_readings = 0
+
+    try:
+        # --- Readings ---
+        for r in payload.get("readings", []):
+            sensor_id = r.get("sensor_id")
+            value = r.get("value")
+            relay_ts = r.get("relay_timestamp")
+
+            if sensor_id is None or value is None:
+                continue
+
+            # Deduplication key: (sensor_id, relay_timestamp, value).
+            # received_at has auto_now_add so we cannot filter by it;
+            # relay_timestamp is the edge-device timestamp and is stable.
+            if relay_ts is not None:
+                exists = SensorReading.objects.filter(
+                    sensor_id=sensor_id,
+                    relay_timestamp=relay_ts,
+                    value=value,
+                ).exists()
+                if exists:
+                    duplicate_readings += 1
+                    continue
+
+            SensorReading.objects.create(
+                sensor_id=sensor_id,
+                value=value,
+                relay_timestamp=relay_ts,
+                cloud_synced=True,
+                cloud_synced_at=timezone.now(),
+            )
+            inserted_readings += 1
+
+        batch.status = SyncBatch.Status.SUCCESS
+        batch.completed_at = timezone.now()
+        batch.save(update_fields=["status", "completed_at"])
+
+        logger.info(
+            "ingest_sync_batch %d: %d inserted, %d duplicates",
+            batch_id, inserted_readings, duplicate_readings,
+        )
+        return {
+            "batch_id": batch_id,
+            "inserted_readings": inserted_readings,
+            "duplicate_readings": duplicate_readings,
+        }
+
+    except Exception as exc:
+        logger.exception("ingest_sync_batch %d failed: %s", batch_id, exc)
+        batch.status = SyncBatch.Status.FAILED
+        batch.error_message = str(exc)
+        batch.save(update_fields=["status", "error_message"])
+        return {"error": str(exc)}

@@ -624,8 +624,20 @@
       "sync": {
         "title": "Synchronisation",
         "desc": "Statut de synchronisation cloud, historique et gestion des lots."
+      },
+      "myDevices": {
+        "title": "Mes Appareils",
+        "desc": "Appareils Raspberry Pi enregistrés et historique de synchronisation."
       }
     }
+  },
+  "crm": {
+    "title": "CRM — Gestion des Clients",
+    "subtitle": "Vue opérateur — gérer toutes les organisations clientes"
+  },
+  "myDevices": {
+    "title": "Mes Appareils Edge",
+    "subtitle": "Appareils Raspberry Pi enregistrés pour la synchronisation cloud"
   },
   "notFound": {
     "title": "Page introuvable",

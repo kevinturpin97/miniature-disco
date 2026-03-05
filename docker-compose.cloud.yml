@@ -1,0 +1,196 @@
+# Cloud CRM Platform — Docker Compose
+# Deploys Django cloud backend + PostgreSQL + Redis + Celery + Nginx + Certbot
+#
+# Usage:
+#   1. Copy .env.example to .env and configure DJANGO_SETTINGS_MODULE=config.settings.cloud
+#   2. Run: docker compose -f docker-compose.cloud.yml up -d
+#   3. First-time HTTPS: docker compose -f docker-compose.cloud.yml run --rm certbot certonly \
+#        --webroot -w /var/www/certbot --email admin@your-domain.com -d cloud.your-domain.com
+#
+# Differences from docker-compose.prod.yml:
+#   - No Mosquitto, no LoRa bridge, no MQTT worker
+#   - Dedicated sync-worker Celery queue for batch ingestion
+#   - Certbot for Let's Encrypt HTTPS
+#   - Nginx configured for cloud domain
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-cloud:/var/lib/postgresql/data
+      - ./scripts/backup-postgres.sh:/scripts/backup-postgres.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-cloud:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.cloud
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # General-purpose Celery worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    command: celery -A config worker -l warning --concurrency=4 -Q celery,default
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.cloud
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Dedicated sync ingestion worker (high-throughput queue)
+  sync-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    command: celery -A config worker -l warning --concurrency=8 -Q sync_ingest
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.cloud
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    command: celery -A config beat -l warning
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.cloud
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - frontend-static-cloud:/output
+    command: sh -c "cp -r /usr/share/nginx/html/* /output/ && echo 'Frontend assets copied.'"
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ./nginx/nginx.cloud.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+      - frontend-static-cloud:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/api/health/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Certbot for Let's Encrypt certificate management
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: /bin/sh
+    command: >
+      -c "trap exit TERM;
+          while :; do
+            certbot renew --webroot -w /var/www/certbot --quiet;
+            sleep 12h & wait $${!};
+          done"
+    profiles:
+      - certbot
+
+  # Pg backup (daily)
+  pg-backup:
+    image: postgres:16-alpine
+    restart: always
+    entrypoint: /bin/sh
+    command: >
+      -c "while true; do
+        /scripts/backup-postgres.sh;
+        sleep 86400;
+      done"
+    volumes:
+      - ./scripts/backup-postgres.sh:/scripts/backup-postgres.sh:ro
+      - pg-backups-cloud:/backups
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata-cloud:
+  redis-cloud:
+  frontend-static-cloud:
+  certbot-www:
+  pg-backups-cloud:

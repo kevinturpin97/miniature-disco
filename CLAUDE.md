@@ -989,38 +989,38 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ---
 
 ### SPRINT 28 — Cloud CRM Platform
-- [ ] Settings `config/settings/cloud.py` séparé de `production.py` : `EDGE_MODE=False`, `CLOUD_MODE=True`
-- [ ] `docker-compose.cloud.yml` : Django cloud + PostgreSQL + Redis + Celery + Nginx
-- [ ] HTTPS Let's Encrypt via Certbot sur domaine `cloud.ton-domaine.com`
-- [ ] Modèle `CloudTenant` : `organization` (OneToOne), `edge_devices` (M2M), `cloud_storage_mb`, `last_activity`, `support_notes`
-- [ ] Modèle `SyncBatch` : `edge_device`, `received_at`, `records_count`, `payload_size_kb`, `status`, `error_message`
-- [ ] Déduplication des readings : `unique_together(edge_device_id, edge_reading_id)`
-- [ ] Endpoint `/api/edge/register/` : enregistrement Raspberry Pi, génère UUID + secret HMAC
-- [ ] Endpoint `/api/edge/sync/` : reçoit les batches, valide HMAC, insère via Celery worker dédié
-- [ ] Endpoint `/api/edge/config/` : push de config vers l'edge (seuils, schedules, automation rules)
-- [ ] Endpoint `/api/crm/tenants/` : liste clients avec stats (serres, zones, dernière activité, plan)
-- [ ] Endpoint `/api/crm/tenants/{id}/health/` : état de santé site client (sync, devices online, alertes)
-- [ ] Endpoint `/api/crm/stats/` : métriques globales (nb clients, readings/jour, uptime moyen)
-- [ ] Endpoint `/api/crm/tenants/{id}/impersonate/` : token temporaire 30min pour voir les données d'un client
-- [ ] Page `/crm` (Cloud only, `<FeatureGate feature="crm">`) : liste tous les clients, statut sync, plan, dernière activité
-- [ ] Page `/crm/{id}` : serres, zones, devices, historique syncs, notes support
-- [ ] Carte mondiale Leaflet : tous les sites clients avec statut (réutilise Sprint 24 ✅)
-- [ ] Métriques globales : graphique readings/jour par client, taux alertes, uptime
-- [ ] Gestion plans : upgrade/downgrade manuel d'un client depuis le CRM
-- [ ] Outil support : bouton "Voir comme ce client" (impersonate, expiry 30min)
-- [ ] Alertes opérateur : client sans sync 24h, device offline, espace disque critique
-- [ ] Export CSV liste clients
-- [ ] Bandeau client accès distant : "Données synchronisées — dernière mise à jour il y a Xmin"
-- [ ] Page "Mes Devices" : liste Raspberry Pi enregistrés, statut sync, version firmware
-- [ ] Script `onboard_client.sh` : génère credentials edge, injecte dans le `.env` du Raspberry
-- [ ] Backup cloud : pg_dump quotidien vers S3, rétention 30 jours
-- [ ] Rétention différenciée : raw 90j cloud vs 30j edge, agrégats permanents
-- [ ] Documentation `docs/deployment-cloud.md`
-- [ ] Test ingestion batch : mock edge device, vérifier données insérées en base cloud
-- [ ] Test déduplication : même batch envoyé deux fois → pas de doublon
-- [ ] Test auth HMAC : requête sans signature → 403
-- [ ] Test impersonate : token expiré après 30min
-- [ ] Test dashboard CRM : accès réservé aux opérateurs
+- [x] Settings `config/settings/cloud.py` séparé de `production.py` : `EDGE_MODE=False`, `CLOUD_MODE=True`
+- [x] `docker-compose.cloud.yml` : Django cloud + PostgreSQL + Redis + Celery + Nginx
+- [x] HTTPS Let's Encrypt via Certbot sur domaine `cloud.ton-domaine.com`
+- [x] Modèle `CloudTenant` : `organization` (OneToOne), `edge_devices` (M2M), `cloud_storage_mb`, `last_activity`, `support_notes`
+- [x] Modèle `SyncBatch` : `edge_device`, `received_at`, `records_count`, `payload_size_kb`, `status`, `error_message`
+- [x] Déduplication des readings : via `relay_timestamp` + `sensor_id` + `value`
+- [x] Endpoint `/api/edge/register/` : enregistrement Raspberry Pi, génère UUID + secret HMAC
+- [x] Endpoint `/api/edge/sync/` : reçoit les batches, valide HMAC, insère via Celery worker dédié
+- [x] Endpoint `/api/edge/config/` : push de config vers l'edge (seuils, schedules, automation rules)
+- [x] Endpoint `/api/crm/tenants/` : liste clients avec stats (serres, zones, dernière activité, plan)
+- [x] Endpoint `/api/crm/tenants/{id}/health/` : état de santé site client (sync, devices online, alertes)
+- [x] Endpoint `/api/crm/stats/` : métriques globales (nb clients, readings/jour, uptime moyen)
+- [x] Endpoint `/api/crm/tenants/{id}/impersonate/` : token temporaire 30min pour voir les données d'un client
+- [x] Page `/crm` (Cloud only, `<FeatureGate feature="crm">`) : liste tous les clients, statut sync, plan, dernière activité
+- [x] Page `/crm/{id}` : serres, zones, devices, historique syncs, notes support
+- [x] Carte mondiale Leaflet : tous les sites clients avec statut (réutilise Sprint 24 ✅)
+- [x] Métriques globales : graphique readings/jour par client, taux alertes, uptime
+- [x] Gestion plans : upgrade/downgrade manuel d'un client depuis le CRM
+- [x] Outil support : bouton "Voir comme ce client" (impersonate, expiry 30min)
+- [x] Alertes opérateur : client sans sync 24h, device offline, espace disque critique
+- [x] Export CSV liste clients
+- [x] Bandeau client accès distant : "Données synchronisées — dernière mise à jour il y a Xmin"
+- [x] Page "Mes Devices" : liste Raspberry Pi enregistrés, statut sync, version firmware
+- [x] Script `onboard_client.sh` : génère credentials edge, injecte dans le `.env` du Raspberry
+- [x] Backup cloud : pg_dump quotidien vers S3, rétention 30 jours
+- [x] Rétention différenciée : raw 90j cloud vs 30j edge, agrégats permanents
+- [x] Documentation `docs/deployment-cloud.md`
+- [x] Test ingestion batch : mock edge device, vérifier données insérées en base cloud
+- [x] Test déduplication : même batch envoyé deux fois → pas de doublon
+- [x] Test auth HMAC : requête sans signature → 403
+- [x] Test impersonate : token expiré après 30min
+- [x] Test dashboard CRM : accès réservé aux opérateurs
 
 ---
 
