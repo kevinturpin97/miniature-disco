@@ -21,6 +21,7 @@ import {
 } from "@/api/sites";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Spinner } from "@/components/ui/Spinner";
 import type { Site, SiteDashboard, SiteWeatherResponse, WeatherAlert } from "@/types";
 import "leaflet/dist/leaflet.css";
 
@@ -60,9 +61,9 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
 }
 
 function getStatusColor(s: SiteDashboard): string {
-  if (s.active_alerts > 0 || s.weather_alerts > 0) return "text-error";
-  if (s.zones_online < s.zone_count) return "text-warning";
-  return "text-success";
+  if (s.active_alerts > 0 || s.weather_alerts > 0) return "text-destructive";
+  if (s.zones_online < s.zone_count) return "text-amber-500";
+  return "text-emerald-500";
 }
 
 function getStatusIcon(s: SiteDashboard): string {
@@ -250,25 +251,23 @@ export default function Sites() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-base-content">
-            {t("sites.title")}
-          </h1>
-          <p className="text-sm text-base-content/60">{t("sites.subtitle")}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("sites.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("sites.subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <button
-            className="btn btn-outline btn-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
             onClick={handleExportMap}
             disabled={exporting || dashboard.length === 0}
           >
             {exporting ? t("sites.exporting") : t("sites.exportMap")}
           </button>
           <button
-            className="btn btn-primary btn-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             onClick={() => {
               resetForm();
               setEditSite(null);
@@ -281,11 +280,11 @@ export default function Sites() {
       </div>
 
       {/* Map */}
-      <div className="card bg-base-100 shadow-sm overflow-hidden">
-        <div ref={mapRef} className="h-[400px] w-full cursor-crosshair">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div ref={mapRef} className="h-96 w-full cursor-crosshair">
           {loading ? (
             <div className="flex h-full items-center justify-center">
-              <span className="loading loading-spinner loading-lg" />
+              <Spinner className="h-8 w-8" />
             </div>
           ) : (
             <MapContainer
@@ -307,7 +306,7 @@ export default function Sites() {
                   eventHandlers={{ click: () => handleSelectSite(site) }}
                 >
                   <Popup>
-                    <div className="min-w-[200px]">
+                    <div className="min-w-50">
                       <h3 className="font-bold text-sm">{site.site_name}</h3>
                       <div className="text-xs mt-1 space-y-0.5">
                         <p>{site.greenhouse_count} {t("sites.greenhouses")} &middot; {site.zone_count} {t("sites.zones")}</p>
@@ -324,7 +323,7 @@ export default function Sites() {
                           </p>
                         )}
                         {(site.active_alerts > 0 || site.weather_alerts > 0) && (
-                          <p className="text-error font-medium">
+                          <p className="text-destructive font-medium">
                             {site.active_alerts + site.weather_alerts} {t("sites.activeAlerts")}
                           </p>
                         )}
@@ -336,7 +335,9 @@ export default function Sites() {
             </MapContainer>
           )}
         </div>
-        <p className="px-3 py-1.5 text-xs text-base-content/40">{t("sites.mapClickHint")}</p>
+        <p className="px-4 py-2 text-xs text-muted-foreground border-t border-border">
+          {t("sites.mapClickHint")}
+        </p>
       </div>
 
       {/* Dashboard grid */}
@@ -344,50 +345,50 @@ export default function Sites() {
         {dashboard.map((site) => (
           <div
             key={site.site_id}
-            className={`card bg-base-100 shadow-sm cursor-pointer transition-shadow hover:shadow-md ${
-              selectedSite?.site_id === site.site_id ? "ring-2 ring-primary" : ""
+            className={`rounded-xl border bg-card cursor-pointer transition-all hover:shadow-md ${
+              selectedSite?.site_id === site.site_id
+                ? "border-primary/50 ring-2 ring-primary/20"
+                : "border-border"
             }`}
             onClick={() => handleSelectSite(site)}
           >
-            <div className="card-body p-4">
+            <div className="p-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-base-content">{site.site_name}</h3>
-                  <p className="text-xs text-base-content/50">{site.timezone}</p>
+                  <h3 className="font-semibold text-foreground">{site.site_name}</h3>
+                  <p className="text-xs text-muted-foreground">{site.timezone}</p>
                 </div>
-                <span className={`badge badge-sm ${getStatusColor(site)}`}>
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusColor(site)}`}>
                   {getStatusIcon(site)}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-base-content/50">{t("sites.greenhouses")}</span>
-                  <p className="font-medium">{site.greenhouse_count}</p>
+                  <p className="text-xs text-muted-foreground">{t("sites.greenhouses")}</p>
+                  <p className="font-semibold text-foreground">{site.greenhouse_count}</p>
                 </div>
                 <div>
-                  <span className="text-base-content/50">{t("sites.zones")}</span>
-                  <p className="font-medium">
-                    {site.zones_online}/{site.zone_count}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("sites.zones")}</p>
+                  <p className="font-semibold text-foreground">{site.zones_online}/{site.zone_count}</p>
                 </div>
                 <div>
-                  <span className="text-base-content/50">{t("sites.alerts")}</span>
-                  <p className={`font-medium ${site.active_alerts > 0 ? "text-error" : ""}`}>
+                  <p className="text-xs text-muted-foreground">{t("sites.alerts")}</p>
+                  <p className={`font-semibold ${site.active_alerts > 0 ? "text-destructive" : "text-foreground"}`}>
                     {site.active_alerts}
                   </p>
                 </div>
                 <div>
-                  <span className="text-base-content/50">{t("sites.weather")}</span>
-                  <p className="font-medium">
+                  <p className="text-xs text-muted-foreground">{t("sites.weather")}</p>
+                  <p className="font-semibold text-foreground">
                     {site.current_weather
                       ? `${site.current_weather.temperature?.toFixed(1) ?? "—"}°C`
                       : "—"}
                   </p>
                 </div>
               </div>
-              <div className="mt-2 flex gap-1">
+              <div className="mt-3 flex gap-1 border-t border-border pt-3">
                 <button
-                  className="btn btn-ghost btn-xs"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     const s = sites.find((x) => x.id === site.site_id);
@@ -397,7 +398,7 @@ export default function Sites() {
                   {t("common:actions.edit")}
                 </button>
                 <button
-                  className="btn btn-ghost btn-xs text-error"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     setDeleteSiteId(site.site_id);
@@ -410,7 +411,7 @@ export default function Sites() {
           </div>
         ))}
         {!loading && dashboard.length === 0 && (
-          <div className="col-span-full text-center py-12 text-base-content/50">
+          <div className="col-span-full flex justify-center py-12 text-sm text-muted-foreground">
             {t("sites.noSites")}
           </div>
         )}
@@ -418,93 +419,66 @@ export default function Sites() {
 
       {/* Weather alerts */}
       {weatherAlerts.length > 0 && (
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
-            <h2 className="font-semibold text-base-content mb-3">
-              {t("sites.weatherAlerts")}
-            </h2>
-            <div className="space-y-2">
-              {weatherAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={`flex items-start justify-between rounded-lg border p-3 ${
-                    alert.alert_level === "CRITICAL"
-                      ? "border-error/30 bg-error/5"
-                      : alert.alert_level === "WARNING"
-                        ? "border-warning/30 bg-warning/5"
-                        : "border-info/30 bg-info/5"
-                  }`}
-                >
-                  <div>
-                    <p className="font-medium text-sm">{alert.title}</p>
-                    <p className="text-xs text-base-content/60 mt-0.5">{alert.message}</p>
-                    <p className="text-xs text-base-content/40 mt-0.5">
-                      {alert.site_name} &middot; {alert.forecast_date}
-                    </p>
-                  </div>
-                  <button
-                    className="btn btn-ghost btn-xs shrink-0"
-                    onClick={() => handleAcknowledgeAlert(alert.id)}
-                  >
-                    {t("common:actions.acknowledge")}
-                  </button>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 text-base font-semibold text-foreground">
+            {t("sites.weatherAlerts")}
+          </h2>
+          <div className="space-y-2">
+            {weatherAlerts.map((alert) => (
+              <div
+                key={alert.id}
+                className={`flex items-start justify-between rounded-lg border p-3 ${
+                  alert.alert_level === "CRITICAL"
+                    ? "border-destructive/30 bg-destructive/5"
+                    : alert.alert_level === "WARNING"
+                      ? "border-amber-500/30 bg-amber-500/5"
+                      : "border-sky-500/30 bg-sky-500/5"
+                }`}
+              >
+                <div>
+                  <p className="font-medium text-sm text-foreground">{alert.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{alert.message}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {alert.site_name} &middot; {alert.forecast_date}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <button
+                  className="ml-3 shrink-0 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  onClick={() => handleAcknowledgeAlert(alert.id)}
+                >
+                  {t("common:actions.acknowledge")}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Selected site weather detail */}
       {selectedSite && siteWeather && (
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
-            <h2 className="font-semibold text-base-content mb-3">
-              {t("sites.weatherFor", { name: selectedSite.site_name })}
-            </h2>
-            {siteWeather.current ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-base-content/50">{t("sites.temperature")}</span>
-                  <p className="text-lg font-bold">
-                    {siteWeather.current.temperature?.toFixed(1) ?? "—"}°C
-                  </p>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 text-base font-semibold text-foreground">
+            {t("sites.weatherFor", { name: selectedSite.site_name })}
+          </h2>
+          {siteWeather.current ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: t("sites.temperature"), value: `${siteWeather.current.temperature?.toFixed(1) ?? "—"}°C` },
+                { label: t("sites.humidity"), value: `${siteWeather.current.humidity?.toFixed(0) ?? "—"}%` },
+                { label: t("sites.precipitation"), value: `${siteWeather.current.precipitation?.toFixed(1) ?? "—"} mm` },
+                { label: t("sites.uvIndex"), value: siteWeather.current.uv_index?.toFixed(1) ?? "—" },
+                { label: t("sites.windSpeed"), value: `${siteWeather.current.wind_speed?.toFixed(1) ?? "—"} km/h` },
+                { label: t("sites.condition"), value: siteWeather.current.weather_description },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-lg font-bold text-foreground">{value}</p>
                 </div>
-                <div>
-                  <span className="text-base-content/50">{t("sites.humidity")}</span>
-                  <p className="text-lg font-bold">
-                    {siteWeather.current.humidity?.toFixed(0) ?? "—"}%
-                  </p>
-                </div>
-                <div>
-                  <span className="text-base-content/50">{t("sites.precipitation")}</span>
-                  <p className="text-lg font-bold">
-                    {siteWeather.current.precipitation?.toFixed(1) ?? "—"} mm
-                  </p>
-                </div>
-                <div>
-                  <span className="text-base-content/50">{t("sites.uvIndex")}</span>
-                  <p className="text-lg font-bold">
-                    {siteWeather.current.uv_index?.toFixed(1) ?? "—"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-base-content/50">{t("sites.windSpeed")}</span>
-                  <p className="text-lg font-bold">
-                    {siteWeather.current.wind_speed?.toFixed(1) ?? "—"} km/h
-                  </p>
-                </div>
-                <div>
-                  <span className="text-base-content/50">{t("sites.condition")}</span>
-                  <p className="text-lg font-bold">
-                    {siteWeather.current.weather_description}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-base-content/50">{t("sites.noWeather")}</p>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("sites.noWeather")}</p>
+          )}
         </div>
       )}
 
@@ -519,41 +493,41 @@ export default function Sites() {
         title={editSite ? t("sites.editSite") : t("sites.addSite")}
       >
         <div className="space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">{t("common:labels.name")}</span>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("common:labels.name")}
             </label>
             <input
-              className="input input-bordered w-full"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               placeholder="Main Farm Site"
             />
           </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">{t("sites.address")}</span>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("sites.address")}
             </label>
             <div className="relative">
               <input
-                className="input input-bordered w-full"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
                 value={formAddress}
                 onChange={(e) => setFormAddress(e.target.value)}
                 placeholder={geocoding ? t("sites.geocoding") : "123 Farm Road, City"}
                 disabled={geocoding}
               />
               {geocoding && (
-                <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
+                <Spinner className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">{t("sites.latitude")}</span>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                {t("sites.latitude")}
               </label>
               <input
-                className="input input-bordered w-full"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 type="number"
                 step="any"
                 value={formLat}
@@ -561,12 +535,12 @@ export default function Sites() {
                 placeholder="48.8566"
               />
             </div>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">{t("sites.longitude")}</span>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                {t("sites.longitude")}
               </label>
               <input
-                className="input input-bordered w-full"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 type="number"
                 step="any"
                 value={formLng}
@@ -575,12 +549,12 @@ export default function Sites() {
               />
             </div>
           </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">{t("sites.timezone")}</span>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("sites.timezone")}
             </label>
             <input
-              className="input input-bordered w-full"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               value={formTz}
               onChange={(e) => setFormTz(e.target.value)}
               placeholder="Europe/Paris"
@@ -588,7 +562,7 @@ export default function Sites() {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
-              className="btn btn-ghost"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
               onClick={() => {
                 setShowCreateModal(false);
                 setEditSite(null);
@@ -598,7 +572,7 @@ export default function Sites() {
               {t("common:actions.cancel")}
             </button>
             <button
-              className="btn btn-primary"
+              className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
               onClick={handleSubmit}
               disabled={!formName || !formLat || !formLng}
             >

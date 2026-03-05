@@ -342,7 +342,7 @@ describe("Sites page", () => {
 
     renderSites();
 
-    expect(document.querySelector("span.loading")).toBeInTheDocument();
+    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("renders title and subtitle after loading", async () => {

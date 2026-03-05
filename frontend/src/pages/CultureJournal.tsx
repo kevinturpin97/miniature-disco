@@ -29,13 +29,22 @@ import type {
   Zone,
 } from "@/types";
 
-const ENTRY_TYPE_STYLES: Record<CultureLogEntryType, { bg: string; icon: string }> = {
-  COMMAND: { bg: "bg-primary/10 text-primary", icon: "bolt" },
-  ALERT: { bg: "bg-destructive/10 text-destructive", icon: "exclamation-triangle" },
-  NOTE: { bg: "bg-info/10 text-info", icon: "pencil" },
-  THRESHOLD: { bg: "bg-warning/10 text-warning", icon: "sliders" },
-  CROP: { bg: "bg-success/10 text-success", icon: "seedling" },
-  AUTOMATION: { bg: "bg-secondary/10 text-secondary", icon: "cog" },
+const ENTRY_TYPE_STYLES: Record<CultureLogEntryType, { border: string; bg: string }> = {
+  COMMAND: { border: "border-primary/20", bg: "bg-primary/5" },
+  ALERT: { border: "border-destructive/20", bg: "bg-destructive/5" },
+  NOTE: { border: "border-sky-500/20", bg: "bg-sky-500/5" },
+  THRESHOLD: { border: "border-amber-500/20", bg: "bg-amber-500/5" },
+  CROP: { border: "border-emerald-500/20", bg: "bg-emerald-500/5" },
+  AUTOMATION: { border: "border-violet-500/20", bg: "bg-violet-500/5" },
+};
+
+const ENTRY_TYPE_DOT: Record<CultureLogEntryType, string> = {
+  COMMAND: "bg-primary",
+  ALERT: "bg-destructive",
+  NOTE: "bg-sky-500",
+  THRESHOLD: "bg-amber-500",
+  CROP: "bg-emerald-500",
+  AUTOMATION: "bg-violet-500",
 };
 
 export default function CultureJournal() {
@@ -206,30 +215,30 @@ export default function CultureJournal() {
   }, [selectedZoneId, pdfStart, pdfEnd, t, tp]);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{tp("cultureJournal.title")}</h1>
-          <p className="text-base-content/60 text-sm">{tp("cultureJournal.subtitle")}</p>
+          <h1 className="text-2xl font-bold text-foreground">{tp("cultureJournal.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{tp("cultureJournal.subtitle")}</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-2">
           <button
-            className="btn btn-primary btn-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             disabled={!selectedZoneId}
             onClick={() => setShowNoteModal(true)}
           >
             {tp("cultureJournal.addNote")}
           </button>
           <button
-            className="btn btn-success btn-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             disabled={!selectedZoneId}
             onClick={() => setShowCropCycleModal(true)}
           >
             {tp("cultureJournal.newCropCycle")}
           </button>
           <button
-            className="btn btn-secondary btn-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 transition-colors"
             disabled={!selectedZoneId}
             onClick={() => setShowPDFModal(true)}
           >
@@ -239,89 +248,99 @@ export default function CultureJournal() {
       </div>
 
       {/* Filters */}
-      <div className="card bg-base-100 shadow-sm">
-        <div className="card-body p-4">
-          <div className="flex flex-wrap gap-4">
-            <select
-              className="select select-bordered select-sm w-full max-w-xs"
-              value={selectedGreenhouseId}
-              onChange={(e) => setSelectedGreenhouseId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">{tp("cultureJournal.selectGreenhouse")}</option>
-              {greenhouses.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-wrap gap-4">
+          <select
+            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 w-full max-w-xs"
+            value={selectedGreenhouseId}
+            onChange={(e) => setSelectedGreenhouseId(e.target.value ? Number(e.target.value) : "")}
+          >
+            <option value="">{tp("cultureJournal.selectGreenhouse")}</option>
+            {greenhouses.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
 
-            <select
-              className="select select-bordered select-sm w-full max-w-xs"
-              value={selectedZoneId}
-              disabled={!zones.length}
-              onChange={(e) => setSelectedZoneId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">{tp("cultureJournal.selectZone")}</option>
-              {zones.map((z) => (
-                <option key={z.id} value={z.id}>{z.name}</option>
-              ))}
-            </select>
+          <select
+            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 w-full max-w-xs disabled:opacity-50"
+            value={selectedZoneId}
+            disabled={!zones.length}
+            onChange={(e) => setSelectedZoneId(e.target.value ? Number(e.target.value) : "")}
+          >
+            <option value="">{tp("cultureJournal.selectZone")}</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>{z.name}</option>
+            ))}
+          </select>
 
-            <select
-              className="select select-bordered select-sm w-full max-w-xs"
-              value={selectedEntryType}
-              onChange={(e) => setSelectedEntryType(e.target.value as CultureLogEntryType | "")}
-            >
-              <option value="">{tp("cultureJournal.allTypes")}</option>
-              <option value="COMMAND">{t("entryTypes.command")}</option>
-              <option value="ALERT">{t("entryTypes.alert")}</option>
-              <option value="NOTE">{t("entryTypes.note")}</option>
-              <option value="THRESHOLD">{t("entryTypes.threshold")}</option>
-              <option value="CROP">{t("entryTypes.crop")}</option>
-              <option value="AUTOMATION">{t("entryTypes.automation")}</option>
-            </select>
-          </div>
+          <select
+            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 w-full max-w-xs"
+            value={selectedEntryType}
+            onChange={(e) => setSelectedEntryType(e.target.value as CultureLogEntryType | "")}
+          >
+            <option value="">{tp("cultureJournal.allTypes")}</option>
+            <option value="COMMAND">{t("entryTypes.command")}</option>
+            <option value="ALERT">{t("entryTypes.alert")}</option>
+            <option value="NOTE">{t("entryTypes.note")}</option>
+            <option value="THRESHOLD">{t("entryTypes.threshold")}</option>
+            <option value="CROP">{t("entryTypes.crop")}</option>
+            <option value="AUTOMATION">{t("entryTypes.automation")}</option>
+          </select>
         </div>
       </div>
 
       {/* Active Crop Cycles */}
       {cropCycles.length > 0 && (
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
-            <h2 className="card-title text-lg">{tp("cultureJournal.activeCropCycles")}</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {cropCycles.map((cc) => (
-                <div
-                  key={cc.id}
-                  className="flex flex-col gap-1 rounded-lg border border-base-300 p-3"
-                >
-                  <div className="font-semibold">{cc.species}{cc.variety ? ` (${cc.variety})` : ""}</div>
-                  <div className="flex items-center gap-2 text-xs text-base-content/60">
-                    <span className={`badge badge-sm ${cc.status === "ACTIVE" ? "badge-success" : "badge-ghost"}`}>
-                      {cc.status}
-                    </span>
-                    {cc.sowing_date && <span>{tp("cultureJournal.sowing")}: {cc.sowing_date}</span>}
-                  </div>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 text-base font-semibold text-foreground">{tp("cultureJournal.activeCropCycles")}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {cropCycles.map((cc) => (
+              <div
+                key={cc.id}
+                className="flex flex-col gap-1.5 rounded-lg border border-border p-3"
+              >
+                <div className="font-medium text-foreground">
+                  {cc.species}{cc.variety ? ` (${cc.variety})` : ""}
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                    cc.status === "ACTIVE"
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {cc.status}
+                  </span>
+                  {cc.sowing_date && (
+                    <span>{tp("cultureJournal.sowing")}: {cc.sowing_date}</span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Timeline */}
       {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
+        <div className="flex justify-center py-12">
+          <Spinner className="h-8 w-8" />
+        </div>
       ) : !selectedZoneId ? (
-        <div className="flex justify-center py-12 text-base-content/40">
+        <div className="flex justify-center py-12 text-sm text-muted-foreground">
           {tp("cultureJournal.selectZonePrompt")}
         </div>
       ) : entries.length === 0 ? (
-        <div className="flex justify-center py-12 text-base-content/40">
+        <div className="flex justify-center py-12 text-sm text-muted-foreground">
           {tp("cultureJournal.noEntries")}
         </div>
       ) : (
-        <div className="relative ml-4 border-l-2 border-base-300 pl-6 space-y-6">
+        <div className="relative ml-4 border-l-2 border-border pl-6 space-y-5">
           {entries.map((entry, i) => {
-            const style = ENTRY_TYPE_STYLES[entry.entry_type] || { bg: "bg-base-200", icon: "circle" };
+            const style = ENTRY_TYPE_STYLES[entry.entry_type] ?? {
+              border: "border-border",
+              bg: "bg-card",
+            };
+            const dot = ENTRY_TYPE_DOT[entry.entry_type] ?? "bg-muted-foreground";
             return (
               <motion.div
                 key={entry.id}
@@ -331,18 +350,20 @@ export default function CultureJournal() {
                 className="relative"
               >
                 {/* Timeline dot */}
-                <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 border-base-100 bg-base-300" />
+                <div className={`absolute -left-7.75 top-2 h-3.5 w-3.5 rounded-full border-2 border-background ${dot}`} />
 
-                <div className={`card shadow-sm ${style.bg}`}>
-                  <div className="card-body p-4">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-base-content/60">
-                      <span className="badge badge-sm badge-outline">{entry.entry_type_display}</span>
-                      <time>{formatDate(entry.created_at)}</time>
-                      <span>{formatRelativeTime(entry.created_at)}</span>
-                      {entry.username && <span className="font-medium">{entry.username}</span>}
-                    </div>
-                    <p className="mt-1 text-sm">{entry.summary}</p>
+                <div className={`rounded-xl border ${style.border} ${style.bg} p-4`}>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground">
+                      {entry.entry_type_display}
+                    </span>
+                    <time>{formatDate(entry.created_at)}</time>
+                    <span>{formatRelativeTime(entry.created_at)}</span>
+                    {entry.username && (
+                      <span className="font-medium text-foreground">{entry.username}</span>
+                    )}
                   </div>
+                  <p className="mt-2 text-sm text-foreground">{entry.summary}</p>
                 </div>
               </motion.div>
             );
@@ -353,27 +374,38 @@ export default function CultureJournal() {
       {/* Add Note Modal */}
       <Modal open={showNoteModal} onClose={() => setShowNoteModal(false)} title={tp("cultureJournal.addNote")}>
         <div className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.noteContent")}</span></label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.noteContent")}</label>
             <textarea
-              className="textarea textarea-bordered h-24"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 h-24 resize-none"
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder={tp("cultureJournal.notePlaceholder")}
             />
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.observedAt")}</span></label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.observedAt")}</label>
             <input
               type="datetime-local"
-              className="input input-bordered"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               value={noteObservedAt}
               onChange={(e) => setNoteObservedAt(e.target.value)}
             />
           </div>
-          <div className="modal-action">
-            <button className="btn btn-ghost" onClick={() => setShowNoteModal(false)}>{t("actions.cancel")}</button>
-            <button className="btn btn-primary" onClick={handleAddNote} disabled={!noteContent.trim()}>{t("actions.save")}</button>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              onClick={() => setShowNoteModal(false)}
+            >
+              {t("actions.cancel")}
+            </button>
+            <button
+              className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              onClick={handleAddNote}
+              disabled={!noteContent.trim()}
+            >
+              {t("actions.save")}
+            </button>
           </div>
         </div>
       </Modal>
@@ -381,21 +413,49 @@ export default function CultureJournal() {
       {/* New Crop Cycle Modal */}
       <Modal open={showCropCycleModal} onClose={() => setShowCropCycleModal(false)} title={tp("cultureJournal.newCropCycle")}>
         <div className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.species")}</span></label>
-            <input type="text" className="input input-bordered" value={ccSpecies} onChange={(e) => setCcSpecies(e.target.value)} placeholder="Solanum lycopersicum" />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.species")}</label>
+            <input
+              type="text"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              value={ccSpecies}
+              onChange={(e) => setCcSpecies(e.target.value)}
+              placeholder="Solanum lycopersicum"
+            />
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.variety")}</span></label>
-            <input type="text" className="input input-bordered" value={ccVariety} onChange={(e) => setCcVariety(e.target.value)} placeholder="Roma" />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.variety")}</label>
+            <input
+              type="text"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              value={ccVariety}
+              onChange={(e) => setCcVariety(e.target.value)}
+              placeholder="Roma"
+            />
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.sowingDate")}</span></label>
-            <input type="date" className="input input-bordered" value={ccSowingDate} onChange={(e) => setCcSowingDate(e.target.value)} />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.sowingDate")}</label>
+            <input
+              type="date"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              value={ccSowingDate}
+              onChange={(e) => setCcSowingDate(e.target.value)}
+            />
           </div>
-          <div className="modal-action">
-            <button className="btn btn-ghost" onClick={() => setShowCropCycleModal(false)}>{t("actions.cancel")}</button>
-            <button className="btn btn-success" onClick={handleAddCropCycle} disabled={!ccSpecies.trim()}>{t("actions.create")}</button>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              onClick={() => setShowCropCycleModal(false)}
+            >
+              {t("actions.cancel")}
+            </button>
+            <button
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              onClick={handleAddCropCycle}
+              disabled={!ccSpecies.trim()}
+            >
+              {t("actions.create")}
+            </button>
           </div>
         </div>
       </Modal>
@@ -403,21 +463,44 @@ export default function CultureJournal() {
       {/* Export Report Modal */}
       <Modal open={showPDFModal} onClose={() => setShowPDFModal(false)} title={tp("cultureJournal.exportReport")}>
         <div className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.periodStart")}</span></label>
-            <input type="date" className="input input-bordered" value={pdfStart} onChange={(e) => setPdfStart(e.target.value)} />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.periodStart")}</label>
+            <input
+              type="date"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              value={pdfStart}
+              onChange={(e) => setPdfStart(e.target.value)}
+            />
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">{tp("cultureJournal.periodEnd")}</span></label>
-            <input type="date" className="input input-bordered" value={pdfEnd} onChange={(e) => setPdfEnd(e.target.value)} />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{tp("cultureJournal.periodEnd")}</label>
+            <input
+              type="date"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              value={pdfEnd}
+              onChange={(e) => setPdfEnd(e.target.value)}
+            />
           </div>
-          <div className="modal-action flex-wrap gap-2">
-            <button className="btn btn-ghost" onClick={() => setShowPDFModal(false)}>{t("actions.cancel")}</button>
-            <button className="btn btn-accent" onClick={handleExportGlobalGAP} disabled={!pdfStart || !pdfEnd}>
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
+            <button
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              onClick={() => setShowPDFModal(false)}
+            >
+              {t("actions.cancel")}
+            </button>
+            <button
+              className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 transition-colors"
+              onClick={handleExportGlobalGAP}
+              disabled={!pdfStart || !pdfEnd}
+            >
               {tp("cultureJournal.exportGAP")}
             </button>
-            <button className="btn btn-secondary" onClick={handleGeneratePDF} disabled={generating || !pdfStart || !pdfEnd}>
-              {generating ? <Spinner /> : tp("cultureJournal.downloadPDF")}
+            <button
+              className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              onClick={handleGeneratePDF}
+              disabled={generating || !pdfStart || !pdfEnd}
+            >
+              {generating ? <Spinner className="h-4 w-4" /> : tp("cultureJournal.downloadPDF")}
             </button>
           </div>
         </div>
