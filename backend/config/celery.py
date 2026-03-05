@@ -52,4 +52,9 @@ app.conf.beat_schedule = {
         "task": "iot.generate_weekly_ai_reports",
         "schedule": crontab(hour=7, minute=0, day_of_week=1),  # Weekly Monday 07:00 UTC
     },
+    # Sprint 22 — Billing & Trial management
+    "check-trial-expiry": {
+        "task": "api.check_trial_expiry",
+        "schedule": crontab(hour=9, minute=0),  # Daily at 09:00 UTC
+    },
 }

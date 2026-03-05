@@ -24,8 +24,55 @@ export interface Organization {
   member_count: number;
   greenhouse_count: number;
   my_role: MemberRole | null;
+  is_on_trial: boolean;
+  trial_expired: boolean;
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// --- Billing (Sprint 22) ---
+
+export type SubscriptionStatus =
+  | "TRIALING"
+  | "ACTIVE"
+  | "PAST_DUE"
+  | "CANCELED"
+  | "INCOMPLETE";
+
+export interface SubscriptionData {
+  id: number;
+  organization: number;
+  stripe_subscription_id: string;
+  stripe_price_id: string;
+  plan: OrgPlan;
+  status: SubscriptionStatus;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  canceled_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BillingUsage {
+  greenhouses: number;
+  max_greenhouses: number;
+  zones: number;
+  max_zones: number;
+  members: number;
+  max_members: number;
+}
+
+export interface BillingOverview {
+  plan: OrgPlan;
+  is_on_trial: boolean;
+  trial_ends_at: string | null;
+  trial_expired: boolean;
+  subscription: SubscriptionData | null;
+  usage: BillingUsage;
+  stripe_publishable_key: string;
 }
 
 export interface Membership {

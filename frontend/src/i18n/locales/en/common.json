@@ -12,7 +12,8 @@
     "scenarios": "Scenarios",
     "marketplace": "Marketplace",
     "quickActions": "Quick Actions",
-    "developer": "Developer"
+    "developer": "Developer",
+    "billing": "Billing"
   },
   "actions": {
     "save": "Save",

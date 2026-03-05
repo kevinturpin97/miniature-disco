@@ -35,3 +35,5 @@ jinja2==3.1
 # Sprint 21 — API Publique & Developer Platform
 drf-spectacular==0.27
 requests==2.32.3
+# Sprint 22 — Billing & Plans SaaS
+stripe==10.12

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+  <div style="background: #f0fdf4; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+    <h1 style="color: #166534; margin: 0 0 8px;">Payment confirmed</h1>
+    <p style="margin: 0; color: #15803d;">{{ org_name }} — {{ plan }} plan</p>
+  </div>
+
+  <p>Hi {{ username }},</p>
+
+  <p>Your payment has been processed successfully. <strong>{{ org_name }}</strong> is now on the <strong>{{ plan }}</strong> plan.</p>
+
+  <p>You can manage your subscription, view invoices, and update payment methods from your billing page:</p>
+
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="{{ billing_url }}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+      View Billing
+    </a>
+  </div>
+
+  <p>Thank you for choosing Greenhouse SaaS!</p>
+
+  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+  <p style="color: #9ca3af; font-size: 12px;">Greenhouse SaaS — Automated Greenhouse Management</p>
+</body>
+</html>

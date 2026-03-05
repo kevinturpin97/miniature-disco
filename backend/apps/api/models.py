@@ -17,14 +17,18 @@ class Organization(models.Model):
         ENTERPRISE = "ENTERPRISE", "Enterprise"
 
     PLAN_LIMITS: dict[str, dict[str, int]] = {
-        Plan.FREE: {"max_greenhouses": 3, "max_zones": 9},
-        Plan.PRO: {"max_greenhouses": 10, "max_zones": 50},
-        Plan.ENTERPRISE: {"max_greenhouses": 0, "max_zones": 0},  # 0 = unlimited
+        Plan.FREE: {"max_greenhouses": 3, "max_zones": 9, "max_members": 3},
+        Plan.PRO: {"max_greenhouses": 10, "max_zones": 50, "max_members": 20},
+        Plan.ENTERPRISE: {"max_greenhouses": 0, "max_zones": 0, "max_members": 0},  # 0 = unlimited
     }
+
+    TRIAL_DURATION_DAYS = 14
 
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True)
     plan = models.CharField(max_length=12, choices=Plan.choices, default=Plan.FREE)
+    trial_ends_at = models.DateTimeField(null=True, blank=True, help_text="End of trial period")
+    stripe_customer_id = models.CharField(max_length=255, blank=True, help_text="Stripe customer ID")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -43,6 +47,45 @@ class Organization(models.Model):
     def max_zones(self) -> int:
         """Return the zone limit for the current plan (0 = unlimited)."""
         return self.PLAN_LIMITS.get(self.plan, {}).get("max_zones", 9)
+
+    @property
+    def max_members(self) -> int:
+        """Return the member limit for the current plan (0 = unlimited)."""
+        return self.PLAN_LIMITS.get(self.plan, {}).get("max_members", 3)
+
+    @property
+    def is_on_trial(self) -> bool:
+        """Return True if the organization is currently in a trial period."""
+        if self.trial_ends_at is None:
+            return False
+        return timezone.now() < self.trial_ends_at
+
+    @property
+    def trial_expired(self) -> bool:
+        """Return True if the trial period has ended without upgrade."""
+        if self.trial_ends_at is None:
+            return False
+        return timezone.now() >= self.trial_ends_at and self.plan == self.Plan.FREE
+
+    @property
+    def effective_plan(self) -> str:
+        """Return the effective plan considering trial status.
+
+        During trial, FREE users get PRO limits. After trial expiry, back to FREE.
+        """
+        if self.is_on_trial and self.plan == self.Plan.FREE:
+            return self.Plan.PRO
+        return self.plan
+
+    @property
+    def effective_max_greenhouses(self) -> int:
+        """Return greenhouse limit for the effective plan (0 = unlimited)."""
+        return self.PLAN_LIMITS.get(self.effective_plan, {}).get("max_greenhouses", 3)
+
+    @property
+    def effective_max_zones(self) -> int:
+        """Return zone limit for the effective plan (0 = unlimited)."""
+        return self.PLAN_LIMITS.get(self.effective_plan, {}).get("max_zones", 9)
 
 
 class Membership(models.Model):
@@ -341,3 +384,43 @@ class WebhookDelivery(models.Model):
 
     def __str__(self) -> str:
         return f"{self.event_type} → {self.webhook.name} [{self.status}]"
+
+
+class Subscription(models.Model):
+    """Tracks a Stripe subscription for an organization."""
+
+    class Status(models.TextChoices):
+        TRIALING = "TRIALING", "Trialing"
+        ACTIVE = "ACTIVE", "Active"
+        PAST_DUE = "PAST_DUE", "Past Due"
+        CANCELED = "CANCELED", "Canceled"
+        INCOMPLETE = "INCOMPLETE", "Incomplete"
+
+    organization = models.OneToOneField(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="subscription",
+    )
+    stripe_subscription_id = models.CharField(
+        max_length=255, unique=True, help_text="Stripe subscription ID"
+    )
+    stripe_price_id = models.CharField(max_length=255, blank=True)
+    plan = models.CharField(max_length=12, choices=Organization.Plan.choices)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.TRIALING)
+    current_period_start = models.DateTimeField(null=True, blank=True)
+    current_period_end = models.DateTimeField(null=True, blank=True)
+    cancel_at_period_end = models.BooleanField(default=False)
+    canceled_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.organization.name} — {self.plan} ({self.status})"
+
+    @property
+    def is_active(self) -> bool:
+        """Return True if the subscription is in an active billing state."""
+        return self.status in (self.Status.ACTIVE, self.Status.TRIALING)

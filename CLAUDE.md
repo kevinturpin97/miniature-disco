@@ -862,15 +862,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 22 — Billing & Plans SaaS
 **Objectif : monétiser la plateforme de façon robuste**
 
-- [ ] Intégration Stripe (stripe-python) : produits FREE / PRO / ENTERPRISE
-- [ ] Modèle `Subscription` : plan, status, period_end, stripe_subscription_id
-- [ ] Webhooks Stripe : payment_succeeded, payment_failed, subscription_cancelled
-- [ ] Enforcement des quotas par plan (middleware Django)
-- [ ] Page "Billing" : plan actuel, usage (zones/serres/membres), upgrade CTA
-- [ ] Page "Upgrade" : tableau comparatif des plans + Stripe Checkout
-- [ ] Emails transactionnels : confirmation paiement, échec, rappel renouvellement
-- [ ] Trial 14 jours automatique à l'inscription
-- [ ] Tests : webhooks Stripe mockés, enforcement quotas, trial expiry
+- [x] Intégration Stripe (stripe-python) : produits FREE / PRO / ENTERPRISE
+- [x] Modèle `Subscription` : plan, status, period_end, stripe_subscription_id
+- [x] Webhooks Stripe : payment_succeeded, payment_failed, subscription_cancelled
+- [x] Enforcement des quotas par plan (middleware Django)
+- [x] Page "Billing" : plan actuel, usage (zones/serres/membres), upgrade CTA
+- [x] Page "Upgrade" : tableau comparatif des plans + Stripe Checkout
+- [x] Emails transactionnels : confirmation paiement, échec, rappel renouvellement
+- [x] Trial 14 jours automatique à l'inscription
+- [x] Tests : webhooks Stripe mockés, enforcement quotas, trial expiry
 
 ---
 

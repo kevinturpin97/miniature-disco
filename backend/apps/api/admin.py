@@ -2,14 +2,14 @@
 
 from django.contrib import admin
 
-from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Webhook, WebhookDelivery
+from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Subscription, Webhook, WebhookDelivery
 
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "plan", "created_at")
+    list_display = ("name", "slug", "plan", "is_on_trial", "trial_ends_at", "stripe_customer_id", "created_at")
     list_filter = ("plan",)
-    search_fields = ("name", "slug")
+    search_fields = ("name", "slug", "stripe_customer_id")
     readonly_fields = ("created_at", "updated_at")
 
 
@@ -57,3 +57,11 @@ class WebhookDeliveryAdmin(admin.ModelAdmin):
     list_display = ("webhook", "event_type", "status", "response_status", "duration_ms", "created_at")
     list_filter = ("status", "event_type")
     readonly_fields = ("webhook", "event_type", "payload", "response_status", "response_body", "status", "error_message", "duration_ms", "created_at")
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("organization", "plan", "status", "current_period_start", "current_period_end", "cancel_at_period_end", "created_at")
+    list_filter = ("plan", "status")
+    search_fields = ("organization__name", "stripe_subscription_id")
+    readonly_fields = ("stripe_subscription_id", "stripe_price_id", "created_at", "updated_at")

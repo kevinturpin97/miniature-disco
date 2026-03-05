@@ -479,5 +479,30 @@
       "swaggerUi": "Swagger UI",
       "redoc": "ReDoc"
     }
+  },
+  "billing": {
+    "title": "Billing & Plans",
+    "subtitle": "Manage your subscription, usage, and payment methods.",
+    "loadError": "Failed to load billing information.",
+    "currentPlan": "Current",
+    "upgrade": "Upgrade",
+    "freePlan": "Free forever",
+    "activeSubscription": "Active subscription",
+    "planFeatureGreenhouses": "{{count}} greenhouses",
+    "planFeatureZones": "{{count}} zones",
+    "planFeatureMembers": "{{count}} team members",
+    "trialActive": "Your free trial ends in {{days}}. Upgrade to keep PRO features.",
+    "trialExpired": "Your free trial has expired. Upgrade to unlock PRO features.",
+    "subscriptionTitle": "Subscription",
+    "renewsOn": "Renews on {{date}}",
+    "cancelsAtEnd": "Cancels at period end",
+    "manageBilling": "Manage Billing",
+    "usageTitle": "Usage",
+    "greenhouses": "Greenhouses",
+    "zones": "Zones",
+    "members": "Team Members",
+    "plansTitle": "Plans",
+    "upgradeSuccess": "Upgrade successful! Your plan has been updated.",
+    "upgradeCanceled": "Checkout was canceled."
   }
 }

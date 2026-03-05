@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import serializers
 
-from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Webhook, WebhookDelivery
+from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Subscription, Webhook, WebhookDelivery
 
 User = get_user_model()
 
@@ -48,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             name=f"{user.username}'s Organization",
             slug=slug,
             plan=Organization.Plan.FREE,
+            trial_ends_at=timezone.now() + timedelta(days=Organization.TRIAL_DURATION_DAYS),
         )
         Membership.objects.create(user=user, organization=org, role=Membership.Role.OWNER)
         return user
@@ -85,6 +86,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
     greenhouse_count = serializers.SerializerMethodField()
     my_role = serializers.SerializerMethodField()
+    is_on_trial = serializers.BooleanField(read_only=True)
+    trial_expired = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Organization
@@ -92,10 +95,12 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "id", "name", "slug", "plan",
             "max_greenhouses", "max_zones",
             "member_count", "greenhouse_count", "my_role",
+            "is_on_trial", "trial_expired", "trial_ends_at",
             "created_at", "updated_at",
         )
         read_only_fields = (
             "id", "slug", "plan", "max_greenhouses", "max_zones",
+            "is_on_trial", "trial_expired", "trial_ends_at",
             "created_at", "updated_at",
         )
 
@@ -314,3 +319,35 @@ class WebhookDeliverySerializer(serializers.ModelSerializer):
             "error_message", "duration_ms", "created_at",
         )
         read_only_fields = fields
+
+
+# ---------------------------------------------------------------------------
+# Billing serializers (Sprint 22 — Billing & Plans SaaS)
+# ---------------------------------------------------------------------------
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Serializer for reading subscription details."""
+
+    organization = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Subscription
+        fields = (
+            "id", "organization", "stripe_subscription_id", "stripe_price_id",
+            "plan", "status", "current_period_start", "current_period_end",
+            "cancel_at_period_end", "canceled_at", "is_active",
+            "created_at", "updated_at",
+        )
+        read_only_fields = fields
+
+
+class BillingOverviewSerializer(serializers.Serializer):
+    """Aggregated billing overview for a given organization."""
+
+    plan = serializers.CharField()
+    is_on_trial = serializers.BooleanField()
+    trial_ends_at = serializers.DateTimeField(allow_null=True)
+    trial_expired = serializers.BooleanField()
+    subscription = SubscriptionSerializer(allow_null=True)
+    usage = serializers.DictField()
+    stripe_publishable_key = serializers.CharField()

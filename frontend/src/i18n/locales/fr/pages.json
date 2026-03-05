@@ -479,5 +479,30 @@
       "swaggerUi": "Swagger UI",
       "redoc": "ReDoc"
     }
+  },
+  "billing": {
+    "title": "Facturation & Plans",
+    "subtitle": "Gérez votre abonnement, votre utilisation et vos moyens de paiement.",
+    "loadError": "Impossible de charger les informations de facturation.",
+    "currentPlan": "Actuel",
+    "upgrade": "Mettre à niveau",
+    "freePlan": "Gratuit pour toujours",
+    "activeSubscription": "Abonnement actif",
+    "planFeatureGreenhouses": "{{count}} serres",
+    "planFeatureZones": "{{count}} zones",
+    "planFeatureMembers": "{{count}} membres",
+    "trialActive": "Votre essai gratuit se termine dans {{days}}. Abonnez-vous pour conserver les fonctionnalités PRO.",
+    "trialExpired": "Votre essai gratuit a expiré. Abonnez-vous pour débloquer les fonctionnalités PRO.",
+    "subscriptionTitle": "Abonnement",
+    "renewsOn": "Renouvellement le {{date}}",
+    "cancelsAtEnd": "Annulation en fin de période",
+    "manageBilling": "Gérer la facturation",
+    "usageTitle": "Utilisation",
+    "greenhouses": "Serres",
+    "zones": "Zones",
+    "members": "Membres de l'équipe",
+    "plansTitle": "Plans",
+    "upgradeSuccess": "Mise à niveau réussie ! Votre plan a été mis à jour.",
+    "upgradeCanceled": "Le paiement a été annulé."
   }
 }

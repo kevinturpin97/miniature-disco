@@ -1,7 +1,13 @@
-"""URL configuration for authentication, organization, and invitation endpoints."""
+"""URL configuration for authentication, organization, invitation, and billing endpoints."""
 
 from django.urls import path
 
+from .billing_views import (
+    BillingOverviewView,
+    CreateCheckoutSessionView,
+    CustomerPortalView,
+    StripeWebhookView,
+)
 from .views import (
     AcceptInvitationView,
     APIKeyLogViewSet,
@@ -49,6 +55,12 @@ urlpatterns = [
     path("orgs/<slug:slug>/webhooks/<int:pk>/", WebhookViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}), name="webhook-detail"),
     # Webhook Deliveries (per org)
     path("orgs/<slug:slug>/webhooks/deliveries/", WebhookDeliveryViewSet.as_view({"get": "list"}), name="webhook-delivery-list"),
+    # Billing (Sprint 22)
+    path("orgs/<slug:slug>/billing/", BillingOverviewView.as_view(), name="billing-overview"),
+    path("orgs/<slug:slug>/billing/checkout/", CreateCheckoutSessionView.as_view(), name="billing-checkout"),
+    path("orgs/<slug:slug>/billing/portal/", CustomerPortalView.as_view(), name="billing-portal"),
+    # Stripe Webhook (no auth — verified by Stripe signature)
+    path("webhooks/stripe/", StripeWebhookView.as_view(), name="stripe-webhook"),
     # Sandbox
     path("developer/sandbox/", SandboxInfoView.as_view(), name="developer-sandbox"),
 ]

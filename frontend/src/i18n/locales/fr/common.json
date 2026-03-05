@@ -12,7 +12,8 @@
     "scenarios": "Scénarios",
     "marketplace": "Marketplace",
     "quickActions": "Actions rapides",
-    "developer": "Développeur"
+    "developer": "Développeur",
+    "billing": "Facturation"
   },
   "actions": {
     "save": "Enregistrer",

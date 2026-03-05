@@ -132,7 +132,7 @@ class GreenhouseViewSet(viewsets.ModelViewSet):
 
     def _check_greenhouse_quota(self, org: Organization) -> None:
         """Raise 403 if the org has reached its greenhouse limit."""
-        limit = org.max_greenhouses
+        limit = org.effective_max_greenhouses
         if limit == 0:  # unlimited
             return
         current = Greenhouse.objects.filter(organization=org).count()
@@ -189,7 +189,7 @@ class ZoneViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError({"greenhouse": "Greenhouse ID is required."})
         org = greenhouse.organization
         if org:
-            limit = org.max_zones
+            limit = org.effective_max_zones
             if limit > 0:
                 current = Zone.objects.filter(greenhouse__organization=org).count()
                 if current >= limit:

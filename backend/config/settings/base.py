@@ -225,3 +225,11 @@ SPECTACULAR_SETTINGS = {
 # Webhook delivery settings
 WEBHOOK_TIMEOUT_SECONDS = config("WEBHOOK_TIMEOUT_SECONDS", default=10, cast=int)
 WEBHOOK_MAX_FAILURES = config("WEBHOOK_MAX_FAILURES", default=10, cast=int)
+
+# Stripe billing
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
+STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY", default="")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
+STRIPE_PRICE_PRO = config("STRIPE_PRICE_PRO", default="")
+STRIPE_PRICE_ENTERPRISE = config("STRIPE_PRICE_ENTERPRISE", default="")
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
