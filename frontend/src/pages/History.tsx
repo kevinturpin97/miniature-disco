@@ -218,37 +218,37 @@ export default function History() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">{tp("history.title")}</h1>
-        <p className="mt-1 text-sm text-base-content/60">{tp("history.subtitle")}</p>
+        <h1 className="text-2xl font-bold text-foreground">{tp("history.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{tp("history.subtitle")}</p>
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Zone multi-select */}
         <div className="lg:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-base-content/80">
+          <label className="mb-2 block text-sm font-medium text-foreground/80">
             {tp("history.selectZones")}
           </label>
-          <div className="max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 p-3">
+          <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-card p-3">
             {greenhouses.map((gh) => (
               <div key={gh.id} className="mb-3 last:mb-0">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-base-content/40">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
                   {gh.name}
                 </p>
                 {gh.zones.length === 0 ? (
-                  <p className="text-xs text-base-content/30">--</p>
+                  <p className="text-xs text-muted-foreground/60">--</p>
                 ) : (
                   <div className="space-y-1">
                     {gh.zones.map((zone) => (
                       <label
                         key={zone.id}
-                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm text-base-content/80 hover:bg-base-200"
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm text-foreground/80 hover:bg-accent"
                       >
                         <input
                           type="checkbox"
                           checked={selectedZoneIds.has(zone.id)}
                           onChange={() => toggleZone(zone.id)}
-                          className="checkbox checkbox-primary checkbox-sm"
+                          className="h-4 w-4 rounded border-border text-primary accent-primary focus:ring-2 focus:ring-ring"
                         />
                         {zone.name}
                       </label>
@@ -262,13 +262,13 @@ export default function History() {
 
         {/* Sensor type selector */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-base-content/80">
+          <label className="mb-2 block text-sm font-medium text-foreground/80">
             {tp("history.sensorType")}
           </label>
           <select
             value={sensorType}
             onChange={(e) => setSensorType(e.target.value as SensorType)}
-            className="w-full rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-sm text-base-content shadow-xs"
+            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {ALL_SENSOR_TYPES.map((st) => (
               <option key={st} value={st}>
@@ -280,18 +280,18 @@ export default function History() {
 
         {/* Period selector */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-base-content/80">
+          <label className="mb-2 block text-sm font-medium text-foreground/80">
             {tp("history.period")}
           </label>
-          <div className="flex gap-1 rounded-lg border border-base-300 bg-base-100 p-1">
+          <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
             {PERIODS.map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`flex-1 rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
                   period === p
-                    ? "bg-primary text-primary-content"
-                    : "text-base-content/60 hover:bg-base-200"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
               >
                 {tp(`history.periods.${p}`)}
@@ -303,9 +303,9 @@ export default function History() {
 
       {/* Chart or empty state */}
       {selectedZoneIds.size === 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-base-content/30"
+            className="mx-auto h-12 w-12 text-muted-foreground/30"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -317,16 +317,16 @@ export default function History() {
               d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
             />
           </svg>
-          <p className="mt-4 text-sm text-base-content/60">{tp("history.noZonesSelected")}</p>
+          <p className="mt-4 text-sm text-muted-foreground">{tp("history.noZonesSelected")}</p>
         </div>
       ) : loadingReadings ? (
         <div className="flex h-64 items-center justify-center">
           <Spinner className="h-8 w-8" />
         </div>
       ) : chartData.length === 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-base-content/30"
+            className="mx-auto h-12 w-12 text-muted-foreground/30"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -338,11 +338,11 @@ export default function History() {
               d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
             />
           </svg>
-          <p className="mt-4 text-sm text-base-content/60">{tp("history.noData")}</p>
+          <p className="mt-4 text-sm text-muted-foreground">{tp("history.noData")}</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-4 shadow-xs">
-          <h2 className="mb-4 text-lg font-semibold text-base-content">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">
             {SENSOR_TYPE_LABELS[sensorType] ?? sensorType}
             {unit ? ` (${unit})` : ""}
           </h2>

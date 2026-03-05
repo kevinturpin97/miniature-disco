@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import serializers
 
-from .models import Invitation, Membership, Organization
+from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Webhook, WebhookDelivery
 
 User = get_user_model()
 
@@ -182,5 +182,135 @@ class InvitationSerializer(serializers.ModelSerializer):
             "id", "organization", "organization_name", "email", "role",
             "token", "invited_by", "invited_by_username",
             "accepted", "is_expired", "is_valid", "expires_at", "created_at",
+        )
+        read_only_fields = fields
+
+
+# ---------------------------------------------------------------------------
+# API Key serializers (Sprint 21 — API Publique & Developer Platform)
+# ---------------------------------------------------------------------------
+
+class APIKeySerializer(serializers.ModelSerializer):
+    """Serializer for reading and updating API keys.
+
+    Exposes key metadata but never the raw key itself. The raw key is only
+    returned once at creation time via APIKeyCreateResponseSerializer.
+    """
+
+    class Meta:
+        model = APIKey
+        fields = (
+            "id", "organization", "name", "prefix", "scope",
+            "is_active", "expires_at", "last_used_at",
+            "created_by", "created_at",
+        )
+        read_only_fields = ("id", "prefix", "last_used_at", "created_by", "created_at")
+
+
+class APIKeyCreateSerializer(serializers.Serializer):
+    """Serializer for creating a new API key.
+
+    Accepts only the fields that users should supply. The actual key
+    generation is handled by APIKey.create_key().
+    """
+
+    name = serializers.CharField(required=True, max_length=100)
+    scope = serializers.ChoiceField(choices=APIKey.Scope.choices, default=APIKey.Scope.READ)
+    expires_at = serializers.DateTimeField(required=False, allow_null=True)
+
+    def validate_expires_at(self, value):
+        """Ensure the expiry date is in the future if provided."""
+        if value is not None and value <= timezone.now():
+            raise serializers.ValidationError("Expiry date must be in the future.")
+        return value
+
+
+class APIKeyCreateResponseSerializer(serializers.Serializer):
+    """Response serializer returned after creating a new API key.
+
+    Contains both the key metadata and the raw key string. The raw key
+    is only available at creation time and cannot be retrieved later.
+    """
+
+    key = APIKeySerializer()
+    raw_key = serializers.CharField()
+
+
+class APIKeyLogSerializer(serializers.ModelSerializer):
+    """Serializer for API key usage logs.
+
+    All fields are read-only as logs are created automatically by the
+    API key authentication middleware.
+    """
+
+    class Meta:
+        model = APIKeyLog
+        fields = (
+            "id", "api_key", "method", "path", "status_code",
+            "ip_address", "user_agent", "created_at",
+        )
+        read_only_fields = fields
+
+
+# ---------------------------------------------------------------------------
+# Webhook serializers (Sprint 21 — API Publique & Developer Platform)
+# ---------------------------------------------------------------------------
+
+class WebhookSerializer(serializers.ModelSerializer):
+    """Serializer for creating, reading, and updating webhooks.
+
+    The ``secret`` field is write-only — it is never returned in API
+    responses.  Instead a boolean ``has_secret`` field indicates whether
+    a secret has been configured.
+    """
+
+    has_secret = serializers.SerializerMethodField()
+    secret = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, max_length=128,
+    )
+
+    class Meta:
+        model = Webhook
+        fields = (
+            "id", "organization", "name", "url", "events",
+            "is_active", "has_secret", "secret",
+            "last_triggered_at", "failure_count",
+            "created_by", "created_at", "updated_at",
+        )
+        read_only_fields = (
+            "id", "organization", "has_secret",
+            "last_triggered_at", "failure_count",
+            "created_by", "created_at", "updated_at",
+        )
+
+    def get_has_secret(self, obj: Webhook) -> bool:
+        """Return True if the webhook has a secret configured."""
+        return bool(obj.secret)
+
+    def validate_events(self, value: list) -> list:
+        """Ensure every event type in the list is a valid Webhook.EventType."""
+        valid_types = {choice[0] for choice in Webhook.EventType.choices}
+        invalid = [evt for evt in value if evt not in valid_types]
+        if invalid:
+            raise serializers.ValidationError(
+                f"Invalid event type(s): {', '.join(invalid)}. "
+                f"Valid types are: {', '.join(sorted(valid_types))}."
+            )
+        return value
+
+
+class WebhookDeliverySerializer(serializers.ModelSerializer):
+    """Serializer for webhook delivery attempt records.
+
+    All fields are read-only as deliveries are created automatically
+    when webhooks are triggered.
+    """
+
+    class Meta:
+        model = WebhookDelivery
+        fields = (
+            "id", "webhook", "event_type", "payload",
+            "response_status", "response_body", "status",
+            "error_message", "duration_ms", "created_at",
         )
         read_only_fields = fields

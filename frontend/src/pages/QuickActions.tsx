@@ -88,17 +88,17 @@ export default function QuickActions() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-base-content">
+        <h1 className="text-2xl font-bold text-foreground">
           {t("pages:quickActions.title")}
         </h1>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           {t("pages:quickActions.subtitle")}
         </p>
       </div>
 
       {/* Zone status widgets */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-base-content/60 uppercase tracking-wider">
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           {t("pages:quickActions.zoneOverview")}
         </h2>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -110,11 +110,11 @@ export default function QuickActions() {
 
       {/* Actuator quick controls */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-base-content/60 uppercase tracking-wider">
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           {t("pages:quickActions.actuators")}
         </h2>
         {actuators.length === 0 ? (
-          <p className="text-sm text-base-content/60">
+          <p className="text-sm text-muted-foreground">
             {t("pages:quickActions.noActuators")}
           </p>
         ) : (
@@ -125,25 +125,33 @@ export default function QuickActions() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="card bg-base-100 shadow-xs flex-row items-center justify-between p-4"
+                className="flex flex-row items-center justify-between rounded-xl border border-border bg-card p-4 shadow-xs"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-base-content">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {a.name}
                   </p>
-                  <p className="text-xs text-base-content/60">
+                  <p className="text-xs text-muted-foreground">
                     {a.zoneName} &middot; {a.actuator_type}
                   </p>
                 </div>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-primary ml-3"
-                  checked={a.state}
-                  disabled={togglingId === a.id}
-                  onChange={() => handleToggle(a)}
+                <button
+                  type="button"
                   role="switch"
+                  aria-checked={a.state}
                   aria-label={`${a.name} toggle`}
-                />
+                  disabled={togglingId === a.id}
+                  onClick={() => handleToggle(a)}
+                  className={`relative ml-3 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    a.state ? "bg-primary" : "bg-muted"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${
+                      a.state ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
               </motion.div>
             ))}
           </div>

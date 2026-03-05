@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Marketplace from "./Marketplace";
+import type { Template } from "@/types";
 
 // Mock API modules
 vi.mock("@/api/templates", () => ({
@@ -94,7 +95,7 @@ const fakeTemplate = {
   created_at: "2024-06-01T00:00:00Z",
   updated_at: "2024-06-01T00:00:00Z",
   user_rating: null,
-};
+} as unknown as Template;
 
 const fakeGreenhouse = {
   id: 1,

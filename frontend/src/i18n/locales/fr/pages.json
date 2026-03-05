@@ -424,5 +424,60 @@
     "trendWarning": "Tendance",
     "confidence": "confiance",
     "suggested": "Plage suggérée"
+  },
+  "developer": {
+    "title": "Plateforme Développeur",
+    "subtitle": "Gérez les clés API, les webhooks et accédez au bac à sable.",
+    "tabs": {
+      "apiKeys": "Clés API",
+      "webhooks": "Webhooks",
+      "sandbox": "Bac à sable"
+    },
+    "apiKeys": {
+      "title": "Clés API",
+      "createKey": "Créer une clé API",
+      "name": "Nom de la clé",
+      "scope": "Portée",
+      "expiresAt": "Expire le",
+      "noExpiry": "Pas d'expiration",
+      "revoke": "Révoquer",
+      "copyKey": "Copier la clé",
+      "keyCopied": "Clé API copiée dans le presse-papiers !",
+      "keyWarning": "Sauvegardez cette clé maintenant ! Elle ne sera plus affichée.",
+      "noKeys": "Aucune clé API pour le moment.",
+      "prefix": "Préfixe",
+      "lastUsed": "Dernière utilisation",
+      "status": "Statut",
+      "active": "Active",
+      "revoked": "Révoquée",
+      "expired": "Expirée",
+      "never": "Jamais"
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "createWebhook": "Créer un webhook",
+      "name": "Nom",
+      "url": "URL",
+      "secret": "Secret",
+      "secretPlaceholder": "Secret HMAC optionnel",
+      "events": "Événements",
+      "noWebhooks": "Aucun webhook configuré.",
+      "deliveries": "Livraisons",
+      "noDeliveries": "Aucune livraison pour le moment.",
+      "eventTypes": {
+        "new_reading": "Nouvelle lecture",
+        "alert_created": "Alerte créée",
+        "command_ack": "Commande acquittée"
+      }
+    },
+    "sandbox": {
+      "title": "Bac à sable",
+      "description": "Testez votre intégration API avec un environnement bac à sable dédié.",
+      "notAvailable": "Bac à sable non disponible. Exécutez la commande de gestion setup_sandbox.",
+      "apiDocs": "Documentation API",
+      "apiDocsDescription": "Parcourez la référence API complète avec Swagger UI ou ReDoc.",
+      "swaggerUi": "Swagger UI",
+      "redoc": "ReDoc"
+    }
   }
 }

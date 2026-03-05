@@ -36,10 +36,10 @@ import type {
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const STATUS_COLORS: Record<string, string> = {
-  IDLE: "bg-base-200 text-base-content/80",
-  RUNNING: "bg-info/10 text-info",
-  COMPLETED: "bg-success/10 text-success",
-  FAILED: "bg-error/10 text-error",
+  IDLE: "bg-muted text-foreground/80",
+  RUNNING: "bg-blue-500/10 text-blue-500",
+  COMPLETED: "bg-green-500/10 text-green-500",
+  FAILED: "bg-destructive/10 text-destructive",
 };
 
 export default function Scenarios() {
@@ -174,24 +174,24 @@ export default function Scenarios() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">
+        <h1 className="text-2xl font-bold text-foreground">
           {t("pages:scenarios.title")}
         </h1>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           {t("pages:scenarios.subtitle")}
         </p>
       </div>
 
       {/* Zone selector + tabs */}
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-base-300 bg-base-100 p-4">
+      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
         <div>
-          <label className="block text-xs font-medium text-base-content/60 mb-1">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
             {t("common:labels.zone")}
           </label>
           <select
             value={selectedZone ?? ""}
             onChange={(e) => setSelectedZone(Number(e.target.value))}
-            className="rounded-md border-base-300 bg-base-100 text-base-content text-sm shadow-sm focus:border-primary focus:ring-primary"
+            className="rounded-lg border border-input bg-background text-foreground text-sm shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {greenhouses.map((gh) => (
               <optgroup key={gh.id} label={gh.name}>
@@ -208,10 +208,10 @@ export default function Scenarios() {
             <button
               key={t2}
               onClick={() => setTab(t2)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 tab === t2
-                  ? "bg-primary text-white"
-                  : "bg-base-200 text-base-content/80 hover:bg-base-300"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground/80 hover:bg-accent"
               }`}
             >
               {t(`pages:scenarios.tabs.${t2}`)}
@@ -222,13 +222,13 @@ export default function Scenarios() {
         <div className="ml-auto flex gap-2">
           <button
             onClick={() => { setEditingScenario(null); setShowScenarioModal(true); }}
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-focus"
+            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             + {t("pages:scenarios.newScenario")}
           </button>
           <button
             onClick={() => { setEditingSchedule(null); setShowScheduleModal(true); }}
-            className="rounded-md bg-neutral px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-focus"
+            className="rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background hover:bg-foreground/90 transition-colors"
           >
             + {t("pages:scenarios.newSchedule")}
           </button>
@@ -241,15 +241,15 @@ export default function Scenarios() {
         /* Scenario list */
         <div className="space-y-4">
           {scenarios.length === 0 ? (
-            <p className="text-sm text-base-content/60">{t("pages:scenarios.noScenarios")}</p>
+            <p className="text-sm text-muted-foreground">{t("pages:scenarios.noScenarios")}</p>
           ) : (
             scenarios.map((scn) => (
-              <div key={scn.id} className="rounded-lg border border-base-300 bg-base-100 p-4">
+              <div key={scn.id} className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-base-content">{scn.name}</h3>
+                    <h3 className="font-semibold text-foreground">{scn.name}</h3>
                     {scn.description && (
-                      <p className="text-sm text-base-content/60">{scn.description}</p>
+                      <p className="text-sm text-muted-foreground">{scn.description}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -259,19 +259,19 @@ export default function Scenarios() {
                     <button
                       onClick={() => handleRun(scn.id)}
                       disabled={scn.status === "RUNNING"}
-                      className="rounded-md bg-success px-3 py-1 text-xs font-medium text-white hover:bg-success/80 disabled:opacity-50"
+                      className="rounded-lg bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-500/80 transition-colors disabled:opacity-50"
                     >
                       {t("pages:scenarios.runNow")}
                     </button>
                     <button
                       onClick={() => { setEditingScenario(scn); setShowScenarioModal(true); }}
-                      className="rounded-md bg-base-200 px-3 py-1 text-xs font-medium text-base-content/80 hover:bg-base-300"
+                      className="rounded-lg bg-muted px-3 py-1 text-xs font-medium text-foreground/80 hover:bg-accent transition-colors"
                     >
                       {t("common:actions.edit")}
                     </button>
                     <button
                       onClick={() => setDeleteTarget({ type: "scenario", id: scn.id, name: scn.name })}
-                      className="rounded-md bg-error/10 px-3 py-1 text-xs font-medium text-error hover:bg-error/20"
+                      className="rounded-lg bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive hover:bg-destructive/20 transition-colors"
                     >
                       {t("common:actions.delete")}
                     </button>
@@ -285,21 +285,21 @@ export default function Scenarios() {
                       <div key={step.id || idx} className="flex items-center gap-1">
                         {idx > 0 && (
                           <div className="flex flex-col items-center">
-                            <div className="h-0.5 w-6 bg-base-300" />
+                            <div className="h-0.5 w-6 bg-border" />
                             {step.delay_seconds > 0 && (
-                              <span className="text-[9px] text-base-content/40">{step.delay_seconds}s</span>
+                              <span className="text-[9px] text-muted-foreground/60">{step.delay_seconds}s</span>
                             )}
                           </div>
                         )}
                         <div className={`rounded-md border px-2 py-1 text-xs ${
-                          step.action === "ON" ? "border-success/30 bg-success/10" :
-                          step.action === "OFF" ? "border-error/30 bg-error/10" :
-                          "border-warning/30 bg-warning/10"
+                          step.action === "ON" ? "border-green-500/30 bg-green-500/10" :
+                          step.action === "OFF" ? "border-destructive/30 bg-destructive/10" :
+                          "border-amber-500/30 bg-amber-500/10"
                         }`}>
                           <span className="font-medium">{step.actuator_name || `#${step.actuator}`}</span>
-                          <span className="ml-1 text-base-content/60">{step.action}</span>
+                          <span className="ml-1 text-muted-foreground">{step.action}</span>
                           {step.duration_seconds && (
-                            <span className="ml-1 text-base-content/40">({step.duration_seconds}s)</span>
+                            <span className="ml-1 text-muted-foreground/60">({step.duration_seconds}s)</span>
                           )}
                         </div>
                       </div>
@@ -308,7 +308,7 @@ export default function Scenarios() {
                 )}
 
                 {scn.last_run_at && (
-                  <p className="mt-2 text-[10px] text-base-content/40">
+                  <p className="mt-2 text-[10px] text-muted-foreground/60">
                     {t("pages:scenarios.lastRun")}: {new Date(scn.last_run_at).toLocaleString()}
                   </p>
                 )}
@@ -318,41 +318,41 @@ export default function Scenarios() {
         </div>
       ) : (
         /* Weekly Calendar */
-        <div className="rounded-lg border border-base-300 bg-base-100 p-4 overflow-x-auto">
-          <h3 className="mb-4 text-sm font-semibold text-base-content/80">
+        <div className="rounded-xl border border-border bg-card p-4 overflow-x-auto">
+          <h3 className="mb-4 text-sm font-semibold text-foreground/80">
             {t("pages:scenarios.weeklyCalendar")}
           </h3>
           {calendarRows.length === 0 ? (
-            <p className="text-sm text-base-content/60">{t("pages:scenarios.noSchedules")}</p>
+            <p className="text-sm text-muted-foreground">{t("pages:scenarios.noSchedules")}</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  <th className="border-b border-base-300 px-3 py-2 text-left text-base-content/60">{t("pages:scenarios.schedule")}</th>
-                  <th className="border-b border-base-300 px-3 py-2 text-left text-base-content/60">{t("pages:scenarios.scenario")}</th>
-                  <th className="border-b border-base-300 px-3 py-2 text-left text-base-content/60">{t("pages:scenarios.time")}</th>
+                  <th className="border-b border-border px-3 py-2 text-left text-muted-foreground">{t("pages:scenarios.schedule")}</th>
+                  <th className="border-b border-border px-3 py-2 text-left text-muted-foreground">{t("pages:scenarios.scenario")}</th>
+                  <th className="border-b border-border px-3 py-2 text-left text-muted-foreground">{t("pages:scenarios.time")}</th>
                   {DAY_NAMES.map((d) => (
-                    <th key={d} className="border-b border-base-300 px-2 py-2 text-center text-base-content/60">{d}</th>
+                    <th key={d} className="border-b border-border px-2 py-2 text-center text-muted-foreground">{d}</th>
                   ))}
-                  <th className="border-b border-base-300 px-2 py-2" />
+                  <th className="border-b border-border px-2 py-2" />
                 </tr>
               </thead>
               <tbody>
                 {calendarRows.map(({ schedule, days, timeLabel }) => (
-                  <tr key={schedule.id} className="hover:bg-base-200">
-                    <td className="border-b border-base-300 px-3 py-2 font-medium">{schedule.name}</td>
-                    <td className="border-b border-base-300 px-3 py-2 text-base-content/70">{schedule.scenario_name}</td>
-                    <td className="border-b border-base-300 px-3 py-2 text-base-content/70">{timeLabel}</td>
+                  <tr key={schedule.id} className="hover:bg-accent transition-colors">
+                    <td className="border-b border-border px-3 py-2 font-medium text-foreground">{schedule.name}</td>
+                    <td className="border-b border-border px-3 py-2 text-muted-foreground">{schedule.scenario_name}</td>
+                    <td className="border-b border-border px-3 py-2 text-muted-foreground">{timeLabel}</td>
                     {days.map((active, i) => (
-                      <td key={i} className="border-b border-base-300 px-2 py-2 text-center">
+                      <td key={i} className="border-b border-border px-2 py-2 text-center">
                         {active ? (
                           <span className="inline-block h-4 w-4 rounded-full bg-primary" />
                         ) : (
-                          <span className="inline-block h-4 w-4 rounded-full bg-base-300" />
+                          <span className="inline-block h-4 w-4 rounded-full bg-muted" />
                         )}
                       </td>
                     ))}
-                    <td className="border-b border-base-300 px-2 py-2">
+                    <td className="border-b border-border px-2 py-2">
                       <div className="flex gap-1">
                         <button
                           onClick={() => { setEditingSchedule(schedule); setShowScheduleModal(true); }}
@@ -362,7 +362,7 @@ export default function Scenarios() {
                         </button>
                         <button
                           onClick={() => setDeleteTarget({ type: "schedule", id: schedule.id, name: schedule.name })}
-                          className="text-xs text-error hover:underline"
+                          className="text-xs text-destructive hover:underline"
                         >
                           {t("common:actions.delete")}
                         </button>
@@ -502,27 +502,27 @@ function ScenarioModal({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-base-content/80">{t("common:labels.name")}</label>
+          <label className="block text-sm font-medium text-foreground/80">{t("common:labels.name")}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-sm shadow-sm focus:border-primary focus:ring-primary"
+            className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-sm shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-base-content/80">{t("common:labels.description")}</label>
+          <label className="block text-sm font-medium text-foreground/80">{t("common:labels.description")}</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-sm shadow-sm focus:border-primary focus:ring-primary"
+            className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-sm shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
         {/* Steps Builder */}
         <div>
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-base-content/80">{t("pages:scenarios.steps")}</label>
+            <label className="block text-sm font-medium text-foreground/80">{t("pages:scenarios.steps")}</label>
             <button
               onClick={addStep}
               className="text-xs font-medium text-primary hover:underline"
@@ -532,12 +532,12 @@ function ScenarioModal({
           </div>
           <div className="mt-2 space-y-2">
             {steps.map((step, idx) => (
-              <div key={idx} className="flex items-center gap-2 rounded-md border border-base-300 bg-base-200 p-2">
-                <span className="text-xs font-bold text-base-content/40">#{idx}</span>
+              <div key={idx} className="flex items-center gap-2 rounded-lg border border-border bg-muted p-2">
+                <span className="text-xs font-bold text-muted-foreground/60">#{idx}</span>
                 <select
                   value={step.actuator}
                   onChange={(e) => updateStep(idx, "actuator", Number(e.target.value))}
-                  className="rounded-md border-base-300 bg-base-100 text-base-content text-xs"
+                  className="rounded-lg border border-input bg-background text-foreground text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {actuators.map((a) => (
                     <option key={a.id} value={a.id}>{a.name}</option>
@@ -546,7 +546,7 @@ function ScenarioModal({
                 <select
                   value={step.action}
                   onChange={(e) => updateStep(idx, "action", e.target.value)}
-                  className="rounded-md border-base-300 bg-base-100 text-base-content text-xs"
+                  className="rounded-lg border border-input bg-background text-foreground text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="ON">ON</option>
                   <option value="OFF">OFF</option>
@@ -556,7 +556,7 @@ function ScenarioModal({
                   type="number"
                   value={step.delay_seconds}
                   onChange={(e) => updateStep(idx, "delay_seconds", Number(e.target.value))}
-                  className="w-16 rounded-md border-base-300 bg-base-100 text-base-content text-xs"
+                  className="w-16 rounded-lg border border-input bg-background text-foreground text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder={t("pages:scenarios.delay")}
                   title={t("pages:scenarios.delaySec")}
                 />
@@ -564,13 +564,13 @@ function ScenarioModal({
                   type="number"
                   value={step.duration_seconds ?? ""}
                   onChange={(e) => updateStep(idx, "duration_seconds", e.target.value ? Number(e.target.value) : null)}
-                  className="w-16 rounded-md border-base-300 bg-base-100 text-base-content text-xs"
+                  className="w-16 rounded-lg border border-input bg-background text-foreground text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder={t("pages:scenarios.duration")}
                   title={t("pages:scenarios.durationSec")}
                 />
                 <button
                   onClick={() => removeStep(idx)}
-                  className="text-error hover:text-error/80"
+                  className="text-destructive hover:text-destructive/80"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -581,14 +581,14 @@ function ScenarioModal({
           </div>
         </div>
 
-        {err && <p className="text-xs text-error">{String(err)}</p>}
+        {err && <p className="text-xs text-destructive">{String(err)}</p>}
 
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-md border border-base-300 px-4 py-2 text-sm text-base-content/80">{t("common:actions.cancel")}</button>
+          <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/80 hover:bg-accent transition-colors">{t("common:actions.cancel")}</button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-focus disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {saving ? <Spinner className="h-4 w-4" /> : t("common:actions.save")}
           </button>
@@ -674,20 +674,20 @@ function ScheduleModal({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-base-content/80">{t("common:labels.name")}</label>
+          <label className="block text-sm font-medium text-foreground/80">{t("common:labels.name")}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-sm shadow-sm focus:border-primary focus:ring-primary"
+            className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-sm shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-base-content/80">{t("pages:scenarios.scenario")}</label>
+          <label className="block text-sm font-medium text-foreground/80">{t("pages:scenarios.scenario")}</label>
           <select
             value={scenarioId}
             onChange={(e) => setScenarioId(Number(e.target.value))}
-            className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-sm shadow-sm"
+            className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-sm shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {scenarios.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
@@ -696,16 +696,16 @@ function ScheduleModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-base-content/80">{t("pages:scenarios.type")}</label>
+          <label className="block text-sm font-medium text-foreground/80">{t("pages:scenarios.type")}</label>
           <div className="mt-1 flex gap-2">
             {(["CRON", "TIME_RANGE"] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setScheduleType(st)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                   scheduleType === st
-                    ? "bg-primary text-white"
-                    : "bg-base-200 text-base-content/80 hover:bg-base-300"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground/80 hover:bg-accent"
                 }`}
               >
                 {st === "CRON" ? "Cron" : t("pages:scenarios.timeRange")}
@@ -717,41 +717,41 @@ function ScheduleModal({
         {scheduleType === "CRON" ? (
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-base-content/60">{t("pages:scenarios.cronMinute")}</label>
-              <input value={cronMinute} onChange={(e) => setCronMinute(e.target.value)} className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-xs" />
+              <label className="block text-xs font-medium text-muted-foreground">{t("pages:scenarios.cronMinute")}</label>
+              <input value={cronMinute} onChange={(e) => setCronMinute(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-base-content/60">{t("pages:scenarios.cronHour")}</label>
-              <input value={cronHour} onChange={(e) => setCronHour(e.target.value)} className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-xs" />
+              <label className="block text-xs font-medium text-muted-foreground">{t("pages:scenarios.cronHour")}</label>
+              <input value={cronHour} onChange={(e) => setCronHour(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-base-content/60">{t("pages:scenarios.cronDow")}</label>
-              <input value={cronDow} onChange={(e) => setCronDow(e.target.value)} className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-xs" />
+              <label className="block text-xs font-medium text-muted-foreground">{t("pages:scenarios.cronDow")}</label>
+              <input value={cronDow} onChange={(e) => setCronDow(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-base-content/60">{t("pages:scenarios.startTime")}</label>
-                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-xs" />
+                <label className="block text-xs font-medium text-muted-foreground">{t("pages:scenarios.startTime")}</label>
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-base-content/60">{t("pages:scenarios.endTime")}</label>
-                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content text-xs" />
+                <label className="block text-xs font-medium text-muted-foreground">{t("pages:scenarios.endTime")}</label>
+                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background text-foreground text-xs px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-base-content/60 mb-1">{t("pages:scenarios.daysOfWeek")}</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">{t("pages:scenarios.daysOfWeek")}</label>
               <div className="flex gap-1">
                 {DAY_NAMES.map((d, i) => (
                   <button
                     key={i}
                     onClick={() => toggleDay(i)}
-                    className={`rounded-md px-2 py-1 text-xs font-medium ${
+                    className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
                       daysOfWeek.includes(i)
-                        ? "bg-primary text-white"
-                        : "bg-base-200 text-base-content/70"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {d}
@@ -762,14 +762,14 @@ function ScheduleModal({
           </div>
         )}
 
-        {err && <p className="text-xs text-error">{err}</p>}
+        {err && <p className="text-xs text-destructive">{err}</p>}
 
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-md border border-base-300 px-4 py-2 text-sm text-base-content/80">{t("common:actions.cancel")}</button>
+          <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/80 hover:bg-accent transition-colors">{t("common:actions.cancel")}</button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-focus disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {saving ? <Spinner className="h-4 w-4" /> : t("common:actions.save")}
           </button>

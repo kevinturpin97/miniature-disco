@@ -49,7 +49,7 @@ type TabKey = "profile" | "resources";
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
-      className={`h-4 w-4 text-base-content/60 transition-transform ${expanded ? "rotate-90" : ""}`}
+      className={`h-4 w-4 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -210,31 +210,31 @@ function ProfileTab() {
   return (
     <div className="space-y-8">
       {/* Profile form */}
-      <div className="rounded-xl border border-base-300 bg-base-100 p-6 shadow-xs">
-        <h2 className="text-lg font-semibold text-base-content">
+      <div className="rounded-xl border border-border bg-card p-6 shadow-xs">
+        <h2 className="text-lg font-semibold text-foreground">
           {tp("settings.profile.title")}
         </h2>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           {tp("settings.profile.subtitle")}
         </p>
 
         <form onSubmit={handleProfileSave} className="mt-6 space-y-4">
           {/* Username (readonly) */}
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.username")}
             </label>
             <input
               type="text"
               value={username}
               readOnly
-              className="mt-1 block w-full rounded-lg border border-base-300 bg-base-200 px-3 py-2 text-sm text-base-content/60 shadow-xs"
+              className="mt-1 block w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground shadow-xs"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.email")}
             </label>
             <input
@@ -242,32 +242,32 @@ function ProfileTab() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm text-base-content shadow-xs focus:border-primary focus:ring-primary bg-base-100"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground shadow-xs focus:border-primary focus:ring-primary bg-card"
             />
           </div>
 
           {/* First name / Last name */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-base-content/80">
+              <label className="block text-sm font-medium text-foreground/80">
                 {t("labels.name")} (first)
               </label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm text-base-content shadow-xs focus:border-primary focus:ring-primary bg-base-100"
+                className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground shadow-xs focus:border-primary focus:ring-primary bg-card"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-base-content/80">
+              <label className="block text-sm font-medium text-foreground/80">
                 {t("labels.name")} (last)
               </label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm text-base-content shadow-xs focus:border-primary focus:ring-primary bg-base-100"
+                className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground shadow-xs focus:border-primary focus:ring-primary bg-card"
               />
             </div>
           </div>
@@ -276,7 +276,7 @@ function ProfileTab() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {saving ? "..." : t("actions.save")}
             </button>
@@ -285,17 +285,17 @@ function ProfileTab() {
       </div>
 
       {/* Password change */}
-      <div className="rounded-xl border border-base-300 bg-base-100 p-6 shadow-xs">
-        <h2 className="text-lg font-semibold text-base-content">
+      <div className="rounded-xl border border-border bg-card p-6 shadow-xs">
+        <h2 className="text-lg font-semibold text-foreground">
           {tp("settings.profile.passwordTitle")}
         </h2>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           {tp("settings.profile.passwordSubtitle")}
         </p>
 
         <form onSubmit={handlePasswordChange} className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.currentPassword")}
             </label>
             <input
@@ -303,11 +303,11 @@ function ProfileTab() {
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm text-base-content shadow-xs focus:border-primary focus:ring-primary bg-base-100"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground shadow-xs focus:border-primary focus:ring-primary bg-card"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.newPassword")}
             </label>
             <input
@@ -315,11 +315,11 @@ function ProfileTab() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm text-base-content shadow-xs focus:border-primary focus:ring-primary bg-base-100"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground shadow-xs focus:border-primary focus:ring-primary bg-card"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.confirmNewPassword")}
             </label>
             <input
@@ -327,7 +327,7 @@ function ProfileTab() {
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm text-base-content shadow-xs focus:border-primary focus:ring-primary bg-base-100"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground shadow-xs focus:border-primary focus:ring-primary bg-card"
             />
           </div>
 
@@ -335,7 +335,7 @@ function ProfileTab() {
             <button
               type="submit"
               disabled={changingPw}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {changingPw ? "..." : t("actions.save")}
             </button>
@@ -488,7 +488,7 @@ function ResourcesTab() {
           }),
         );
       } catch {
-        /* silently fail — user can toggle again */
+        /* silently fail -- user can toggle again */
       }
     },
     [],
@@ -822,16 +822,16 @@ function ResourcesTab() {
         {/* Header row */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-base-content">
+            <h2 className="text-lg font-semibold text-foreground">
               {tp("settings.resources.title")}
             </h2>
-            <p className="mt-1 text-sm text-base-content/60">
+            <p className="mt-1 text-sm text-muted-foreground">
               {tp("settings.resources.subtitle")}
             </p>
           </div>
           <button
             onClick={() => setGhModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-xs hover:bg-primary/80"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90 transition-colors"
           >
             <PlusIcon />
             {t("labels.greenhouse")}
@@ -845,7 +845,7 @@ function ResourcesTab() {
             return (
               <div
                 key={gh.id}
-                className="overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-xs"
+                className="overflow-hidden rounded-xl border border-border bg-card shadow-xs"
               >
                 {/* Greenhouse row */}
                 <div className="flex items-center gap-3 px-4 py-3">
@@ -855,11 +855,11 @@ function ResourcesTab() {
                   >
                     <ChevronIcon expanded={ghOpen} />
                     <div>
-                      <span className="text-sm font-semibold text-base-content">
+                      <span className="text-sm font-semibold text-foreground">
                         {gh.name}
                       </span>
                       {gh.location && (
-                        <span className="ml-2 text-xs text-base-content/60">
+                        <span className="ml-2 text-xs text-muted-foreground">
                           {gh.location}
                         </span>
                       )}
@@ -867,7 +867,7 @@ function ResourcesTab() {
                   </button>
                   <button
                     onClick={() => handleDeleteGh(gh)}
-                    className="rounded-md p-1.5 text-base-content/40 hover:bg-error/10 hover:text-error"
+                    className="rounded-md p-1.5 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
                     title={t("actions.delete")}
                   >
                     <TrashIcon />
@@ -876,7 +876,7 @@ function ResourcesTab() {
 
                 {/* Zones */}
                 {ghOpen && (
-                  <div className="border-t border-base-300 bg-base-200 px-4 py-3">
+                  <div className="border-t border-border bg-secondary px-4 py-3">
                     {!ghLoaded ? (
                       <div className="flex justify-center py-4">
                         <Spinner className="h-5 w-5" />
@@ -894,7 +894,7 @@ function ResourcesTab() {
                             return (
                               <div
                                 key={zone.id}
-                                className="overflow-hidden rounded-lg border border-base-300 bg-base-100"
+                                className="overflow-hidden rounded-lg border border-border bg-card"
                               >
                                 {/* Zone row */}
                                 <div className="flex items-center gap-3 px-4 py-2.5">
@@ -904,17 +904,17 @@ function ResourcesTab() {
                                   >
                                     <ChevronIcon expanded={zOpen} />
                                     <div>
-                                      <span className="text-sm font-medium text-base-content">
+                                      <span className="text-sm font-medium text-foreground">
                                         {zone.name}
                                       </span>
-                                      <span className="ml-2 text-xs text-base-content/60">
+                                      <span className="ml-2 text-xs text-muted-foreground">
                                         Relay #{zone.relay_id}
                                       </span>
                                     </div>
                                   </button>
                                   <button
                                     onClick={() => handleDeleteZone(zone)}
-                                    className="rounded-md p-1.5 text-base-content/40 hover:bg-error/10 hover:text-error"
+                                    className="rounded-md p-1.5 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
                                     title={t("actions.delete")}
                                   >
                                     <TrashIcon />
@@ -923,7 +923,7 @@ function ResourcesTab() {
 
                                 {/* Sensors + Actuators */}
                                 {zOpen && (
-                                  <div className="border-t border-base-300 bg-base-200 px-4 py-3 space-y-4">
+                                  <div className="border-t border-border bg-secondary px-4 py-3 space-y-4">
                                     {!zoneLoaded ? (
                                       <div className="flex justify-center py-4">
                                         <Spinner className="h-5 w-5" />
@@ -933,7 +933,7 @@ function ResourcesTab() {
                                         {/* Sensors */}
                                         <div>
                                           <div className="flex items-center justify-between mb-2">
-                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-base-content/60">
+                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                               {t("labels.sensor")}s
                                             </h4>
                                             <button
@@ -949,7 +949,7 @@ function ResourcesTab() {
                                             </button>
                                           </div>
                                           {sensors.length === 0 ? (
-                                            <p className="text-xs text-base-content/40 italic">
+                                            <p className="text-xs text-muted-foreground/60 italic">
                                               {tp(
                                                 "settings.resources.noSensors",
                                               )}
@@ -959,21 +959,21 @@ function ResourcesTab() {
                                               {sensors.map((s) => (
                                                 <li
                                                   key={s.id}
-                                                  className="flex items-center justify-between rounded-md bg-base-100 px-3 py-2 text-sm border border-base-300"
+                                                  className="flex items-center justify-between rounded-md bg-card px-3 py-2 text-sm border border-border"
                                                 >
                                                   <div>
-                                                    <span className="font-medium text-base-content">
+                                                    <span className="font-medium text-foreground">
                                                       {SENSOR_TYPE_LABELS[
                                                         s.sensor_type
                                                       ] ?? s.sensor_type}
                                                     </span>
                                                     {s.unit && (
-                                                      <span className="ml-1.5 text-xs text-base-content/60">
+                                                      <span className="ml-1.5 text-xs text-muted-foreground">
                                                         ({s.unit})
                                                       </span>
                                                     )}
                                                     {s.label && (
-                                                      <span className="ml-2 text-xs text-base-content/40">
+                                                      <span className="ml-2 text-xs text-muted-foreground/60">
                                                         - {s.label}
                                                       </span>
                                                     )}
@@ -982,7 +982,7 @@ function ResourcesTab() {
                                                     onClick={() =>
                                                       handleDeleteSensor(s)
                                                     }
-                                                    className="rounded-md p-1 text-base-content/40 hover:bg-error/10 hover:text-error"
+                                                    className="rounded-md p-1 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
                                                     title={t("actions.delete")}
                                                   >
                                                     <TrashIcon />
@@ -996,7 +996,7 @@ function ResourcesTab() {
                                         {/* Actuators */}
                                         <div>
                                           <div className="flex items-center justify-between mb-2">
-                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-base-content/60">
+                                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                               {t("labels.actuator")}s
                                             </h4>
                                             <button
@@ -1012,7 +1012,7 @@ function ResourcesTab() {
                                             </button>
                                           </div>
                                           {actuators.length === 0 ? (
-                                            <p className="text-xs text-base-content/40 italic">
+                                            <p className="text-xs text-muted-foreground/60 italic">
                                               {tp(
                                                 "settings.resources.noActuators",
                                               )}
@@ -1022,19 +1022,19 @@ function ResourcesTab() {
                                               {actuators.map((a) => (
                                                 <li
                                                   key={a.id}
-                                                  className="flex items-center justify-between rounded-md bg-base-100 px-3 py-2 text-sm border border-base-300"
+                                                  className="flex items-center justify-between rounded-md bg-card px-3 py-2 text-sm border border-border"
                                                 >
                                                   <div>
-                                                    <span className="font-medium text-base-content">
+                                                    <span className="font-medium text-foreground">
                                                       {a.name}
                                                     </span>
-                                                    <span className="ml-2 text-xs text-base-content/60">
+                                                    <span className="ml-2 text-xs text-muted-foreground">
                                                       {ACTUATOR_TYPE_LABELS[
                                                         a.actuator_type
                                                       ] ?? a.actuator_type}
                                                     </span>
                                                     {a.gpio_pin !== null && (
-                                                      <span className="ml-1.5 text-xs text-base-content/40">
+                                                      <span className="ml-1.5 text-xs text-muted-foreground/60">
                                                         (GPIO {a.gpio_pin})
                                                       </span>
                                                     )}
@@ -1043,7 +1043,7 @@ function ResourcesTab() {
                                                     onClick={() =>
                                                       handleDeleteActuator(a)
                                                     }
-                                                    className="rounded-md p-1 text-base-content/40 hover:bg-error/10 hover:text-error"
+                                                    className="rounded-md p-1 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
                                                     title={t("actions.delete")}
                                                   >
                                                     <TrashIcon />
@@ -1065,7 +1065,7 @@ function ResourcesTab() {
                         {/* Add zone button */}
                         <button
                           onClick={() => openCreateZone(gh.id)}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-base-300 px-3 py-2 text-sm font-medium text-base-content/70 hover:border-primary hover:text-primary"
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary"
                         >
                           <PlusIcon />
                           {t("labels.zone")}
@@ -1079,8 +1079,8 @@ function ResourcesTab() {
           })}
 
           {greenhouses.length === 0 && (
-            <div className="rounded-xl border border-base-300 bg-base-100 p-12 text-center">
-              <p className="text-sm text-base-content/60">
+            <div className="rounded-xl border border-border bg-card p-12 text-center">
+              <p className="text-sm text-muted-foreground">
                 No greenhouses yet. Create one to get started.
               </p>
             </div>
@@ -1098,7 +1098,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateGh} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.name")}
             </label>
             <input
@@ -1106,43 +1106,43 @@ function ResourcesTab() {
               value={ghName}
               onChange={(e) => setGhName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.location")}
             </label>
             <input
               type="text"
               value={ghLocation}
               onChange={(e) => setGhLocation(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.description")}
             </label>
             <textarea
               value={ghDescription}
               onChange={(e) => setGhDescription(e.target.value)}
               rows={2}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setGhModalOpen(false)}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={ghSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {ghSaving ? "..." : t("actions.add")}
             </button>
@@ -1158,7 +1158,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateZone} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.name")}
             </label>
             <input
@@ -1166,11 +1166,11 @@ function ResourcesTab() {
               value={zoneName}
               onChange={(e) => setZoneName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.relayId")}
             </label>
             <input
@@ -1180,22 +1180,22 @@ function ResourcesTab() {
               value={zoneRelayId}
               onChange={(e) => setZoneRelayId(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.description")}
             </label>
             <textarea
               value={zoneDescription}
               onChange={(e) => setZoneDescription(e.target.value)}
               rows={2}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.transmissionInterval")}
             </label>
             <input
@@ -1203,21 +1203,21 @@ function ResourcesTab() {
               min={10}
               value={zoneInterval}
               onChange={(e) => setZoneInterval(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setZoneModalOpen(false)}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={zoneSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {zoneSaving ? "..." : t("actions.add")}
             </button>
@@ -1233,7 +1233,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateSensor} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.sensorType")}
             </label>
             <select
@@ -1241,7 +1241,7 @@ function ResourcesTab() {
               onChange={(e) =>
                 handleSensorTypeChange(e.target.value as SensorType)
               }
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             >
               {ALL_SENSOR_TYPES.map((st) => (
                 <option key={st} value={st}>
@@ -1251,19 +1251,19 @@ function ResourcesTab() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.unit")}
             </label>
             <input
               type="text"
               value={sensorUnit}
               onChange={(e) => setSensorUnit(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-base-300 bg-base-200 px-3 py-2 text-sm text-base-content/60 shadow-xs"
+              className="mt-1 block w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground shadow-xs"
               readOnly
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               Label
             </label>
             <input
@@ -1271,12 +1271,12 @@ function ResourcesTab() {
               value={sensorLabel}
               onChange={(e) => setSensorLabel(e.target.value)}
               placeholder="Optional label"
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-base-content/80">
+              <label className="block text-sm font-medium text-foreground/80">
                 {t("labels.minThreshold")}
               </label>
               <input
@@ -1284,11 +1284,11 @@ function ResourcesTab() {
                 step="any"
                 value={sensorMin}
                 onChange={(e) => setSensorMin(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+                className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-base-content/80">
+              <label className="block text-sm font-medium text-foreground/80">
                 {t("labels.maxThreshold")}
               </label>
               <input
@@ -1296,7 +1296,7 @@ function ResourcesTab() {
                 step="any"
                 value={sensorMax}
                 onChange={(e) => setSensorMax(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+                className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
               />
             </div>
           </div>
@@ -1304,14 +1304,14 @@ function ResourcesTab() {
             <button
               type="button"
               onClick={() => setSensorModalOpen(false)}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={sensorSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {sensorSaving ? "..." : t("actions.add")}
             </button>
@@ -1327,7 +1327,7 @@ function ResourcesTab() {
       >
         <form onSubmit={handleCreateActuator} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.actuatorType")}
             </label>
             <select
@@ -1335,7 +1335,7 @@ function ResourcesTab() {
               onChange={(e) =>
                 setActuatorType(e.target.value as ActuatorType)
               }
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             >
               {ALL_ACTUATOR_TYPES.map((at) => (
                 <option key={at} value={at}>
@@ -1345,7 +1345,7 @@ function ResourcesTab() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.name")}
             </label>
             <input
@@ -1353,11 +1353,11 @@ function ResourcesTab() {
               value={actuatorName}
               onChange={(e) => setActuatorName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.gpioPin")}
             </label>
             <input
@@ -1366,21 +1366,21 @@ function ResourcesTab() {
               value={actuatorGpio}
               onChange={(e) => setActuatorGpio(e.target.value)}
               placeholder="Optional"
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-primary bg-card text-foreground"
             />
           </div>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setActuatorModalOpen(false)}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={actuatorSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {actuatorSaving ? "..." : t("actions.add")}
             </button>
@@ -1422,13 +1422,13 @@ export default function Settings() {
     <div className="space-y-6">
       {/* Page title */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">
+        <h1 className="text-2xl font-bold text-foreground">
           {tp("settings.title")}
         </h1>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-base-300">
+      <div className="border-b border-border">
         <nav className="-mb-px flex gap-6" aria-label="Tabs">
           {tabs.map((tab) => (
             <button
@@ -1437,7 +1437,7 @@ export default function Settings() {
               className={`whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === tab.key
                   ? "border-primary text-primary"
-                  : "border-transparent text-base-content/60 hover:border-base-300 hover:text-base-content/80"
+                  : "border-transparent text-muted-foreground hover:border-border hover:text-foreground/80"
               }`}
             >
               {tab.label}

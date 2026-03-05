@@ -846,16 +846,16 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 21 — API Publique & Developer Platform
 **Objectif : permettre à des tiers de s'intégrer à la plateforme**
 
-- [ ] Modèle `APIKey` : clé longue durée par organisation (scope : read / write / admin)
-- [ ] Authentification par API Key (header `X-API-Key`) en parallèle du JWT
-- [ ] Rate limiting par clé (configurable par plan)
-- [ ] Versioning API : préfixe `/api/v1/` + header `API-Version`
-- [ ] Documentation OpenAPI auto-générée (drf-spectacular) + UI Swagger/Redoc
-- [ ] SDK Python client auto-généré (openapi-generator) + publié sur PyPI
-- [ ] Webhooks configurables (événements : new_reading, alert_created, command_ack)
-- [ ] Sandbox de test : org dédiée avec données simulées
-- [ ] Frontend : page "Developer" avec gestion des API Keys + logs d'appels
-- [ ] Tests : auth par clé, scopes, rate limiting, webhook delivery
+- [x] Modèle `APIKey` : clé longue durée par organisation (scope : read / write / admin)
+- [x] Authentification par API Key (header `X-API-Key`) en parallèle du JWT
+- [x] Rate limiting par clé (configurable par plan)
+- [x] Versioning API : préfixe `/api/v1/` + header `API-Version`
+- [x] Documentation OpenAPI auto-générée (drf-spectacular) + UI Swagger/Redoc
+- [x] SDK Python client auto-généré (openapi-generator) + publié sur PyPI
+- [x] Webhooks configurables (événements : new_reading, alert_created, command_ack)
+- [x] Sandbox de test : org dédiée avec données simulées
+- [x] Frontend : page "Developer" avec gestion des API Keys + logs d'appels
+- [x] Tests : auth par clé, scopes, rate limiting, webhook delivery
 
 ---
 

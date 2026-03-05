@@ -261,7 +261,7 @@ export default function ZoneDetail() {
 
   if (!zone) {
     return (
-      <div className="rounded-lg bg-error/10 p-4 text-sm text-error">
+      <div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
         Zone not found.
       </div>
     );
@@ -272,13 +272,13 @@ export default function ZoneDetail() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-sm text-base-content/60">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link to="/" className="hover:text-primary">{t("nav.dashboard")}</Link>
             <span>/</span>
             <span>{zone.name}</span>
           </div>
-          <h1 className="mt-1 text-2xl font-bold text-base-content">{zone.name}</h1>
-          <div className="mt-1 flex items-center gap-3 text-sm text-base-content/60">
+          <h1 className="mt-1 text-2xl font-bold text-foreground">{zone.name}</h1>
+          <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
             <span>Relay #{zone.relay_id}</span>
             <StatusBadge online={zone.is_online} />
             {isConnected && (
@@ -289,7 +289,7 @@ export default function ZoneDetail() {
             )}
           </div>
           {zone.last_seen && (
-            <p className="mt-0.5 text-xs text-base-content/40">
+            <p className="mt-0.5 text-xs text-muted-foreground/60">
               Last seen {formatRelativeTime(zone.last_seen)}
             </p>
           )}
@@ -297,7 +297,7 @@ export default function ZoneDetail() {
         <button
           onClick={handleExportCsv}
           disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-lg border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content/80 shadow-sm transition-colors hover:bg-base-200 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm transition-colors hover:bg-accent disabled:opacity-50"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -308,15 +308,15 @@ export default function ZoneDetail() {
 
       {/* Period Selector */}
       <div className="flex flex-wrap items-end gap-4">
-        <div className="flex gap-1 rounded-lg border border-base-300 bg-base-100 p-1">
+        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
           {PERIOD_VALUES.map((val) => (
             <button
               key={val}
               onClick={() => setPeriod(val)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 period === val
-                  ? "bg-primary text-white"
-                  : "text-base-content/70 hover:bg-base-200"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               }`}
             >
               {tp(`zoneDetail.periods.${val}`)}
@@ -329,14 +329,14 @@ export default function ZoneDetail() {
               type="datetime-local"
               value={customFrom ? customFrom.slice(0, 16) : ""}
               onChange={(e) => setCustomFrom(e.target.value ? new Date(e.target.value).toISOString() : "")}
-              className="rounded-lg border border-base-300 bg-base-100 text-base-content px-3 py-1.5 text-sm"
+              className="rounded-lg border border-border bg-card text-foreground px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <span className="text-sm text-base-content/40">to</span>
+            <span className="text-sm text-muted-foreground/60">to</span>
             <input
               type="datetime-local"
               value={customTo ? customTo.slice(0, 16) : ""}
               onChange={(e) => setCustomTo(e.target.value ? new Date(e.target.value).toISOString() : "")}
-              className="rounded-lg border border-base-300 bg-base-100 text-base-content px-3 py-1.5 text-sm"
+              className="rounded-lg border border-border bg-card text-foreground px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         )}
@@ -344,8 +344,8 @@ export default function ZoneDetail() {
 
       {/* Combined Chart */}
       {sensors.length > 0 && chartData.length > 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-base-content">{tp("zoneDetail.sensorHistory")}</h2>
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">{tp("zoneDetail.sensorHistory")}</h2>
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -368,7 +368,7 @@ export default function ZoneDetail() {
           </ResponsiveContainer>
         </div>
       ) : sensors.length > 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-8 text-center text-sm text-base-content/40">
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
           {tp("zoneDetail.noReadings")}
         </div>
       ) : null}
@@ -384,15 +384,15 @@ export default function ZoneDetail() {
               .map((d) => ({ time: d.time, value: d[sensorLabel] }));
 
             return (
-              <div key={sensor.id} className="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
+              <div key={sensor.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-base-content">{sensorLabel}</h3>
+                    <h3 className="font-medium text-foreground">{sensorLabel}</h3>
                     {anomalies && anomalies.anomalies.length > 0 && (
                       <AnomalyBadge anomalies={anomalies.anomalies} sensorId={sensor.id} />
                     )}
                   </div>
-                  <span className="text-sm text-base-content/60">{unit}</span>
+                  <span className="text-sm text-muted-foreground">{unit}</span>
                 </div>
                 {sensorChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={200}>
@@ -411,7 +411,7 @@ export default function ZoneDetail() {
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="py-8 text-center text-xs text-base-content/40">No data</p>
+                  <p className="py-8 text-center text-xs text-muted-foreground/60">No data</p>
                 )}
               </div>
             );
@@ -431,7 +431,7 @@ export default function ZoneDetail() {
       {/* AI Prediction Charts */}
       {predictions && predictions.sensors.length > 0 && (
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-base-content">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">
             {tp("predictions.title")}
             <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">AI</span>
           </h2>
@@ -454,21 +454,21 @@ export default function ZoneDetail() {
       )}
 
       {/* Latest Readings Table */}
-      <div className="rounded-xl border border-base-300 bg-base-100 shadow-sm">
-        <div className="border-b border-base-300 px-4 py-3">
-          <h2 className="text-lg font-semibold text-base-content">{tp("zoneDetail.latestReadings")}</h2>
+      <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border px-4 py-3">
+          <h2 className="text-lg font-semibold text-foreground">{tp("zoneDetail.latestReadings")}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-base-300 bg-base-200 text-left text-xs font-medium uppercase tracking-wider text-base-content/60">
+              <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3">{t("labels.sensor")}</th>
                 <th className="px-4 py-3">{t("labels.value")}</th>
                 <th className="px-4 py-3">{t("labels.thresholds")}</th>
                 <th className="px-4 py-3">{t("labels.lastUpdated")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-base-300">
+            <tbody className="divide-y divide-border">
               {sensors.map((sensor) => {
                 const live = latestReadings[sensor.id];
                 const history = readings[sensor.id];
@@ -492,9 +492,9 @@ export default function ZoneDetail() {
                     (sensor.max_threshold !== null && lastValue > sensor.max_threshold));
 
                 return (
-                  <tr key={sensor.id} className="hover:bg-base-200">
-                    <td className="px-4 py-3 font-medium text-base-content">{label}</td>
-                    <td className={`px-4 py-3 font-semibold ${isOutOfRange ? "text-error" : "text-base-content"}`}>
+                  <tr key={sensor.id} className="hover:bg-accent">
+                    <td className="px-4 py-3 font-medium text-foreground">{label}</td>
+                    <td className={`px-4 py-3 font-semibold ${isOutOfRange ? "text-destructive" : "text-foreground"}`}>
                       <div className="flex items-center gap-2">
                         <span>{lastValue != null ? formatSensorValue(lastValue, unit) : "--"}</span>
                         {anomalies && anomalies.anomalies.length > 0 && (
@@ -502,7 +502,7 @@ export default function ZoneDetail() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-base-content/60">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {sensor.min_threshold !== null || sensor.max_threshold !== null ? (
                         <>
                           {sensor.min_threshold !== null ? `${sensor.min_threshold}` : "--"}
@@ -511,10 +511,10 @@ export default function ZoneDetail() {
                           {unit ? ` ${unit}` : ""}
                         </>
                       ) : (
-                        <span className="text-base-content/30">{tp("zoneDetail.notSet")}</span>
+                        <span className="text-muted-foreground/60">{tp("zoneDetail.notSet")}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-base-content/60">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {lastTime ? formatDate(lastTime) : "--"}
                     </td>
                   </tr>
@@ -522,7 +522,7 @@ export default function ZoneDetail() {
               })}
               {sensors.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-base-content/40">
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground/60">
                     {tp("zoneDetail.noSensorsConfigured")}
                   </td>
                 </tr>
@@ -534,12 +534,12 @@ export default function ZoneDetail() {
 
       {/* Threshold Configuration */}
       {sensors.length > 0 && (
-        <div className="rounded-xl border border-base-300 bg-base-100 shadow-sm">
-          <div className="border-b border-base-300 px-4 py-3">
-            <h2 className="text-lg font-semibold text-base-content">{tp("zoneDetail.alertThresholds")}</h2>
-            <p className="text-xs text-base-content/60">{tp("zoneDetail.alertThresholdsHint")}</p>
+        <div className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-lg font-semibold text-foreground">{tp("zoneDetail.alertThresholds")}</h2>
+            <p className="text-xs text-muted-foreground">{tp("zoneDetail.alertThresholdsHint")}</p>
           </div>
-          <div className="divide-y divide-base-300">
+          <div className="divide-y divide-border">
             {sensors.map((sensor) => {
               const label = SENSOR_TYPE_LABELS[sensor.sensor_type] ?? sensor.sensor_type;
               const unit = SENSOR_TYPE_UNITS[sensor.sensor_type] ?? sensor.unit;
@@ -548,63 +548,63 @@ export default function ZoneDetail() {
               return (
                 <div key={sensor.id} className="flex flex-wrap items-center gap-4 px-4 py-3">
                   <div className="w-32 flex-shrink-0">
-                    <p className="text-sm font-medium text-base-content">{label}</p>
-                    {unit && <p className="text-xs text-base-content/60">{unit}</p>}
+                    <p className="text-sm font-medium text-foreground">{label}</p>
+                    {unit && <p className="text-xs text-muted-foreground">{unit}</p>}
                   </div>
 
                   {isEditing ? (
                     <>
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-base-content/60">{t("labels.minThreshold")}:</label>
+                        <label className="text-xs text-muted-foreground">{t("labels.minThreshold")}:</label>
                         <input
                           type="number"
                           step="any"
                           value={thresholdForm.min}
                           onChange={(e) => setThresholdForm((f) => ({ ...f, min: e.target.value }))}
-                          className="w-24 rounded-md border border-base-300 bg-base-100 text-base-content px-2 py-1 text-sm"
+                          className="w-24 rounded-md border border-border bg-card text-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                           placeholder="--"
                         />
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-base-content/60">{t("labels.maxThreshold")}:</label>
+                        <label className="text-xs text-muted-foreground">{t("labels.maxThreshold")}:</label>
                         <input
                           type="number"
                           step="any"
                           value={thresholdForm.max}
                           onChange={(e) => setThresholdForm((f) => ({ ...f, max: e.target.value }))}
-                          className="w-24 rounded-md border border-base-300 bg-base-100 text-base-content px-2 py-1 text-sm"
+                          className="w-24 rounded-md border border-border bg-card text-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                           placeholder="--"
                         />
                       </div>
                       <button
                         onClick={saveThresholds}
                         disabled={savingThresholds}
-                        className="rounded-md bg-primary px-3 py-1 text-sm font-medium text-white hover:bg-primary-focus disabled:opacity-50"
+                        className="rounded-md bg-primary px-3 py-1 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                       >
                         {savingThresholds ? "..." : t("actions.save")}
                       </button>
                       <button
                         onClick={() => setEditingThresholds(null)}
-                        className="rounded-md border border-base-300 px-3 py-1 text-sm font-medium text-base-content/70 hover:bg-base-200"
+                        className="rounded-md border border-border px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors"
                       >
                         {t("actions.cancel")}
                       </button>
                     </>
                   ) : (
                     <>
-                      <span className="text-sm text-base-content/60">
+                      <span className="text-sm text-muted-foreground">
                         {sensor.min_threshold !== null || sensor.max_threshold !== null ? (
                           <>
                             {sensor.min_threshold ?? "--"} — {sensor.max_threshold ?? "--"}
                             {unit ? ` ${unit}` : ""}
                           </>
                         ) : (
-                          <span className="text-base-content/40">{tp("zoneDetail.notConfigured")}</span>
+                          <span className="text-muted-foreground/60">{tp("zoneDetail.notConfigured")}</span>
                         )}
                       </span>
                       <button
                         onClick={() => startEditingThresholds(sensor)}
-                        className="rounded-md border border-base-300 px-3 py-1 text-sm font-medium text-base-content/70 hover:bg-base-200"
+                        className="rounded-md border border-border px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors"
                       >
                         {t("actions.edit")}
                       </button>
@@ -618,30 +618,30 @@ export default function ZoneDetail() {
       )}
 
       {/* Actuators */}
-      <div className="rounded-xl border border-base-300 bg-base-100 shadow-sm">
-        <div className="border-b border-base-300 px-4 py-3">
-          <h2 className="text-lg font-semibold text-base-content">{tp("zoneDetail.actuators")}</h2>
+      <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border px-4 py-3">
+          <h2 className="text-lg font-semibold text-foreground">{tp("zoneDetail.actuators")}</h2>
         </div>
         {actuators.length > 0 ? (
-          <div className="divide-y divide-base-300">
+          <div className="divide-y divide-border">
             {actuators.map((actuator) => {
               const label = ACTUATOR_TYPE_LABELS[actuator.actuator_type] ?? actuator.actuator_type;
               return (
                 <div key={actuator.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <p className="font-medium text-base-content">{actuator.name}</p>
-                    <p className="text-xs text-base-content/60">{label}</p>
+                    <p className="font-medium text-foreground">{actuator.name}</p>
+                    <p className="text-xs text-muted-foreground">{label}</p>
                   </div>
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                       actuator.state
                         ? "bg-success/10 text-success"
-                        : "bg-base-200 text-base-content/70"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     <span
                       className={`inline-block h-1.5 w-1.5 rounded-full ${
-                        actuator.state ? "bg-success" : "bg-base-content/30"
+                        actuator.state ? "bg-success" : "bg-muted-foreground/30"
                       }`}
                     />
                     {actuator.state ? t("status.on") : t("status.off")}
@@ -651,7 +651,7 @@ export default function ZoneDetail() {
             })}
           </div>
         ) : (
-          <p className="px-4 py-8 text-center text-sm text-base-content/40">
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">
             {tp("zoneDetail.noActuators")}
           </p>
         )}

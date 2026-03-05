@@ -67,3 +67,5 @@ redis-data/
 
 # SSL certificates (generated, not committed)
 nginx/ssl/
+
+template_dashboard/

@@ -291,16 +291,16 @@ export default function Dashboard() {
       {/* ---------- header ---------- */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-base-content">
+          <h1 className="text-2xl font-bold text-foreground">
             {tp("dashboard.title")}
           </h1>
-          <p className="mt-1 text-sm text-base-content/60">
+          <p className="mt-1 text-sm text-muted-foreground">
             {tp("dashboard.subtitle")}
           </p>
         </div>
         <button
           onClick={openCreateGreenhouse}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-focus"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
         >
           <PlusIcon />
           {tp("dashboard.addGreenhouse")}
@@ -311,7 +311,7 @@ export default function Dashboard() {
       {data.length === 0 && (
         <div className="text-center py-12">
           <svg
-            className="mx-auto h-12 w-12 text-base-content/30"
+            className="mx-auto h-12 w-12 text-muted-foreground/60"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -323,10 +323,10 @@ export default function Dashboard() {
               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
             />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-base-content">
+          <h3 className="mt-4 text-lg font-medium text-foreground">
             {tp("dashboard.noGreenhouses")}
           </h3>
-          <p className="mt-1 text-sm text-base-content/60">
+          <p className="mt-1 text-sm text-muted-foreground">
             {tp("dashboard.noGreenhousesHint")}
           </p>
         </div>
@@ -338,23 +338,23 @@ export default function Dashboard() {
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-base-content">{gh.name}</h2>
+                <h2 className="text-lg font-semibold text-foreground">{gh.name}</h2>
                 {gh.location && (
-                  <p className="text-sm text-base-content/60">{gh.location}</p>
+                  <p className="text-sm text-muted-foreground">{gh.location}</p>
                 )}
               </div>
               {/* greenhouse edit / delete buttons */}
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => openEditGreenhouse(gh)}
-                  className="rounded-md p-1 text-base-content/40 hover:bg-base-200 hover:text-base-content/70"
+                  className="rounded-md p-1 text-muted-foreground/60 hover:bg-accent hover:text-foreground/70 transition-colors"
                   aria-label={t("actions.edit")}
                 >
                   <PencilIcon />
                 </button>
                 <button
                   onClick={() => setDeleteTarget({ kind: "greenhouse", id: gh.id })}
-                  className="rounded-md p-1 text-base-content/40 hover:bg-error/10 hover:text-error"
+                  className="rounded-md p-1 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive transition-colors"
                   aria-label={t("actions.delete")}
                 >
                   <TrashIcon />
@@ -368,7 +368,7 @@ export default function Dashboard() {
               </span>
               <button
                 onClick={() => openCreateZone(gh.id)}
-                className="inline-flex items-center gap-1 rounded-lg border border-primary/30 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+                className="inline-flex items-center gap-1 rounded-lg border border-primary/30 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
               >
                 <PlusIcon className="h-3.5 w-3.5" />
                 {tp("dashboard.addZone")}
@@ -377,7 +377,7 @@ export default function Dashboard() {
           </div>
 
           {gh.zones.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-base-300 p-6 text-center text-sm text-base-content/40">
+            <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground/60">
               {tp("dashboard.noZones")}
             </p>
           ) : (
@@ -403,41 +403,41 @@ export default function Dashboard() {
       >
         <form onSubmit={handleGhSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.name")} *
             </label>
             <input
               type="text"
               value={ghForm.name}
               onChange={(e) => setGhForm({ ...ghForm, name: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {ghErrors.name && (
-              <p className="mt-1 text-xs text-error">{ghErrors.name}</p>
+              <p className="mt-1 text-xs text-destructive">{ghErrors.name}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.location")}
             </label>
             <input
               type="text"
               value={ghForm.location ?? ""}
               onChange={(e) => setGhForm({ ...ghForm, location: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.description")}
             </label>
             <textarea
               rows={3}
               value={ghForm.description ?? ""}
               onChange={(e) => setGhForm({ ...ghForm, description: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
@@ -446,14 +446,14 @@ export default function Dashboard() {
               type="button"
               onClick={closeGhModal}
               disabled={ghSaving}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200 disabled:opacity-50"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent disabled:opacity-50 transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={ghSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-focus disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {ghSaving ? "..." : t("actions.save")}
             </button>
@@ -469,22 +469,22 @@ export default function Dashboard() {
       >
         <form onSubmit={handleZoneSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.name")} *
             </label>
             <input
               type="text"
               value={zoneForm.name}
               onChange={(e) => setZoneForm({ ...zoneForm, name: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {zoneErrors.name && (
-              <p className="mt-1 text-xs text-error">{zoneErrors.name}</p>
+              <p className="mt-1 text-xs text-destructive">{zoneErrors.name}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.relayId")} *
             </label>
             <input
@@ -494,27 +494,27 @@ export default function Dashboard() {
               value={zoneForm.relay_id}
               onChange={(e) => setZoneForm({ ...zoneForm, relay_id: Number(e.target.value) })}
               disabled={!!zoneEditing}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content disabled:bg-base-200 disabled:text-base-content/50"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:bg-secondary disabled:text-muted-foreground"
             />
             {zoneErrors.relay_id && (
-              <p className="mt-1 text-xs text-error">{zoneErrors.relay_id}</p>
+              <p className="mt-1 text-xs text-destructive">{zoneErrors.relay_id}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.description")}
             </label>
             <textarea
               rows={3}
               value={zoneForm.description ?? ""}
               onChange={(e) => setZoneForm({ ...zoneForm, description: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-base-content/80">
+            <label className="block text-sm font-medium text-foreground/80">
               {t("labels.transmissionInterval")}
             </label>
             <input
@@ -522,10 +522,10 @@ export default function Dashboard() {
               min={1}
               value={zoneForm.transmission_interval}
               onChange={(e) => setZoneForm({ ...zoneForm, transmission_interval: Number(e.target.value) })}
-              className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary bg-base-100 text-base-content"
+              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {zoneErrors.transmission_interval && (
-              <p className="mt-1 text-xs text-error">{zoneErrors.transmission_interval}</p>
+              <p className="mt-1 text-xs text-destructive">{zoneErrors.transmission_interval}</p>
             )}
           </div>
 
@@ -534,14 +534,14 @@ export default function Dashboard() {
               type="button"
               onClick={closeZoneModal}
               disabled={zoneSaving}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200 disabled:opacity-50"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent disabled:opacity-50 transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={zoneSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-focus disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {zoneSaving ? "..." : t("actions.save")}
             </button>
@@ -588,11 +588,11 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
     >
     <Link
       to={`/zones/${zone.id}`}
-      className="block rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm transition-shadow hover:shadow-md"
+      className="block rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-base-content">{zone.name}</h3>
+          <h3 className="font-semibold text-foreground">{zone.name}</h3>
           {/* edit / delete buttons */}
           <button
             onClick={(e) => {
@@ -600,7 +600,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
               e.stopPropagation();
               onEdit();
             }}
-            className="rounded-md p-1 text-base-content/40 hover:bg-base-200 hover:text-base-content/70"
+            className="rounded-md p-1 text-muted-foreground/60 hover:bg-accent hover:text-foreground/70 transition-colors"
             aria-label={t("actions.edit")}
           >
             <PencilIcon className="h-3.5 w-3.5" />
@@ -611,7 +611,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
               e.stopPropagation();
               onDelete();
             }}
-            className="rounded-md p-1 text-base-content/40 hover:bg-error/10 hover:text-error"
+            className="rounded-md p-1 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive transition-colors"
             aria-label={t("actions.delete")}
           >
             <TrashIcon className="h-3.5 w-3.5" />
@@ -620,7 +620,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
         <StatusBadge online={zone.is_online} />
       </div>
 
-      <p className="mt-1 text-xs text-base-content/40">
+      <p className="mt-1 text-xs text-muted-foreground/60">
         {tp("dashboard.relay", { id: zone.relay_id })}
       </p>
 
@@ -631,7 +631,7 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
           ))}
         </div>
       ) : (
-        <p className="mt-4 text-xs text-base-content/40">{tp("dashboard.noSensors")}</p>
+        <p className="mt-4 text-xs text-muted-foreground/60">{tp("dashboard.noSensors")}</p>
       )}
     </Link>
     </motion.div>
@@ -652,8 +652,8 @@ function SensorRow({ sensor }: { sensor: Sensor }) {
 
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-base-content/60">{label}</span>
-      <span className="font-medium text-base-content">-- {unit}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-foreground">-- {unit}</span>
     </div>
   );
 }

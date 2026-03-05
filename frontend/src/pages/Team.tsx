@@ -92,7 +92,7 @@ export default function Team() {
   if (!currentOrg) {
     return (
       <div className="p-6">
-        <p className="text-base-content/60">{t("team.noOrg")}</p>
+        <p className="text-muted-foreground">{t("team.noOrg")}</p>
       </div>
     );
   }
@@ -101,12 +101,12 @@ export default function Team() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">{t("team.title")}</h1>
-        <p className="mt-1 text-sm text-base-content/60">
+        <h1 className="text-2xl font-bold text-foreground">{t("team.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           {t("team.subtitle", { org: currentOrg.name })}
         </p>
-        <div className="mt-2 flex items-center gap-3 text-sm text-base-content/60">
-          <span className="rounded bg-base-200 px-2 py-0.5 font-medium">
+        <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
+          <span className="rounded bg-secondary px-2 py-0.5 font-medium">
             {currentOrg.plan}
           </span>
           <span>
@@ -120,13 +120,13 @@ export default function Team() {
 
       {/* Invite form (ADMIN+ only) */}
       {canManage && (
-        <div className="rounded-lg border border-base-300 bg-base-100 p-4">
-          <h2 className="text-lg font-semibold text-base-content">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <h2 className="text-lg font-semibold text-foreground">
             {t("team.inviteTitle")}
           </h2>
           <form onSubmit={handleInvite} className="mt-3 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-base-content/80">
+              <label className="block text-sm font-medium text-foreground/80">
                 {tc("labels.email")}
               </label>
               <input
@@ -134,18 +134,18 @@ export default function Team() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-1 focus:ring-primary bg-base-100 text-base-content"
+                className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-1 focus:ring-primary bg-card text-foreground"
                 placeholder="user@example.com"
               />
             </div>
             <div className="w-40">
-              <label className="block text-sm font-medium text-base-content/80">
+              <label className="block text-sm font-medium text-foreground/80">
                 {t("team.role")}
               </label>
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as MemberRole)}
-                className="mt-1 block w-full rounded-lg border border-base-300 px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-1 focus:ring-primary bg-base-100 text-base-content"
+                className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm shadow-xs focus:border-primary focus:ring-1 focus:ring-primary bg-card text-foreground"
               >
                 {ROLE_OPTIONS.filter((r) => r !== "OWNER").map((role) => (
                   <option key={role} value={role}>
@@ -157,7 +157,7 @@ export default function Team() {
             <button
               type="submit"
               disabled={inviting}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {inviting ? tc("status.loading") : t("team.sendInvite")}
             </button>
@@ -167,26 +167,26 @@ export default function Team() {
 
       {/* Pending invitations */}
       {invitations.length > 0 && (
-        <div className="rounded-lg border border-base-300 bg-base-100 p-4">
-          <h2 className="text-lg font-semibold text-base-content">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <h2 className="text-lg font-semibold text-foreground">
             {t("team.pendingInvitations")}
           </h2>
-          <div className="mt-3 divide-y divide-base-300">
+          <div className="mt-3 divide-y divide-border">
             {invitations.map((inv) => (
               <div
                 key={inv.id}
                 className="flex items-center justify-between py-3"
               >
                 <div>
-                  <p className="text-sm font-medium text-base-content">
+                  <p className="text-sm font-medium text-foreground">
                     {inv.email}
                   </p>
-                  <p className="text-xs text-base-content/60">
+                  <p className="text-xs text-muted-foreground">
                     {t("team.invitedBy", { name: inv.invited_by_username })} &middot;{" "}
                     {t(`team.roles.${inv.role}`)}
                   </p>
                 </div>
-                <span className="rounded bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+                <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
                   {t("team.pending")}
                 </span>
               </div>
@@ -196,8 +196,8 @@ export default function Team() {
       )}
 
       {/* Members list */}
-      <div className="rounded-lg border border-base-300 bg-base-100 p-4">
-        <h2 className="text-lg font-semibold text-base-content">
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-lg font-semibold text-foreground">
           {t("team.members")}
         </h2>
         {loading ? (
@@ -205,17 +205,17 @@ export default function Team() {
             <Spinner className="h-8 w-8" />
           </div>
         ) : (
-          <div className="mt-3 divide-y divide-base-300">
+          <div className="mt-3 divide-y divide-border">
             {members.map((member) => (
               <div
                 key={member.id}
                 className="flex items-center justify-between py-3"
               >
                 <div>
-                  <p className="text-sm font-medium text-base-content">
+                  <p className="text-sm font-medium text-foreground">
                     {member.username}
                   </p>
-                  <p className="text-xs text-base-content/60">{member.email}</p>
+                  <p className="text-xs text-muted-foreground">{member.email}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {canManage && member.role !== "OWNER" ? (
@@ -225,7 +225,7 @@ export default function Team() {
                         onChange={(e) =>
                           handleRoleChange(member.id, e.target.value as MemberRole)
                         }
-                        className="rounded-lg border border-base-300 px-2 py-1 text-xs bg-base-100 text-base-content"
+                        className="rounded-lg border border-border px-2 py-1 text-xs bg-card text-foreground"
                       >
                         {ROLE_OPTIONS.filter((r) => r !== "OWNER").map((role) => (
                           <option key={role} value={role}>
@@ -235,7 +235,7 @@ export default function Team() {
                       </select>
                       <button
                         onClick={() => handleRemove(member.id)}
-                        className="rounded p-1 text-error hover:bg-error/10"
+                        className="rounded p-1 text-destructive hover:bg-destructive/10"
                         title={t("team.removeMember")}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -244,7 +244,7 @@ export default function Team() {
                       </button>
                     </>
                   ) : (
-                    <span className="rounded bg-base-200 px-2 py-0.5 text-xs font-medium text-base-content/80">
+                    <span className="rounded bg-secondary px-2 py-0.5 text-xs font-medium text-foreground/80">
                       {t(`team.roles.${member.role}`)}
                     </span>
                   )}

@@ -11,7 +11,8 @@
     "analytics": "Analytique",
     "scenarios": "Scénarios",
     "marketplace": "Marketplace",
-    "quickActions": "Actions rapides"
+    "quickActions": "Actions rapides",
+    "developer": "Développeur"
   },
   "actions": {
     "save": "Enregistrer",

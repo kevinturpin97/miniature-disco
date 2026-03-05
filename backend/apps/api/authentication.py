@@ -1,11 +1,8 @@
-"""WebSocket JWT authentication middleware for Django Channels.
+"""Authentication backends for the Greenhouse SaaS API.
 
-Extracts a JWT access token from the ``token`` query-string parameter
-and populates ``scope["user"]`` accordingly.
-
-Usage in ASGI routing::
-
-    JwtAuthMiddleware(URLRouter(websocket_urlpatterns))
+Includes:
+- WebSocket JWT middleware for Django Channels
+- API Key authentication for programmatic access (X-API-Key header)
 """
 
 from __future__ import annotations
@@ -17,11 +14,21 @@ from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.utils import timezone
+from rest_framework import exceptions
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.request import Request
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 
+from .models import APIKey, Membership
+
 User = get_user_model()
 
+
+# ---------------------------------------------------------------------------
+# WebSocket JWT middleware
+# ---------------------------------------------------------------------------
 
 @database_sync_to_async
 def get_user_from_token(token_str: str) -> Any:
@@ -59,3 +66,59 @@ class JwtAuthMiddleware(BaseMiddleware):
             scope["user"] = AnonymousUser()
 
         await super().__call__(scope, receive, send)
+
+
+# ---------------------------------------------------------------------------
+# API Key authentication
+# ---------------------------------------------------------------------------
+
+class APIKeyAuthentication(BaseAuthentication):
+    """Authenticate requests using an API key passed in the X-API-Key header.
+
+    On successful authentication the request gains:
+    - ``request.user``: The first OWNER of the organization (service account)
+    - ``request.auth``: The APIKey model instance
+    - ``request.api_key``: Alias for the APIKey instance (used in permissions/throttling)
+    """
+
+    keyword = "X-API-Key"
+
+    def authenticate(self, request: Request) -> tuple[Any, APIKey] | None:
+        """Authenticate the request if X-API-Key header is present."""
+        raw_key = request.META.get("HTTP_X_API_KEY")
+        if not raw_key:
+            return None
+
+        hashed = APIKey.hash_key(raw_key)
+        try:
+            api_key = APIKey.objects.select_related("organization").get(hashed_key=hashed)
+        except APIKey.DoesNotExist:
+            raise exceptions.AuthenticationFailed("Invalid API key.")
+
+        if not api_key.is_usable:
+            if api_key.is_expired:
+                raise exceptions.AuthenticationFailed("API key has expired.")
+            raise exceptions.AuthenticationFailed("API key is inactive.")
+
+        # Update last_used_at
+        APIKey.objects.filter(pk=api_key.pk).update(last_used_at=timezone.now())
+
+        # Resolve user: first OWNER of the organization
+        owner_membership = Membership.objects.filter(
+            organization=api_key.organization,
+            role=Membership.Role.OWNER,
+        ).select_related("user").first()
+
+        if not owner_membership:
+            raise exceptions.AuthenticationFailed("Organization has no owner.")
+
+        user = owner_membership.user
+
+        # Attach api_key to request for downstream use
+        request.api_key = api_key
+
+        return (user, api_key)
+
+    def authenticate_header(self, request: Request) -> str:
+        """Return the header name for WWW-Authenticate."""
+        return self.keyword

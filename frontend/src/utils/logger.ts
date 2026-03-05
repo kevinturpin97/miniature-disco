@@ -52,7 +52,7 @@ export const logger = {
     );
 
     // Forward to Sentry if available
-    if (typeof window !== "undefined" && (window as Record<string, unknown>).__SENTRY__) {
+    if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).__SENTRY__) {
       import("@sentry/react").then((Sentry) => {
         if (error instanceof Error) {
           Sentry.captureException(error, { extra: context });

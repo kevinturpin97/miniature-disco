@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "channels",
     "django_celery_beat",
     "django_prometheus",
+    "drf_spectacular",
     # Local
     "apps.iot",
     "apps.api",
@@ -115,6 +116,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.api.authentication.APIKeyAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -131,10 +133,12 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/minute",
         "user": "300/minute",
+        "api_key": "60/minute",  # Default; overridden per-plan at runtime
     },
     "DEFAULT_PAGINATION_CLASS": "utils.pagination.StandardPagination",
     "PAGE_SIZE": 50,
     "EXCEPTION_HANDLER": "utils.exceptions.custom_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # Simple JWT
@@ -193,3 +197,31 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Greenhouse SaaS <nore
 VAPID_PUBLIC_KEY = config("VAPID_PUBLIC_KEY", default="")
 VAPID_PRIVATE_KEY = config("VAPID_PRIVATE_KEY", default="")
 VAPID_ADMIN_EMAIL = config("VAPID_ADMIN_EMAIL", default="admin@greenhouse.local")
+
+# drf-spectacular (OpenAPI)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Greenhouse SaaS API",
+    "DESCRIPTION": "Public API for the Greenhouse SaaS platform — IoT greenhouse management.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "TAGS": [
+        {"name": "Auth", "description": "Authentication endpoints"},
+        {"name": "Organizations", "description": "Organization management"},
+        {"name": "Greenhouses", "description": "Greenhouse CRUD"},
+        {"name": "Zones", "description": "Zone CRUD"},
+        {"name": "Sensors", "description": "Sensor CRUD and readings"},
+        {"name": "Actuators", "description": "Actuator CRUD"},
+        {"name": "Commands", "description": "Command execution"},
+        {"name": "Automations", "description": "Automation rules"},
+        {"name": "Alerts", "description": "Alert management"},
+        {"name": "Webhooks", "description": "Webhook configuration"},
+        {"name": "API Keys", "description": "API key management"},
+        {"name": "Developer", "description": "Developer tools and sandbox"},
+    ],
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/api/",
+}
+
+# Webhook delivery settings
+WEBHOOK_TIMEOUT_SECONDS = config("WEBHOOK_TIMEOUT_SECONDS", default=10, cast=int)
+WEBHOOK_MAX_FAILURES = config("WEBHOOK_MAX_FAILURES", default=10, cast=int)

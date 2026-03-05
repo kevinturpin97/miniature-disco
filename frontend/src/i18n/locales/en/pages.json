@@ -424,5 +424,60 @@
     "trendWarning": "Trend",
     "confidence": "confidence",
     "suggested": "Suggested range"
+  },
+  "developer": {
+    "title": "Developer Platform",
+    "subtitle": "Manage API keys, webhooks, and access the sandbox.",
+    "tabs": {
+      "apiKeys": "API Keys",
+      "webhooks": "Webhooks",
+      "sandbox": "Sandbox"
+    },
+    "apiKeys": {
+      "title": "API Keys",
+      "createKey": "Create API Key",
+      "name": "Key Name",
+      "scope": "Scope",
+      "expiresAt": "Expires At",
+      "noExpiry": "No expiry",
+      "revoke": "Revoke",
+      "copyKey": "Copy Key",
+      "keyCopied": "API key copied to clipboard!",
+      "keyWarning": "Save this key now! It will not be shown again.",
+      "noKeys": "No API keys yet.",
+      "prefix": "Prefix",
+      "lastUsed": "Last Used",
+      "status": "Status",
+      "active": "Active",
+      "revoked": "Revoked",
+      "expired": "Expired",
+      "never": "Never"
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "createWebhook": "Create Webhook",
+      "name": "Name",
+      "url": "URL",
+      "secret": "Secret",
+      "secretPlaceholder": "Optional HMAC secret",
+      "events": "Events",
+      "noWebhooks": "No webhooks configured.",
+      "deliveries": "Deliveries",
+      "noDeliveries": "No deliveries yet.",
+      "eventTypes": {
+        "new_reading": "New Reading",
+        "alert_created": "Alert Created",
+        "command_ack": "Command Acknowledged"
+      }
+    },
+    "sandbox": {
+      "title": "Sandbox",
+      "description": "Test your API integration with a dedicated sandbox environment.",
+      "notAvailable": "Sandbox not available. Run the setup_sandbox management command.",
+      "apiDocs": "API Documentation",
+      "apiDocsDescription": "Browse the full API reference with Swagger UI or ReDoc.",
+      "swaggerUi": "Swagger UI",
+      "redoc": "ReDoc"
+    }
   }
 }

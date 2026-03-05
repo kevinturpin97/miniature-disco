@@ -19,12 +19,20 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, message, loadin
 
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      <p className="text-sm text-base-content/60">{message}</p>
+      <p className="text-sm text-muted-foreground">{message}</p>
       <div className="mt-6 flex justify-end gap-3">
-        <button onClick={onClose} disabled={loading} className="btn btn-ghost">
+        <button
+          onClick={onClose}
+          disabled={loading}
+          className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+        >
           {t("actions.cancel")}
         </button>
-        <button onClick={onConfirm} disabled={loading} className="btn btn-error">
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+        >
           {loading ? "..." : t("actions.delete")}
         </button>
       </div>

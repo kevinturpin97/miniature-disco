@@ -1,9 +1,10 @@
 /**
- * Mobile bottom navigation bar using DaisyUI dock component -- visible only on small screens.
+ * Mobile bottom navigation bar -- visible only on small screens.
  */
 
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/utils/cn";
 
 const BOTTOM_ITEMS = [
   {
@@ -37,20 +38,27 @@ export function BottomNav() {
   const { t } = useTranslation();
 
   return (
-    <div className="dock lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 flex items-center justify-around border-t border-border bg-card pb-safe lg:hidden">
       {BOTTOM_ITEMS.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           end={item.to === "/"}
-          className={({ isActive }) => (isActive ? "dock-active" : "")}
+          className={({ isActive }) =>
+            cn(
+              "flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] font-medium transition-colors",
+              isActive
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )
+          }
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
           </svg>
-          <span className="dock-label">{t(item.labelKey)}</span>
+          <span>{t(item.labelKey)}</span>
         </NavLink>
       ))}
-    </div>
+    </nav>
   );
 }

@@ -97,13 +97,13 @@ export function PredictionChart({
   const hasPredictions = sensorPrediction.predictions.length > 0;
 
   return (
-    <div className="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-base-content">
+          <h3 className="font-semibold text-foreground">
             {sensorPrediction.label} — {tp("predictions.forecast")}
           </h3>
-          <p className="text-xs text-base-content/60">
+          <p className="text-xs text-muted-foreground">
             {tp("predictions.next6h")} ({sensorPrediction.unit})
           </p>
         </div>
@@ -115,7 +115,7 @@ export function PredictionChart({
                   ? "bg-warning/10 text-warning"
                   : drift.trend === "falling"
                     ? "bg-info/10 text-info"
-                    : "bg-base-200 text-base-content/60"
+                    : "bg-muted text-muted-foreground"
               }`}
             >
               {drift.trend === "rising" && "↑"}
@@ -125,7 +125,7 @@ export function PredictionChart({
               {drift.slope_per_hour.toFixed(2)}/h
             </span>
             {drift.drift_alert && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-error/10 px-2 py-0.5 text-xs font-medium text-error">
+              <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                 {tp("predictions.driftAlert")}
               </span>
             )}
@@ -141,8 +141,8 @@ export function PredictionChart({
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "var(--fallback-b1, oklch(var(--b1)))",
-                border: "1px solid var(--fallback-b3, oklch(var(--b3)))",
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
                 borderRadius: "8px",
               }}
             />
@@ -190,7 +190,7 @@ export function PredictionChart({
           </ComposedChart>
         </ResponsiveContainer>
       ) : (
-        <div className="flex h-[250px] items-center justify-center text-sm text-base-content/40">
+        <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground/60">
           {tp("predictions.noData")}
         </div>
       )}

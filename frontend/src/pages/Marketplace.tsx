@@ -38,7 +38,7 @@ function StarRating({
     stars.push(
       <svg
         key={i}
-        className={`${dim} ${i <= Math.round(rating) ? "text-warning" : "text-base-300"}`}
+        className={`${dim} ${i <= Math.round(rating) ? "text-amber-500" : "text-muted"}`}
         fill="currentColor"
         viewBox="0 0 20 20"
       >
@@ -70,7 +70,7 @@ function InteractiveStarRating({
         >
           <svg
             className={`h-6 w-6 transition-colors ${
-              i <= (hover || value) ? "text-warning" : "text-base-300"
+              i <= (hover || value) ? "text-amber-500" : "text-muted"
             }`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -84,7 +84,6 @@ function InteractiveStarRating({
 }
 
 export default function MarketplacePage() {
-  const { t } = useTranslation();
   const { t: tp } = useTranslation("pages");
 
   // Data
@@ -237,22 +236,22 @@ export default function MarketplacePage() {
     >
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">
+        <h1 className="text-2xl font-bold text-foreground">
           {tp("marketplace.title")}
         </h1>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           {tp("marketplace.subtitle")}
         </p>
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-base-300 bg-base-100 p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={tp("marketplace.searchPlaceholder")}
-          className="input input-bordered input-sm w-full max-w-xs"
+          className="w-full max-w-xs rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
 
         <select
@@ -260,7 +259,7 @@ export default function MarketplacePage() {
           onChange={(e) =>
             setCategoryFilter(e.target.value ? Number(e.target.value) : "")
           }
-          className="select select-bordered select-sm"
+          className="rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="">{tp("marketplace.allCategories")}</option>
           {categories.map((cat) => (
@@ -270,12 +269,12 @@ export default function MarketplacePage() {
           ))}
         </select>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
           <input
             type="checkbox"
             checked={officialOnly}
             onChange={(e) => setOfficialOnly(e.target.checked)}
-            className="checkbox checkbox-sm checkbox-primary"
+            className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
           />
           {tp("marketplace.officialOnly")}
         </label>
@@ -283,7 +282,7 @@ export default function MarketplacePage() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortOption)}
-          className="select select-bordered select-sm"
+          className="rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="-clone_count">{tp("marketplace.sortPopular")}</option>
           <option value="-avg_rating">{tp("marketplace.sortRating")}</option>
@@ -294,9 +293,9 @@ export default function MarketplacePage() {
 
       {/* Template Grid */}
       {templates.length === 0 ? (
-        <div className="card bg-base-100 shadow-xs p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-base-content/20"
+            className="mx-auto h-12 w-12 text-muted-foreground/40"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -308,7 +307,7 @@ export default function MarketplacePage() {
               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
             />
           </svg>
-          <p className="mt-4 text-sm text-base-content/60">
+          <p className="mt-4 text-sm text-muted-foreground">
             {tp("marketplace.noTemplates")}
           </p>
         </div>
@@ -325,21 +324,21 @@ export default function MarketplacePage() {
               >
                 <div
                   onClick={() => openDetail(tpl)}
-                  className="card bg-base-100 shadow-xs cursor-pointer transition-shadow hover:shadow-md h-full"
+                  className="rounded-xl border border-border bg-card cursor-pointer transition-shadow hover:shadow-md h-full"
                 >
-                  <div className="card-body p-4 space-y-2">
+                  <div className="p-4 space-y-2">
                     {/* Name + badges */}
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-base-content line-clamp-1">
+                      <h3 className="font-semibold text-foreground line-clamp-1">
                         {tpl.name}
                       </h3>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         {tpl.is_official && (
-                          <span className="badge badge-primary badge-sm">
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                             {tp("marketplace.official")}
                           </span>
                         )}
-                        <span className="badge badge-ghost badge-sm">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                           v{tpl.version}
                         </span>
                       </div>
@@ -347,18 +346,18 @@ export default function MarketplacePage() {
 
                     {/* Category */}
                     {tpl.category_name && (
-                      <span className="badge badge-secondary badge-sm">
+                      <span className="inline-block rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
                         {tpl.category_name}
                       </span>
                     )}
 
                     {/* Description */}
-                    <p className="text-sm text-base-content/60 line-clamp-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
                       {tpl.description || tp("marketplace.noDescription")}
                     </p>
 
                     {/* Rating + clones */}
-                    <div className="flex items-center gap-3 text-xs text-base-content/60">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <StarRating rating={tpl.avg_rating} />
                         <span>({tpl.rating_count})</span>
@@ -382,7 +381,7 @@ export default function MarketplacePage() {
                     </div>
 
                     {/* Config summary */}
-                    <div className="flex flex-wrap gap-2 text-xs text-base-content/50">
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span>{summary.sensors} {tp("marketplace.sensors")}</span>
                       <span>{summary.actuators} {tp("marketplace.actuators")}</span>
                       <span>{summary.rules} {tp("marketplace.rules")}</span>
@@ -390,7 +389,7 @@ export default function MarketplacePage() {
                     </div>
 
                     {/* Author */}
-                    <p className="text-xs text-base-content/40">
+                    <p className="text-xs text-muted-foreground/60">
                       {tp("marketplace.by")}{" "}
                       {tpl.organization_name || tpl.created_by_username}
                     </p>
@@ -420,7 +419,6 @@ export default function MarketplacePage() {
           cloning={cloning}
           onClone={handleClone}
           onClose={() => setSelected(null)}
-          t={t}
           tp={tp}
         />
       )}
@@ -446,7 +444,6 @@ function DetailModal({
   cloning,
   onClone,
   onClose,
-  t,
   tp,
 }: {
   template: Template;
@@ -464,7 +461,6 @@ function DetailModal({
   cloning: boolean;
   onClone: () => void;
   onClose: () => void;
-  t: (k: string) => string;
   tp: (k: string) => string;
 }) {
   const cfg = template.config;
@@ -475,41 +471,41 @@ function DetailModal({
         {/* Header info */}
         <div className="flex flex-wrap items-center gap-2">
           {template.is_official && (
-            <span className="badge badge-primary">{tp("marketplace.official")}</span>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{tp("marketplace.official")}</span>
           )}
           {template.category_name && (
-            <span className="badge badge-secondary">{template.category_name}</span>
+            <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">{template.category_name}</span>
           )}
-          <span className="badge badge-ghost">v{template.version}</span>
+          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">v{template.version}</span>
           <div className="flex items-center gap-1">
             <StarRating rating={template.avg_rating} />
-            <span className="text-xs text-base-content/60">
+            <span className="text-xs text-muted-foreground">
               ({template.rating_count})
             </span>
           </div>
-          <span className="text-xs text-base-content/60">
+          <span className="text-xs text-muted-foreground">
             {template.clone_count} {tp("marketplace.clones")}
           </span>
         </div>
 
         {/* Description */}
-        <p className="text-sm text-base-content/80">{template.description}</p>
+        <p className="text-sm text-foreground/80">{template.description}</p>
 
-        <p className="text-xs text-base-content/40">
+        <p className="text-xs text-muted-foreground/60">
           {tp("marketplace.by")}{" "}
           {template.organization_name || template.created_by_username}
         </p>
 
         {/* Tabs */}
-        <div className="flex gap-1 rounded-lg bg-base-200 p-1">
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
           {(["config", "rating", "import"] as const).map((key) => (
             <button
               key={key}
               onClick={() => setTab(key)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 tab === key
-                  ? "bg-primary text-primary-content"
-                  : "text-base-content/60 hover:bg-base-300"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent"
               }`}
             >
               {tp(`marketplace.tabs.${key}`)}
@@ -523,15 +519,15 @@ function DetailModal({
             {/* Sensors */}
             {cfg.sensors?.length > 0 && (
               <div>
-                <h4 className="text-xs font-semibold text-base-content/60 uppercase mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
                   {tp("marketplace.sensors")} ({cfg.sensors.length})
                 </h4>
                 <div className="space-y-1">
                   {cfg.sensors.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
-                      <span className="badge badge-ghost badge-sm">{s.sensor_type}</span>
-                      <span className="text-base-content">{s.label || s.sensor_type}</span>
-                      <span className="text-base-content/40">{s.unit}</span>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{s.sensor_type}</span>
+                      <span className="text-foreground">{s.label || s.sensor_type}</span>
+                      <span className="text-muted-foreground/60">{s.unit}</span>
                     </div>
                   ))}
                 </div>
@@ -541,14 +537,14 @@ function DetailModal({
             {/* Actuators */}
             {cfg.actuators?.length > 0 && (
               <div>
-                <h4 className="text-xs font-semibold text-base-content/60 uppercase mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
                   {tp("marketplace.actuators")} ({cfg.actuators.length})
                 </h4>
                 <div className="space-y-1">
                   {cfg.actuators.map((a, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
-                      <span className="badge badge-ghost badge-sm">{a.actuator_type}</span>
-                      <span className="text-base-content">{a.name}</span>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{a.actuator_type}</span>
+                      <span className="text-foreground">{a.name}</span>
                     </div>
                   ))}
                 </div>
@@ -558,12 +554,12 @@ function DetailModal({
             {/* Automation rules */}
             {cfg.automation_rules?.length > 0 && (
               <div>
-                <h4 className="text-xs font-semibold text-base-content/60 uppercase mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
                   {tp("marketplace.rules")} ({cfg.automation_rules.length})
                 </h4>
                 <div className="space-y-1">
                   {cfg.automation_rules.map((r, i) => (
-                    <div key={i} className="text-sm text-base-content/80">
+                    <div key={i} className="text-sm text-foreground/80">
                       <span className="font-medium">{r.name}:</span>{" "}
                       {r.sensor_type} {r.condition} {r.threshold_value} &rarr;{" "}
                       {r.action_command_type} {r.action_actuator_name}
@@ -576,14 +572,14 @@ function DetailModal({
             {/* Scenarios */}
             {cfg.scenarios?.length > 0 && (
               <div>
-                <h4 className="text-xs font-semibold text-base-content/60 uppercase mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
                   {tp("marketplace.scenarios")} ({cfg.scenarios.length})
                 </h4>
                 <div className="space-y-1">
                   {cfg.scenarios.map((sc, i) => (
                     <div key={i} className="text-sm">
-                      <span className="font-medium text-base-content">{sc.name}</span>
-                      <span className="text-base-content/50 ml-1">
+                      <span className="font-medium text-foreground">{sc.name}</span>
+                      <span className="text-muted-foreground ml-1">
                         ({sc.steps?.length ?? 0} {tp("marketplace.steps")})
                       </span>
                     </div>
@@ -595,10 +591,10 @@ function DetailModal({
             {/* Changelog */}
             {template.changelog && (
               <div>
-                <h4 className="text-xs font-semibold text-base-content/60 uppercase mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
                   {tp("marketplace.changelog")}
                 </h4>
-                <p className="text-sm text-base-content/70 whitespace-pre-line">
+                <p className="text-sm text-foreground/70 whitespace-pre-line">
                   {template.changelog}
                 </p>
               </div>
@@ -610,16 +606,16 @@ function DetailModal({
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <StarRating rating={template.avg_rating} size="md" />
-              <span className="text-lg font-semibold text-base-content">
+              <span className="text-lg font-semibold text-foreground">
                 {template.avg_rating.toFixed(1)}
               </span>
-              <span className="text-sm text-base-content/60">
+              <span className="text-sm text-muted-foreground">
                 ({template.rating_count} {tp("marketplace.ratings")})
               </span>
             </div>
 
-            <div className="border-t border-base-300 pt-4">
-              <h4 className="text-sm font-medium text-base-content mb-2">
+            <div className="border-t border-border pt-4">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 {tp("marketplace.yourRating")}
               </h4>
               <div className="flex items-center gap-3">
@@ -636,7 +632,7 @@ function DetailModal({
         {tab === "import" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-base-content/80 mb-1">
+              <label className="block text-sm font-medium text-foreground/80 mb-1">
                 {tp("marketplace.targetZone")}
               </label>
               <select
@@ -644,7 +640,7 @@ function DetailModal({
                 onChange={(e) =>
                   setCloneZoneId(e.target.value ? Number(e.target.value) : "")
                 }
-                className="select select-bordered select-sm w-full"
+                className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">{tp("marketplace.selectZone")}</option>
                 {greenhouses.map((gh) => (
@@ -662,7 +658,7 @@ function DetailModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-base-content/80 mb-1">
+              <label className="block text-sm font-medium text-foreground/80 mb-1">
                 {tp("marketplace.importMode")}
               </label>
               <div className="flex gap-2">
@@ -672,15 +668,15 @@ function DetailModal({
                     onClick={() => setCloneMode(mode)}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                       cloneMode === mode
-                        ? "bg-primary text-primary-content"
-                        : "bg-base-200 text-base-content/60 hover:bg-base-300"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent"
                     }`}
                   >
                     {tp(`marketplace.mode.${mode}`)}
                   </button>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-base-content/40">
+              <p className="mt-1 text-xs text-muted-foreground/60">
                 {cloneMode === "merge"
                   ? tp("marketplace.mergeHint")
                   : tp("marketplace.replaceHint")}
@@ -690,7 +686,7 @@ function DetailModal({
             <button
               onClick={onClone}
               disabled={cloning || !cloneZoneId}
-              className="btn btn-primary btn-sm w-full"
+              className="w-full rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {cloning ? (
                 <Spinner className="h-4 w-4" />

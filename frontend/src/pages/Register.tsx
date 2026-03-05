@@ -69,33 +69,33 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-base-200 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-content text-xl font-bold">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-xl font-bold">
             G
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-base-content">
+          <h1 className="mt-4 text-2xl font-bold text-foreground">
             {tp("register.title")}
           </h1>
-          <p className="mt-1 text-sm text-base-content/60">
+          <p className="mt-1 text-sm text-muted-foreground">
             {tp("register.subtitle")}
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="card bg-base-100 shadow-xs p-6"
+          className="rounded-xl border border-border bg-card shadow-sm p-6"
         >
           {serverError && (
-            <div role="alert" className="alert alert-error mb-4">
+            <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive mb-4">
               <span className="text-sm">{serverError}</span>
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="mb-1 block text-sm font-medium text-base-content/80">
+              <label htmlFor="username" className="mb-1 block text-sm font-medium text-card-foreground">
                 {t("labels.username")}
               </label>
               <input
@@ -105,17 +105,17 @@ export default function Register() {
                 autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
-                className={`input input-bordered w-full text-sm ${
-                  errors.username ? "input-error" : ""
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring ${
+                  errors.username ? "border-destructive" : "border-input"
                 }`}
               />
               {errors.username && (
-                <p className="mt-1 text-xs text-error">{errors.username}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.username}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-base-content/80">
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-card-foreground">
                 {t("labels.email")}
               </label>
               <input
@@ -125,17 +125,17 @@ export default function Register() {
                 autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
-                className={`input input-bordered w-full text-sm ${
-                  errors.email ? "input-error" : ""
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring ${
+                  errors.email ? "border-destructive" : "border-input"
                 }`}
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-error">{errors.email}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.email}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-base-content/80">
+              <label htmlFor="password" className="mb-1 block text-sm font-medium text-card-foreground">
                 {t("labels.password")}
               </label>
               <input
@@ -145,17 +145,17 @@ export default function Register() {
                 autoComplete="new-password"
                 value={form.password}
                 onChange={handleChange}
-                className={`input input-bordered w-full text-sm ${
-                  errors.password ? "input-error" : ""
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring ${
+                  errors.password ? "border-destructive" : "border-input"
                 }`}
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-error">{errors.password}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.password}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium text-base-content/80">
+              <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium text-card-foreground">
                 {t("labels.confirmPassword")}
               </label>
               <input
@@ -165,12 +165,12 @@ export default function Register() {
                 autoComplete="new-password"
                 value={form.confirmPassword}
                 onChange={handleChange}
-                className={`input input-bordered w-full text-sm ${
-                  errors.confirmPassword ? "input-error" : ""
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring ${
+                  errors.confirmPassword ? "border-destructive" : "border-input"
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-error">{errors.confirmPassword}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.confirmPassword}</p>
               )}
             </div>
           </div>
@@ -178,14 +178,14 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full mt-6"
+            className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 mt-6"
           >
             {loading ? t("actions.creatingAccount") : t("actions.createAccount")}
           </button>
 
-          <p className="mt-4 text-center text-sm text-base-content/60">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             {tp("register.hasAccount")}{" "}
-            <Link to="/login" className="link link-primary font-medium">
+            <Link to="/login" className="text-primary hover:underline font-medium">
               {tp("register.signInLink")}
             </Link>
           </p>

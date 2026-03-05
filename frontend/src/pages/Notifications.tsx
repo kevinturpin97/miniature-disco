@@ -103,7 +103,7 @@ export default function Notifications() {
   const canManage =
     currentOrg?.my_role === "OWNER" || currentOrg?.my_role === "ADMIN";
 
-  // ── Channel handlers ──────────────────────────────────────────
+  // -- Channel handlers --
 
   function openCreateChannel() {
     setEditingChannel(null);
@@ -181,7 +181,7 @@ export default function Notifications() {
     }
   }
 
-  // ── Rule handlers ─────────────────────────────────────────────
+  // -- Rule handlers --
 
   function openCreateRule() {
     setEditingRule(null);
@@ -239,7 +239,7 @@ export default function Notifications() {
     }
   }
 
-  // ── Delete handler ────────────────────────────────────────────
+  // -- Delete handler --
 
   async function handleDelete() {
     if (!currentOrg || !deleteTarget) return;
@@ -260,7 +260,7 @@ export default function Notifications() {
     }
   }
 
-  // ── Multi-select toggle helper ────────────────────────────────
+  // -- Multi-select toggle helper --
 
   function toggleArrayItem<T>(arr: T[], item: T): T[] {
     return arr.includes(item) ? arr.filter((v) => v !== item) : [...arr, item];
@@ -269,7 +269,7 @@ export default function Notifications() {
   if (!currentOrg) {
     return (
       <div className="p-6">
-        <p className="text-base-content/60">{t("team.noOrg")}</p>
+        <p className="text-muted-foreground">{t("team.noOrg")}</p>
       </div>
     );
   }
@@ -284,16 +284,16 @@ export default function Notifications() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">
+        <h1 className="text-2xl font-bold text-foreground">
           {t("notifications.title")}
         </h1>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           {t("notifications.subtitle", { org: currentOrg.name })}
         </p>
       </div>
 
       {/* Tab bar */}
-      <div className="border-b border-base-300">
+      <div className="border-b border-border">
         <nav className="-mb-px flex gap-4">
           {TABS.map(({ key, label }) => (
             <button
@@ -302,7 +302,7 @@ export default function Notifications() {
               className={`whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium ${
                 tab === key
                   ? "border-primary text-primary"
-                  : "border-transparent text-base-content/60 hover:border-base-300 hover:text-base-content/80"
+                  : "border-transparent text-muted-foreground hover:border-border hover:text-foreground/80"
               }`}
             >
               {label}
@@ -317,17 +317,17 @@ export default function Notifications() {
         </div>
       ) : (
         <>
-          {/* ── Channels Tab ────────────────────────────────── */}
+          {/* -- Channels Tab -- */}
           {tab === "channels" && (
             <div className="space-y-4">
               {/* Web Push Subscription Card */}
               {push.state !== "unsupported" && (
-                <div className="flex items-center justify-between rounded-lg border border-base-300 bg-base-100 p-4">
+                <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
                   <div>
-                    <p className="text-sm font-medium text-base-content">
+                    <p className="text-sm font-medium text-foreground">
                       {t("notifications.pushTitle")}
                     </p>
-                    <p className="text-xs text-base-content/60">
+                    <p className="text-xs text-muted-foreground">
                       {push.state === "denied"
                         ? t("notifications.pushDenied")
                         : push.state === "subscribed"
@@ -335,20 +335,20 @@ export default function Notifications() {
                           : t("notifications.pushHint")}
                     </p>
                     {push.error && (
-                      <p className="mt-1 text-xs text-error">{push.error}</p>
+                      <p className="mt-1 text-xs text-destructive">{push.error}</p>
                     )}
                   </div>
                   {push.state === "subscribed" ? (
                     <button
                       onClick={push.unsubscribe}
-                      className="btn btn-outline btn-xs"
+                      className="rounded-lg border border-primary px-2 py-1 text-xs font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       {t("notifications.pushUnsubscribe")}
                     </button>
                   ) : push.state !== "denied" ? (
                     <button
                       onClick={push.subscribe}
-                      className="btn btn-primary btn-xs"
+                      className="rounded-lg bg-primary px-2 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                       {t("notifications.pushEnable")}
                     </button>
@@ -360,18 +360,18 @@ export default function Notifications() {
                 <div className="flex justify-end">
                   <button
                     onClick={openCreateChannel}
-                    className="btn btn-primary btn-sm"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     {t("notifications.addChannel")}
                   </button>
                 </div>
               )}
               {channels.length === 0 ? (
-                <p className="py-8 text-center text-sm text-base-content/60">
+                <p className="py-8 text-center text-sm text-muted-foreground">
                   {t("notifications.noChannels")}
                 </p>
               ) : (
-                <div className="divide-y divide-base-300 rounded-lg border border-base-300 bg-base-100">
+                <div className="divide-y divide-border rounded-lg border border-border bg-card">
                   {channels.map((ch) => (
                     <div
                       key={ch.id}
@@ -390,10 +390,10 @@ export default function Notifications() {
                           {ch.channel_type}
                         </span>
                         <div>
-                          <p className="text-sm font-medium text-base-content">
+                          <p className="text-sm font-medium text-foreground">
                             {ch.name}
                           </p>
-                          <p className="text-xs text-base-content/60">
+                          <p className="text-xs text-muted-foreground">
                             {ch.channel_type === "EMAIL" && ch.email_recipients}
                             {ch.channel_type === "WEBHOOK" && ch.webhook_url}
                             {ch.channel_type === "TELEGRAM" &&
@@ -408,7 +408,7 @@ export default function Notifications() {
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             ch.is_active
                               ? "bg-success/10 text-success"
-                              : "bg-base-200 text-base-content/60"
+                              : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {ch.is_active
@@ -419,7 +419,7 @@ export default function Notifications() {
                           <>
                             <button
                               onClick={() => openEditChannel(ch)}
-                              className="rounded p-1 text-base-content/40 hover:text-base-content/60"
+                              className="rounded p-1 text-muted-foreground/60 hover:text-muted-foreground"
                               title={tc("actions.edit")}
                             >
                               <svg
@@ -444,7 +444,7 @@ export default function Notifications() {
                                   name: ch.name,
                                 })
                               }
-                              className="rounded p-1 text-error/60 hover:text-error"
+                              className="rounded p-1 text-destructive/60 hover:text-destructive"
                               title={tc("actions.delete")}
                             >
                               <svg
@@ -471,7 +471,7 @@ export default function Notifications() {
             </div>
           )}
 
-          {/* ── Rules Tab ───────────────────────────────────── */}
+          {/* -- Rules Tab -- */}
           {tab === "rules" && (
             <div className="space-y-4">
               {canManage && (
@@ -479,35 +479,35 @@ export default function Notifications() {
                   <button
                     onClick={openCreateRule}
                     disabled={channels.length === 0}
-                    className="btn btn-primary btn-sm disabled:opacity-50"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                   >
                     {t("notifications.addRule")}
                   </button>
                 </div>
               )}
               {rules.length === 0 ? (
-                <p className="py-8 text-center text-sm text-base-content/60">
+                <p className="py-8 text-center text-sm text-muted-foreground">
                   {t("notifications.noRules")}
                 </p>
               ) : (
-                <div className="divide-y divide-base-300 rounded-lg border border-base-300 bg-base-100">
+                <div className="divide-y divide-border rounded-lg border border-border bg-card">
                   {rules.map((rule) => (
                     <div
                       key={rule.id}
                       className="flex items-center justify-between px-4 py-3"
                     >
                       <div>
-                        <p className="text-sm font-medium text-base-content">
+                        <p className="text-sm font-medium text-foreground">
                           {rule.name}
                         </p>
-                        <p className="text-xs text-base-content/60">
+                        <p className="text-xs text-muted-foreground">
                           {t("notifications.ruleChannel")}: {rule.channel_name}
                           {" — "}
                           {t("notifications.ruleCooldown")}: {rule.cooldown_seconds}s
                         </p>
                         <div className="mt-1 flex flex-wrap gap-1">
                           {rule.alert_types.length === 0 ? (
-                            <span className="rounded bg-base-200 px-1.5 py-0.5 text-[10px] text-base-content/60">
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                               {t("notifications.allTypes")}
                             </span>
                           ) : (
@@ -521,7 +521,7 @@ export default function Notifications() {
                             ))
                           )}
                           {rule.severities.length === 0 ? (
-                            <span className="rounded bg-base-200 px-1.5 py-0.5 text-[10px] text-base-content/60">
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                               {t("notifications.allSeverities")}
                             </span>
                           ) : (
@@ -530,7 +530,7 @@ export default function Notifications() {
                                 key={s}
                                 className={`rounded px-1.5 py-0.5 text-[10px] ${
                                   s === "CRITICAL"
-                                    ? "bg-error/10 text-error"
+                                    ? "bg-destructive/10 text-destructive"
                                     : s === "WARNING"
                                     ? "bg-warning/10 text-warning"
                                     : "bg-info/10 text-info"
@@ -549,7 +549,7 @@ export default function Notifications() {
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             rule.is_active
                               ? "bg-success/10 text-success"
-                              : "bg-base-200 text-base-content/60"
+                              : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {rule.is_active
@@ -560,7 +560,7 @@ export default function Notifications() {
                           <>
                             <button
                               onClick={() => openEditRule(rule)}
-                              className="rounded p-1 text-base-content/40 hover:text-base-content/60"
+                              className="rounded p-1 text-muted-foreground/60 hover:text-muted-foreground"
                               title={tc("actions.edit")}
                             >
                               <svg
@@ -585,7 +585,7 @@ export default function Notifications() {
                                   name: rule.name,
                                 })
                               }
-                              className="rounded p-1 text-error/60 hover:text-error"
+                              className="rounded p-1 text-destructive/60 hover:text-destructive"
                               title={tc("actions.delete")}
                             >
                               <svg
@@ -612,45 +612,45 @@ export default function Notifications() {
             </div>
           )}
 
-          {/* ── Logs Tab ────────────────────────────────────── */}
+          {/* -- Logs Tab -- */}
           {tab === "logs" && (
             <div>
               {logs.length === 0 ? (
-                <p className="py-8 text-center text-sm text-base-content/60">
+                <p className="py-8 text-center text-sm text-muted-foreground">
                   {t("notifications.noLogs")}
                 </p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
-                  <table className="table min-w-full divide-y divide-base-300">
-                    <thead className="bg-base-200">
+                <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                  <table className="w-full min-w-full text-sm divide-y divide-border">
+                    <thead className="bg-muted">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-base-content/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
                           {t("notifications.logDate")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-base-content/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
                           {t("notifications.logRule")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-base-content/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
                           {t("notifications.logChannel")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-base-content/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
                           {tc("status.loading").replace("...", "")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-base-content/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
                           {t("notifications.logError")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-base-300">
+                    <tbody className="divide-y divide-border">
                       {logs.map((log) => (
                         <tr key={log.id}>
-                          <td className="whitespace-nowrap px-4 py-2 text-sm text-base-content/80">
+                          <td className="whitespace-nowrap px-4 py-2 text-sm text-foreground/80">
                             {new Date(log.created_at).toLocaleString()}
                           </td>
-                          <td className="px-4 py-2 text-sm text-base-content/80">
+                          <td className="px-4 py-2 text-sm text-foreground/80">
                             {log.rule_name}
                           </td>
-                          <td className="px-4 py-2 text-sm text-base-content/80">
+                          <td className="px-4 py-2 text-sm text-foreground/80">
                             {log.channel_name}
                           </td>
                           <td className="px-4 py-2">
@@ -658,13 +658,13 @@ export default function Notifications() {
                               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                                 log.status === "SENT"
                                   ? "bg-success/10 text-success"
-                                  : "bg-error/10 text-error"
+                                  : "bg-destructive/10 text-destructive"
                               }`}
                             >
                               {log.status}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-xs text-error">
+                          <td className="px-4 py-2 text-xs text-destructive">
                             {log.error_message || "\u2014"}
                           </td>
                         </tr>
@@ -678,7 +678,7 @@ export default function Notifications() {
         </>
       )}
 
-      {/* ── Channel Modal ───────────────────────────────────── */}
+      {/* -- Channel Modal -- */}
       <Modal
         open={channelModalOpen}
         onClose={() => setChannelModalOpen(false)}
@@ -710,7 +710,7 @@ export default function Notifications() {
                 setChannelForm({ ...channelForm, name: e.target.value })
               }
               required
-              className="input input-bordered w-full"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </FormField>
 
@@ -727,7 +727,7 @@ export default function Notifications() {
                 }
                 placeholder="user@example.com, admin@example.com"
                 required={!editingChannel}
-                className="input input-bordered w-full"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </FormField>
           )}
@@ -746,7 +746,7 @@ export default function Notifications() {
                   }
                   placeholder="https://hooks.example.com/..."
                   required={!editingChannel}
-                  className="input input-bordered w-full"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </FormField>
               <FormField label={t("notifications.webhookSecret")}>
@@ -764,7 +764,7 @@ export default function Notifications() {
                       ? t("notifications.secretUnchanged")
                       : t("notifications.secretOptional")
                   }
-                  className="input input-bordered w-full"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </FormField>
             </>
@@ -788,7 +788,7 @@ export default function Notifications() {
                       : "123456:ABC-DEF..."
                   }
                   required={!editingChannel}
-                  className="input input-bordered w-full"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </FormField>
               <FormField label={t("notifications.telegramChatId")}>
@@ -803,7 +803,7 @@ export default function Notifications() {
                   }
                   placeholder="-100123456"
                   required={!editingChannel}
-                  className="input input-bordered w-full"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </FormField>
             </>
@@ -813,14 +813,14 @@ export default function Notifications() {
             <button
               type="button"
               onClick={() => setChannelModalOpen(false)}
-              className="btn btn-ghost"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
             >
               {tc("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={channelSaving}
-              className="btn btn-primary btn-sm disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {channelSaving ? tc("status.loading") : tc("actions.save")}
             </button>
@@ -828,7 +828,7 @@ export default function Notifications() {
         </form>
       </Modal>
 
-      {/* ── Rule Modal ──────────────────────────────────────── */}
+      {/* -- Rule Modal -- */}
       <Modal
         open={ruleModalOpen}
         onClose={() => setRuleModalOpen(false)}
@@ -847,7 +847,7 @@ export default function Notifications() {
                 setRuleForm({ ...ruleForm, name: e.target.value })
               }
               required
-              className="input input-bordered w-full"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </FormField>
 
@@ -864,10 +864,10 @@ export default function Notifications() {
           />
 
           <div>
-            <p className="mb-1 text-sm font-medium text-base-content/80">
+            <p className="mb-1 text-sm font-medium text-foreground/80">
               {t("notifications.ruleAlertTypes")}
             </p>
-            <p className="mb-2 text-xs text-base-content/60">
+            <p className="mb-2 text-xs text-muted-foreground">
               {t("notifications.ruleAlertTypesHint")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -884,7 +884,7 @@ export default function Notifications() {
                   className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
                     ruleForm.alert_types.includes(at)
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-base-300 text-base-content/60 hover:bg-base-200"
+                      : "border-border text-muted-foreground hover:bg-accent"
                   }`}
                 >
                   {at}
@@ -894,10 +894,10 @@ export default function Notifications() {
           </div>
 
           <div>
-            <p className="mb-1 text-sm font-medium text-base-content/80">
+            <p className="mb-1 text-sm font-medium text-foreground/80">
               {t("notifications.ruleSeverities")}
             </p>
-            <p className="mb-2 text-xs text-base-content/60">
+            <p className="mb-2 text-xs text-muted-foreground">
               {t("notifications.ruleSeveritiesHint")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -914,7 +914,7 @@ export default function Notifications() {
                   className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
                     ruleForm.severities.includes(sev)
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-base-300 text-base-content/60 hover:bg-base-200"
+                      : "border-border text-muted-foreground hover:bg-accent"
                   }`}
                 >
                   {sev}
@@ -934,7 +934,7 @@ export default function Notifications() {
                   cooldown_seconds: Number(e.target.value),
                 })
               }
-              className="input input-bordered w-full"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </FormField>
 
@@ -942,14 +942,14 @@ export default function Notifications() {
             <button
               type="button"
               onClick={() => setRuleModalOpen(false)}
-              className="btn btn-ghost"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
             >
               {tc("actions.cancel")}
             </button>
             <button
               type="submit"
               disabled={ruleSaving}
-              className="btn btn-primary btn-sm disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {ruleSaving ? tc("status.loading") : tc("actions.save")}
             </button>
@@ -957,7 +957,7 @@ export default function Notifications() {
         </form>
       </Modal>
 
-      {/* ── Delete Confirmation ─────────────────────────────── */}
+      {/* -- Delete Confirmation -- */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

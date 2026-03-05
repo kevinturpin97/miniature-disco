@@ -4,6 +4,8 @@ from django.urls import path
 
 from .views import (
     AcceptInvitationView,
+    APIKeyLogViewSet,
+    APIKeyViewSet,
     ChangePasswordView,
     InviteView,
     LoginView,
@@ -15,6 +17,9 @@ from .views import (
     OrganizationListCreateView,
     RefreshView,
     RegisterView,
+    SandboxInfoView,
+    WebhookDeliveryViewSet,
+    WebhookViewSet,
 )
 
 urlpatterns = [
@@ -33,4 +38,17 @@ urlpatterns = [
     path("orgs/<slug:slug>/invite/", InviteView.as_view(), name="org-invite"),
     # Invitations
     path("invitations/<str:token>/accept/", AcceptInvitationView.as_view(), name="invitation-accept"),
+    # API Keys (per org)
+    path("orgs/<slug:slug>/api-keys/", APIKeyViewSet.as_view({"get": "list", "post": "create_key"}), name="api-key-list"),
+    path("orgs/<slug:slug>/api-keys/<int:pk>/", APIKeyViewSet.as_view({"get": "retrieve", "delete": "destroy"}), name="api-key-detail"),
+    path("orgs/<slug:slug>/api-keys/<int:pk>/revoke/", APIKeyViewSet.as_view({"post": "revoke"}), name="api-key-revoke"),
+    # API Key Logs (per org)
+    path("orgs/<slug:slug>/api-keys/logs/", APIKeyLogViewSet.as_view({"get": "list"}), name="api-key-log-list"),
+    # Webhooks (per org)
+    path("orgs/<slug:slug>/webhooks/", WebhookViewSet.as_view({"get": "list", "post": "create"}), name="webhook-list"),
+    path("orgs/<slug:slug>/webhooks/<int:pk>/", WebhookViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}), name="webhook-detail"),
+    # Webhook Deliveries (per org)
+    path("orgs/<slug:slug>/webhooks/deliveries/", WebhookDeliveryViewSet.as_view({"get": "list"}), name="webhook-delivery-list"),
+    # Sandbox
+    path("developer/sandbox/", SandboxInfoView.as_view(), name="developer-sandbox"),
 ]

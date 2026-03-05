@@ -290,13 +290,13 @@ export default function Automations() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-base-content">{tp("automations.title")}</h1>
-          <p className="mt-1 text-sm text-base-content/60">{tp("automations.subtitle")}</p>
+          <h1 className="text-2xl font-bold text-foreground">{tp("automations.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{tp("automations.subtitle")}</p>
         </div>
         {selectedZoneId !== null && (
           <button
             onClick={openCreateModal}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content shadow-xs transition-colors hover:bg-primary/80"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/80"
           >
             {tp("automations.addRule")}
           </button>
@@ -305,13 +305,13 @@ export default function Automations() {
 
       {/* Zone selector */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-base-content/80">
+        <label className="mb-2 block text-sm font-medium text-foreground/80">
           {t("labels.zone")}
         </label>
         <select
           value={selectedZoneId ?? ""}
           onChange={(e) => setSelectedZoneId(e.target.value ? Number(e.target.value) : null)}
-          className="w-full max-w-md rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-sm text-base-content shadow-xs"
+          className="w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground shadow-xs"
         >
           <option value="">{tp("automations.selectZone")}</option>
           {greenhouses.map((gh) => (
@@ -328,9 +328,9 @@ export default function Automations() {
 
       {/* No zone selected */}
       {selectedZoneId === null && (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-base-content/30"
+            className="mx-auto h-12 w-12 text-muted-foreground/40"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -348,7 +348,7 @@ export default function Automations() {
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <p className="mt-4 text-sm text-base-content/60">{tp("automations.selectZone")}</p>
+          <p className="mt-4 text-sm text-muted-foreground">{tp("automations.selectZone")}</p>
         </div>
       )}
 
@@ -363,7 +363,7 @@ export default function Automations() {
       {selectedZoneId !== null && !loadingZone && (
         <>
           {rules.length === 0 ? (
-            <div className="rounded-xl border border-base-300 bg-base-100 p-8 text-center text-sm text-base-content/40">
+            <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
               {tp("automations.noRules")}
             </div>
           ) : (
@@ -374,20 +374,20 @@ export default function Automations() {
                 return (
                   <div
                     key={rule.id}
-                    className={`rounded-xl border border-base-300 bg-base-100 p-5 shadow-xs ${!rule.is_active ? "opacity-60" : ""}`}
+                    className={`rounded-xl border border-border bg-card p-5 shadow-xs ${!rule.is_active ? "opacity-60" : ""}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate font-semibold text-base-content">{rule.name}</h3>
+                        <h3 className="truncate font-semibold text-foreground">{rule.name}</h3>
                         {rule.description && (
-                          <p className="mt-1 text-xs text-base-content/60">{rule.description}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{rule.description}</p>
                         )}
                       </div>
                       <span
                         className={`ml-2 inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           rule.is_active
                             ? "bg-success/10 text-success"
-                            : "bg-base-200 text-base-content/60"
+                            : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {rule.is_active
@@ -397,23 +397,23 @@ export default function Automations() {
                     </div>
 
                     {/* Rule condition summary */}
-                    <div className="mt-3 rounded-lg bg-base-200 p-3 text-sm">
-                      <span className="font-medium text-base-content/80">IF </span>
+                    <div className="mt-3 rounded-lg bg-muted p-3 text-sm">
+                      <span className="font-medium text-foreground/80">IF </span>
                       <span className="text-info">{SENSOR_TYPE_LABELS[rule.sensor_type] ?? rule.sensor_type}</span>
-                      <span className="text-base-content/60"> {tp(`automations.conditions.${rule.condition}`)} </span>
-                      <span className="font-mono text-base-content">{rule.threshold_value}</span>
+                      <span className="text-muted-foreground"> {tp(`automations.conditions.${rule.condition}`)} </span>
+                      <span className="font-mono text-foreground">{rule.threshold_value}</span>
                       <br />
-                      <span className="font-medium text-base-content/80">THEN </span>
+                      <span className="font-medium text-foreground/80">THEN </span>
                       <span className="text-secondary">{tp(`automations.commandTypes.${rule.action_command_type}`)}</span>
-                      <span className="text-base-content/60"> → </span>
-                      <span className="text-base-content">{actuatorName}</span>
+                      <span className="text-muted-foreground"> → </span>
+                      <span className="text-foreground">{actuatorName}</span>
                       {rule.action_command_type === "SET" && rule.action_value !== null && (
-                        <span className="text-base-content/60"> = {rule.action_value}</span>
+                        <span className="text-muted-foreground"> = {rule.action_value}</span>
                       )}
                     </div>
 
                     {/* Metadata row */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-base-content/40">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/60">
                       <span>
                         {rule.last_triggered
                           ? `${tp("automations.status.lastTriggered")}: ${formatRelativeTime(rule.last_triggered)}`
@@ -438,13 +438,13 @@ export default function Automations() {
                       </button>
                       <button
                         onClick={() => openEditModal(rule)}
-                        className="rounded-lg bg-base-200 px-3 py-1.5 text-xs font-medium text-base-content/80 transition-colors hover:bg-base-300"
+                        className="rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:bg-accent"
                       >
                         {t("actions.edit")}
                       </button>
                       <button
                         onClick={() => setDeleteTarget(rule)}
-                        className="rounded-lg bg-error/10 px-3 py-1.5 text-xs font-medium text-error transition-colors hover:bg-error/20"
+                        className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
                       >
                         {t("actions.delete")}
                       </button>
@@ -456,21 +456,21 @@ export default function Automations() {
           )}
 
           {/* Trigger History */}
-          <div className="rounded-xl border border-base-300 bg-base-100 shadow-xs">
-            <div className="border-b border-base-300 px-4 py-3">
-              <h2 className="text-lg font-semibold text-base-content">
+          <div className="rounded-xl border border-border bg-card shadow-xs">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-lg font-semibold text-foreground">
                 {tp("automations.triggerHistory")}
               </h2>
             </div>
             {triggerCommands.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-base-content/40">
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">
                 {tp("automations.noTriggers")}
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-base-300 bg-base-200 text-left text-xs font-medium uppercase tracking-wider text-base-content/60">
+                    <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       <th className="px-4 py-3">{t("labels.actuator")}</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Status</th>
@@ -478,26 +478,26 @@ export default function Automations() {
                       <th className="px-4 py-3">Created</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-base-300">
+                  <tbody className="divide-y divide-border">
                     {triggerCommands.slice(0, 20).map((cmd) => {
                       const actuatorName = actuatorNameMap.get(cmd.actuator) ?? `#${cmd.actuator}`;
                       const linkedRule = rules.find((r) => r.id === cmd.automation_rule);
 
                       return (
-                        <tr key={cmd.id} className="hover:bg-base-200">
-                          <td className="px-4 py-3 font-medium text-base-content">
+                        <tr key={cmd.id} className="hover:bg-accent">
+                          <td className="px-4 py-3 font-medium text-foreground">
                             {actuatorName}
                           </td>
-                          <td className="px-4 py-3 text-base-content/80">{cmd.command_type}</td>
+                          <td className="px-4 py-3 text-foreground/80">{cmd.command_type}</td>
                           <td className="px-4 py-3">
-                            <span className="inline-flex rounded-full bg-base-200 px-2.5 py-0.5 text-xs font-medium text-base-content/80">
+                            <span className="inline-flex rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground/80">
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-base-content/60">
+                          <td className="px-4 py-3 text-muted-foreground">
                             {linkedRule?.name ?? `#${cmd.automation_rule}`}
                           </td>
-                          <td className="px-4 py-3 text-base-content/60">
+                          <td className="px-4 py-3 text-muted-foreground">
                             {formatDate(cmd.created_at)}
                           </td>
                         </tr>
@@ -520,40 +520,40 @@ export default function Automations() {
         <div className="space-y-4">
           {/* Name */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-base-content/80">
+            <label className="mb-1 block text-sm font-medium text-foreground/80">
               {tp("automations.ruleForm.name")}
             </label>
             <input
               value={form.name}
               onChange={(e) => updateField("name", e.target.value)}
               placeholder={tp("automations.ruleForm.namePlaceholder")}
-              className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            {formErrors.name && <p className="mt-1 text-xs text-error">{formErrors.name}</p>}
+            {formErrors.name && <p className="mt-1 text-xs text-destructive">{formErrors.name}</p>}
           </div>
 
           {/* Description */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-base-content/80">
+            <label className="mb-1 block text-sm font-medium text-foreground/80">
               {tp("automations.ruleForm.description")}
             </label>
             <input
               value={form.description}
               onChange={(e) => updateField("description", e.target.value)}
-              className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
           {/* Sensor Type + Condition + Threshold */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-base-content/80">
+              <label className="mb-1 block text-sm font-medium text-foreground/80">
                 {tp("automations.ruleForm.sensorType")}
               </label>
               <select
                 value={form.sensor_type}
                 onChange={(e) => updateField("sensor_type", e.target.value)}
-                className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">--</option>
                 {SENSOR_TYPES.map((st) => (
@@ -562,16 +562,16 @@ export default function Automations() {
                   </option>
                 ))}
               </select>
-              {formErrors.sensor_type && <p className="mt-1 text-xs text-error">{formErrors.sensor_type}</p>}
+              {formErrors.sensor_type && <p className="mt-1 text-xs text-destructive">{formErrors.sensor_type}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-base-content/80">
+              <label className="mb-1 block text-sm font-medium text-foreground/80">
                 {tp("automations.ruleForm.condition")}
               </label>
               <select
                 value={form.condition}
                 onChange={(e) => updateField("condition", e.target.value)}
-                className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {CONDITIONS.map((c) => (
                   <option key={c} value={c}>
@@ -579,10 +579,10 @@ export default function Automations() {
                   </option>
                 ))}
               </select>
-              {formErrors.condition && <p className="mt-1 text-xs text-error">{formErrors.condition}</p>}
+              {formErrors.condition && <p className="mt-1 text-xs text-destructive">{formErrors.condition}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-base-content/80">
+              <label className="mb-1 block text-sm font-medium text-foreground/80">
                 {tp("automations.ruleForm.thresholdValue")}
               </label>
               <input
@@ -590,22 +590,22 @@ export default function Automations() {
                 step="any"
                 value={form.threshold_value}
                 onChange={(e) => updateField("threshold_value", e.target.value)}
-                className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
-              {formErrors.threshold_value && <p className="mt-1 text-xs text-error">{formErrors.threshold_value}</p>}
+              {formErrors.threshold_value && <p className="mt-1 text-xs text-destructive">{formErrors.threshold_value}</p>}
             </div>
           </div>
 
           {/* Actuator + Command Type */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-base-content/80">
+              <label className="mb-1 block text-sm font-medium text-foreground/80">
                 {tp("automations.ruleForm.actuator")}
               </label>
               <select
                 value={form.action_actuator}
                 onChange={(e) => updateField("action_actuator", e.target.value)}
-                className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">--</option>
                 {actuators.map((a) => (
@@ -614,16 +614,16 @@ export default function Automations() {
                   </option>
                 ))}
               </select>
-              {formErrors.action_actuator && <p className="mt-1 text-xs text-error">{formErrors.action_actuator}</p>}
+              {formErrors.action_actuator && <p className="mt-1 text-xs text-destructive">{formErrors.action_actuator}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-base-content/80">
+              <label className="mb-1 block text-sm font-medium text-foreground/80">
                 {tp("automations.ruleForm.commandType")}
               </label>
               <select
                 value={form.action_command_type}
                 onChange={(e) => updateField("action_command_type", e.target.value)}
-                className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {COMMAND_TYPES.map((ct) => (
                   <option key={ct} value={ct}>
@@ -631,14 +631,14 @@ export default function Automations() {
                   </option>
                 ))}
               </select>
-              {formErrors.action_command_type && <p className="mt-1 text-xs text-error">{formErrors.action_command_type}</p>}
+              {formErrors.action_command_type && <p className="mt-1 text-xs text-destructive">{formErrors.action_command_type}</p>}
             </div>
           </div>
 
           {/* Action value (only for SET) */}
           {form.action_command_type === "SET" && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-base-content/80">
+              <label className="mb-1 block text-sm font-medium text-foreground/80">
                 {tp("automations.ruleForm.actionValue")}
               </label>
               <input
@@ -646,25 +646,25 @@ export default function Automations() {
                 step="any"
                 value={form.action_value}
                 onChange={(e) => updateField("action_value", e.target.value)}
-                className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
-              <p className="mt-1 text-xs text-base-content/40">{tp("automations.ruleForm.actionValueHint")}</p>
+              <p className="mt-1 text-xs text-muted-foreground/60">{tp("automations.ruleForm.actionValueHint")}</p>
             </div>
           )}
 
           {/* Cooldown */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-base-content/80">
+            <label className="mb-1 block text-sm font-medium text-foreground/80">
               {tp("automations.ruleForm.cooldown")}
             </label>
             <input
               type="number"
               value={form.cooldown_seconds}
               onChange={(e) => updateField("cooldown_seconds", e.target.value)}
-              className="w-full rounded-lg border border-base-300 px-3 py-2 text-sm bg-base-100 text-base-content"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <p className="mt-1 text-xs text-base-content/40">{tp("automations.ruleForm.cooldownHint")}</p>
-            {formErrors.cooldown_seconds && <p className="mt-1 text-xs text-error">{formErrors.cooldown_seconds}</p>}
+            <p className="mt-1 text-xs text-muted-foreground/60">{tp("automations.ruleForm.cooldownHint")}</p>
+            {formErrors.cooldown_seconds && <p className="mt-1 text-xs text-destructive">{formErrors.cooldown_seconds}</p>}
           </div>
 
           {/* Active toggle */}
@@ -673,7 +673,7 @@ export default function Automations() {
               type="checkbox"
               checked={form.is_active}
               onChange={(e) => updateField("is_active", e.target.checked)}
-              className="checkbox checkbox-primary checkbox-sm"
+              className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
             />
             {tp("automations.ruleForm.isActive")}
           </label>
@@ -682,14 +682,14 @@ export default function Automations() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setModalOpen(false)}
-              className="rounded-lg border border-base-300 px-4 py-2 text-sm font-medium text-base-content/80 hover:bg-base-200"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-accent transition-colors"
             >
               {t("actions.cancel")}
             </button>
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content hover:bg-primary/80 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80 disabled:opacity-50 transition-colors"
             >
               {saving ? t("status.loading") : t("actions.save")}
             </button>

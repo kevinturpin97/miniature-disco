@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import Invitation, Membership, Organization
+from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Webhook, WebhookDelivery
 
 
 @admin.register(Organization)
@@ -27,3 +27,33 @@ class InvitationAdmin(admin.ModelAdmin):
     list_filter = ("accepted", "role")
     search_fields = ("email", "organization__name")
     readonly_fields = ("token", "created_at")
+
+
+@admin.register(APIKey)
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ("name", "prefix", "organization", "scope", "is_active", "last_used_at", "created_at")
+    list_filter = ("scope", "is_active")
+    search_fields = ("name", "prefix", "organization__name")
+    readonly_fields = ("prefix", "hashed_key", "last_used_at", "created_at")
+
+
+@admin.register(APIKeyLog)
+class APIKeyLogAdmin(admin.ModelAdmin):
+    list_display = ("api_key", "method", "path", "status_code", "ip_address", "created_at")
+    list_filter = ("method", "status_code")
+    readonly_fields = ("api_key", "method", "path", "status_code", "ip_address", "user_agent", "created_at")
+
+
+@admin.register(Webhook)
+class WebhookAdmin(admin.ModelAdmin):
+    list_display = ("name", "organization", "url", "is_active", "failure_count", "last_triggered_at")
+    list_filter = ("is_active",)
+    search_fields = ("name", "url", "organization__name")
+    readonly_fields = ("last_triggered_at", "failure_count", "created_at", "updated_at")
+
+
+@admin.register(WebhookDelivery)
+class WebhookDeliveryAdmin(admin.ModelAdmin):
+    list_display = ("webhook", "event_type", "status", "response_status", "duration_ms", "created_at")
+    list_filter = ("status", "event_type")
+    readonly_fields = ("webhook", "event_type", "payload", "response_status", "response_body", "status", "error_message", "duration_ms", "created_at")

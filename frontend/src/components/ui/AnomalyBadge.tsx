@@ -27,7 +27,7 @@ export function AnomalyBadge({ anomalies, sensorId }: AnomalyBadgeProps) {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={() => setShowTooltip(!showTooltip)}
-        className="inline-flex items-center gap-1 rounded-full bg-error/10 px-2 py-0.5 text-xs font-medium text-error transition-colors hover:bg-error/20"
+        className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
       >
         <svg
           className="h-3 w-3"
@@ -49,34 +49,34 @@ export function AnomalyBadge({ anomalies, sensorId }: AnomalyBadgeProps) {
       </button>
 
       {showTooltip && (
-        <div className="absolute bottom-full left-0 z-50 mb-2 w-72 rounded-lg border border-base-300 bg-base-100 p-3 shadow-lg">
-          <p className="mb-1.5 text-xs font-semibold text-error">
+        <div className="absolute bottom-full left-0 z-50 mb-2 w-72 rounded-lg border border-border bg-card p-3 shadow-lg">
+          <p className="mb-1.5 text-xs font-semibold text-destructive">
             {tp("predictions.anomalyDetails")}
           </p>
           <div className="space-y-2">
             {sensorAnomalies.slice(0, 3).map((a) => (
-              <div key={a.id} className="border-l-2 border-error/40 pl-2">
+              <div key={a.id} className="border-l-2 border-destructive/40 pl-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-base-content/80">
+                  <span className="font-medium text-foreground/80">
                     {a.detection_method === "IF" ? "Isolation Forest" : "Z-Score"}
                   </span>
-                  <span className="text-base-content/50">
+                  <span className="text-muted-foreground/70">
                     {format(new Date(a.detected_at), "MM/dd HH:mm")}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-base-content/60">
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
                   {tp("predictions.value")}: {a.value.toFixed(2)} |{" "}
                   {tp("predictions.score")}: {a.anomaly_score.toFixed(3)}
                 </p>
                 {a.explanation && (
-                  <p className="mt-0.5 text-[10px] text-base-content/40 line-clamp-2">
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/60 line-clamp-2">
                     {a.explanation}
                   </p>
                 )}
               </div>
             ))}
             {sensorAnomalies.length > 3 && (
-              <p className="text-[10px] text-base-content/40">
+              <p className="text-[10px] text-muted-foreground/60">
                 +{sensorAnomalies.length - 3} {tp("predictions.more")}
               </p>
             )}

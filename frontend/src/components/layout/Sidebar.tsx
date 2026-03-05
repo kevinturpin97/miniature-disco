@@ -1,9 +1,11 @@
 /**
- * Sidebar navigation using DaisyUI menu component.
+ * Sidebar navigation with framer-motion animated active indicator.
  */
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
+import { cn } from "@/utils/cn";
 
 const NAV_ITEMS = [
   { to: "/", labelKey: "nav.dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" },
@@ -17,6 +19,7 @@ const NAV_ITEMS = [
   { to: "/analytics", labelKey: "nav.analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
   { to: "/scenarios", labelKey: "nav.scenarios", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
   { to: "/marketplace", labelKey: "nav.marketplace", icon: "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" },
+  { to: "/developer", labelKey: "nav.developer", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
   { to: "/settings", labelKey: "nav.settings", icon: "M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" },
 ];
 
@@ -26,22 +29,23 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
   const { t } = useTranslation();
+  const location = useLocation();
 
   return (
-    <div className="flex h-full flex-col bg-base-100 w-64">
+    <div className="flex h-full w-[220px] flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-base-300 px-4">
+      <div className="flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-content text-sm font-bold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
             G
           </div>
-          <span className="text-lg font-semibold text-base-content">
+          <span className="text-base font-semibold text-sidebar-foreground">
             Greenhouse
           </span>
         </div>
         <button
           onClick={onClose}
-          className="btn btn-ghost btn-circle btn-sm lg:hidden"
+          className="rounded-md p-1 text-sidebar-foreground/60 hover:bg-accent hover:text-sidebar-foreground lg:hidden"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -50,23 +54,51 @@ export function Sidebar({ onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <ul className="menu flex-1 px-3 py-4 overflow-y-auto">
-        {NAV_ITEMS.map((item) => (
-          <li key={item.to}>
-            <NavLink
-              to={item.to}
-              end={item.to === "/"}
-              onClick={onClose}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-              </svg>
-              {t(item.labelKey)}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+      <nav className="flex-1 overflow-y-auto px-2 py-3">
+        <ul className="space-y-0.5">
+          {NAV_ITEMS.map((item) => {
+            const isActive =
+              item.to === "/"
+                ? location.pathname === "/"
+                : location.pathname.startsWith(item.to);
+
+            return (
+              <li key={item.to} className="relative">
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebarActive"
+                    className="absolute inset-0 rounded-lg bg-primary/10"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebarDot"
+                    className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+                <NavLink
+                  to={item.to}
+                  end={item.to === "/"}
+                  onClick={onClose}
+                  className={cn(
+                    "relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "text-primary"
+                      : "text-sidebar-foreground/70 hover:bg-accent hover:text-sidebar-foreground"
+                  )}
+                >
+                  <svg className="h-[18px] w-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+                  </svg>
+                  {t(item.labelKey)}
+                </NavLink>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </div>
   );
 }

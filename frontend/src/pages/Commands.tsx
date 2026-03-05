@@ -29,8 +29,8 @@ const STATUS_STYLES: Record<CommandStatus, { bg: string; text: string }> = {
   PENDING: { bg: "bg-warning/10", text: "text-warning" },
   SENT: { bg: "bg-info/10", text: "text-info" },
   ACK: { bg: "bg-success/10", text: "text-success" },
-  FAILED: { bg: "bg-error/10", text: "text-error" },
-  TIMEOUT: { bg: "bg-base-200", text: "text-base-content/60" },
+  FAILED: { bg: "bg-destructive/10", text: "text-destructive" },
+  TIMEOUT: { bg: "bg-muted", text: "text-muted-foreground" },
 };
 
 const COMMAND_REFRESH_INTERVAL = 5_000;
@@ -213,19 +213,19 @@ export default function Commands() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-base-content">{tp("commands.title")}</h1>
-        <p className="mt-1 text-sm text-base-content/60">{tp("commands.subtitle")}</p>
+        <h1 className="text-2xl font-bold text-foreground">{tp("commands.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{tp("commands.subtitle")}</p>
       </div>
 
       {/* Zone selector */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-base-content/80">
+        <label className="mb-2 block text-sm font-medium text-foreground/80">
           {t("labels.zone")}
         </label>
         <select
           value={selectedZoneId ?? ""}
           onChange={handleZoneChange}
-          className="w-full max-w-md rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-sm text-base-content shadow-xs"
+          className="w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground shadow-xs"
         >
           <option value="">{tp("commands.selectZone")}</option>
           {greenhouses.map((gh) => (
@@ -242,9 +242,9 @@ export default function Commands() {
 
       {/* No zone selected state */}
       {selectedZoneId === null && (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-base-content/30"
+            className="mx-auto h-12 w-12 text-muted-foreground/40"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -256,7 +256,7 @@ export default function Commands() {
               d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
             />
           </svg>
-          <p className="mt-4 text-sm text-base-content/60">{tp("commands.selectZone")}</p>
+          <p className="mt-4 text-sm text-muted-foreground">{tp("commands.selectZone")}</p>
         </div>
       )}
 
@@ -271,11 +271,11 @@ export default function Commands() {
       {selectedZoneId !== null && !loadingZone && (
         <>
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-base-content">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
               {tp("commands.actuatorControls")}
             </h2>
             {actuators.length === 0 ? (
-              <div className="rounded-xl border border-base-300 bg-base-100 p-8 text-center text-sm text-base-content/40">
+              <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
                 {tp("commands.noActuators")}
               </div>
             ) : (
@@ -287,23 +287,23 @@ export default function Commands() {
                   return (
                     <div
                       key={actuator.id}
-                      className="rounded-xl border border-base-300 bg-base-100 p-5 shadow-xs"
+                      className="rounded-xl border border-border bg-card p-5 shadow-xs"
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-base-content">{actuator.name}</h3>
-                          <p className="text-xs text-base-content/60">{typeLabel}</p>
+                          <h3 className="font-semibold text-foreground">{actuator.name}</h3>
+                          <p className="text-xs text-muted-foreground">{typeLabel}</p>
                         </div>
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             actuator.state
                               ? "bg-success/10 text-success"
-                              : "bg-base-200 text-base-content/60"
+                              : "bg-muted text-muted-foreground"
                           }`}
                         >
                           <span
                             className={`inline-block h-1.5 w-1.5 rounded-full ${
-                              actuator.state ? "bg-success" : "bg-base-content/40"
+                              actuator.state ? "bg-success" : "bg-muted-foreground/40"
                             }`}
                           />
                           {actuator.state ? t("status.on") : t("status.off")}
@@ -314,14 +314,14 @@ export default function Commands() {
                         <button
                           onClick={() => handleSendCommand(actuator.id, "ON")}
                           disabled={isSending}
-                          className="flex-1 rounded-lg bg-success px-3 py-2 text-sm font-medium text-success-content shadow-xs transition-colors hover:bg-success/80 disabled:opacity-50"
+                          className="flex-1 rounded-lg bg-success px-3 py-2 text-sm font-medium text-success-foreground shadow-xs transition-colors hover:bg-success/80 disabled:opacity-50"
                         >
                           {isSending ? tp("commands.sendingCommand") : t("status.on")}
                         </button>
                         <button
                           onClick={() => handleSendCommand(actuator.id, "OFF")}
                           disabled={isSending}
-                          className="flex-1 rounded-lg bg-base-200 px-3 py-2 text-sm font-medium text-base-content/80 shadow-xs transition-colors hover:bg-base-300 disabled:opacity-50"
+                          className="flex-1 rounded-lg bg-muted px-3 py-2 text-sm font-medium text-foreground/80 shadow-xs transition-colors hover:bg-accent disabled:opacity-50"
                         >
                           {isSending ? tp("commands.sendingCommand") : t("status.off")}
                         </button>
@@ -334,21 +334,21 @@ export default function Commands() {
           </div>
 
           {/* Command history */}
-          <div className="rounded-xl border border-base-300 bg-base-100 shadow-xs">
-            <div className="border-b border-base-300 px-4 py-3">
-              <h2 className="text-lg font-semibold text-base-content">
+          <div className="rounded-xl border border-border bg-card shadow-xs">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-lg font-semibold text-foreground">
                 {tp("commands.commandHistory")}
               </h2>
             </div>
             {commands.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-base-content/40">
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">
                 {tp("commands.noCommands")}
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-base-300 bg-base-200 text-left text-xs font-medium uppercase tracking-wider text-base-content/60">
+                    <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       <th className="px-4 py-3">{t("labels.actuator")}</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Status</th>
@@ -357,17 +357,17 @@ export default function Commands() {
                       <th className="px-4 py-3">Acknowledged At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-base-300">
+                  <tbody className="divide-y divide-border">
                     {commands.map((cmd) => {
                       const statusStyle = STATUS_STYLES[cmd.status] ?? STATUS_STYLES.PENDING;
                       const actuatorName = nameMap.get(cmd.actuator) ?? `#${cmd.actuator}`;
 
                       return (
-                        <tr key={cmd.id} className="hover:bg-base-200">
-                          <td className="px-4 py-3 font-medium text-base-content">
+                        <tr key={cmd.id} className="hover:bg-accent">
+                          <td className="px-4 py-3 font-medium text-foreground">
                             {actuatorName}
                           </td>
-                          <td className="px-4 py-3 text-base-content/80">{cmd.command_type}</td>
+                          <td className="px-4 py-3 text-foreground/80">{cmd.command_type}</td>
                           <td className="px-4 py-3">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}
@@ -376,16 +376,16 @@ export default function Commands() {
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
                             {cmd.error_message && (
-                              <p className="mt-1 text-xs text-error">{cmd.error_message}</p>
+                              <p className="mt-1 text-xs text-destructive">{cmd.error_message}</p>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-base-content/60">
+                          <td className="px-4 py-3 text-muted-foreground">
                             {formatDate(cmd.created_at)}
                           </td>
-                          <td className="px-4 py-3 text-base-content/60">
+                          <td className="px-4 py-3 text-muted-foreground">
                             {cmd.sent_at ? formatDate(cmd.sent_at) : "--"}
                           </td>
-                          <td className="px-4 py-3 text-base-content/60">
+                          <td className="px-4 py-3 text-muted-foreground">
                             {cmd.acknowledged_at ? formatDate(cmd.acknowledged_at) : "--"}
                           </td>
                         </tr>

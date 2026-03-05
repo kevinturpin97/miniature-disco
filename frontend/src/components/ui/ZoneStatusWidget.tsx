@@ -21,36 +21,36 @@ export function ZoneStatusWidget({ zone, latestReadings }: ZoneStatusWidgetProps
   return (
     <Link
       to={`/zones/${zone.id}`}
-      className="card card-border bg-base-100 p-3 flex-row items-center gap-3 transition-shadow hover:shadow-md"
+      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-shadow hover:shadow-md"
     >
       {/* Status dot */}
       <div
-        className={`h-3 w-3 flex-shrink-0 rounded-full ${isOnline ? "bg-success" : "bg-base-content/30"}`}
+        className={`h-3 w-3 flex-shrink-0 rounded-full ${isOnline ? "bg-success" : "bg-muted-foreground/30"}`}
         title={isOnline ? t("common:status.online") : t("common:status.offline")}
       />
 
       {/* Zone info */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-base-content">
+        <p className="truncate text-sm font-medium text-foreground">
           {zone.name}
         </p>
         {latestReadings && Object.keys(latestReadings).length > 0 ? (
           <div className="mt-0.5 flex flex-wrap gap-2">
             {Object.entries(latestReadings).map(([type, value]) => (
-              <span key={type} className="text-xs text-base-content/60">
+              <span key={type} className="text-xs text-muted-foreground">
                 {type}: <span className="font-medium">{value}</span>
               </span>
             ))}
           </div>
         ) : (
-          <p className="mt-0.5 text-xs text-base-content/40">
+          <p className="mt-0.5 text-xs text-muted-foreground/60">
             {isOnline ? t("common:status.online") : t("common:status.offline")}
           </p>
         )}
       </div>
 
       {/* Chevron */}
-      <svg className="h-4 w-4 flex-shrink-0 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="h-4 w-4 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
     </Link>

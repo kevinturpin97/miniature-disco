@@ -1,9 +1,9 @@
 /**
- * Main application layout using DaisyUI drawer, with sidebar, header, bottom nav (mobile),
+ * Main application layout with sidebar, header, bottom nav (mobile),
  * and content area with framer-motion page transitions.
  */
 
-import { useRef } from "react";
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
@@ -11,29 +11,31 @@ import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 
 export function AppLayout() {
-  const drawerToggleRef = useRef<HTMLInputElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  const openSidebar = () => {
-    if (drawerToggleRef.current) drawerToggleRef.current.checked = true;
-  };
-
-  const closeSidebar = () => {
-    if (drawerToggleRef.current) drawerToggleRef.current.checked = false;
-  };
-
   return (
-    <div className="drawer lg:drawer-open">
-      <input
-        id="app-drawer"
-        type="checkbox"
-        className="drawer-toggle"
-        ref={drawerToggleRef}
-      />
+    <div className="flex h-screen bg-background">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <Sidebar onClose={() => setSidebarOpen(false)} />
+      </aside>
 
       {/* Main content area */}
-      <div className="drawer-content flex flex-col bg-base-200 min-h-screen">
-        <Header onMenuClick={openSidebar} />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 lg:pb-6">
           <AnimatePresence mode="wait">
             <motion.div
@@ -48,16 +50,6 @@ export function AppLayout() {
           </AnimatePresence>
         </main>
         <BottomNav />
-      </div>
-
-      {/* Sidebar (drawer side) */}
-      <div className="drawer-side z-30">
-        <label
-          htmlFor="app-drawer"
-          className="drawer-overlay"
-          aria-label="Close sidebar"
-        ></label>
-        <Sidebar onClose={closeSidebar} />
       </div>
     </div>
   );

@@ -576,3 +576,89 @@ export interface ZoneAIReport {
   report: string;
   generated_at: string;
 }
+
+// --- Developer Platform (Sprint 21) ---
+
+export type APIKeyScope = "READ" | "WRITE" | "ADMIN";
+
+export interface APIKeyData {
+  id: number;
+  organization: number;
+  name: string;
+  prefix: string;
+  scope: APIKeyScope;
+  is_active: boolean;
+  expires_at: string | null;
+  last_used_at: string | null;
+  created_by: number | null;
+  created_at: string;
+}
+
+export interface APIKeyCreatePayload {
+  name: string;
+  scope: APIKeyScope;
+  expires_at?: string | null;
+}
+
+export interface APIKeyCreateResponse {
+  key: APIKeyData;
+  raw_key: string;
+}
+
+export interface APIKeyLogData {
+  id: number;
+  api_key: number;
+  method: string;
+  path: string;
+  status_code: number;
+  ip_address: string | null;
+  user_agent: string;
+  created_at: string;
+}
+
+export type WebhookEventType = "new_reading" | "alert_created" | "command_ack";
+
+export interface WebhookData {
+  id: number;
+  organization: number;
+  name: string;
+  url: string;
+  events: WebhookEventType[];
+  is_active: boolean;
+  has_secret: boolean;
+  last_triggered_at: string | null;
+  failure_count: number;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookPayload {
+  name: string;
+  url: string;
+  secret?: string;
+  events: WebhookEventType[];
+  is_active?: boolean;
+}
+
+export interface WebhookDeliveryData {
+  id: number;
+  webhook: number;
+  event_type: string;
+  payload: Record<string, unknown>;
+  response_status: number | null;
+  response_body: string;
+  status: "SUCCESS" | "FAILED";
+  error_message: string;
+  duration_ms: number | null;
+  created_at: string;
+}
+
+export interface SandboxInfo {
+  name: string;
+  slug: string;
+  plan: OrgPlan;
+  greenhouse_count: number;
+  zone_count: number;
+  api_keys_count: number;
+}

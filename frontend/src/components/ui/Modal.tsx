@@ -46,17 +46,17 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
           }}
         >
           <motion.div
-            className="modal-box w-full max-w-lg bg-base-100 shadow-xl"
+            className="w-full max-w-lg rounded-xl border border-border bg-card shadow-xl"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
           >
-            <div className="flex items-center justify-between border-b border-base-300 px-6 py-4">
-              <h2 className="text-lg font-semibold text-base-content">{title}</h2>
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h2 className="text-lg font-semibold text-foreground">{title}</h2>
               <button
                 onClick={onClose}
-                className="btn btn-sm btn-circle btn-ghost"
+                className="rounded-full p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                 aria-label={t("actions.close")}
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
