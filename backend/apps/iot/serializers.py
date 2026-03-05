@@ -21,6 +21,9 @@ from .models import (
     Schedule,
     Sensor,
     SensorReading,
+    Template,
+    TemplateCategory,
+    TemplateRating,
     Zone,
 )
 
@@ -569,3 +572,144 @@ class ScheduleSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
+
+
+class TemplateCategorySerializer(serializers.ModelSerializer):
+    """Serializer for the TemplateCategory model.
+
+    Fields:
+        id, name, slug, description, icon, order, template_count.
+    """
+
+    template_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TemplateCategory
+        fields = ("id", "name", "slug", "description", "icon", "order", "template_count")
+        read_only_fields = ("id",)
+
+    def get_template_count(self, obj: TemplateCategory) -> int:
+        """Return the number of published templates in this category."""
+        return obj.templates.filter(is_published=True).count()
+
+
+class TemplateRatingSerializer(serializers.ModelSerializer):
+    """Serializer for the TemplateRating model.
+
+    Fields:
+        id, template, user, username, score, comment, created_at, updated_at.
+    """
+
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = TemplateRating
+        fields = ("id", "template", "user", "username", "score", "comment", "created_at", "updated_at")
+        read_only_fields = ("id", "template", "user", "created_at", "updated_at")
+
+
+class TemplateSerializer(serializers.ModelSerializer):
+    """Serializer for the Template model.
+
+    Fields:
+        id, organization, organization_name, category, category_name,
+        name, description, is_official, is_published, version, changelog,
+        config, avg_rating, rating_count, clone_count, created_by,
+        created_by_username, created_at, updated_at, user_rating.
+    """
+
+    organization_name = serializers.CharField(
+        source="organization.name", read_only=True, default=""
+    )
+    category_name = serializers.CharField(
+        source="category.name", read_only=True, default=""
+    )
+    created_by_username = serializers.CharField(
+        source="created_by.username", read_only=True, default=""
+    )
+    user_rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Template
+        fields = (
+            "id",
+            "organization",
+            "organization_name",
+            "category",
+            "category_name",
+            "name",
+            "description",
+            "is_official",
+            "is_published",
+            "version",
+            "changelog",
+            "config",
+            "avg_rating",
+            "rating_count",
+            "clone_count",
+            "created_by",
+            "created_by_username",
+            "created_at",
+            "updated_at",
+            "user_rating",
+        )
+        read_only_fields = (
+            "id",
+            "organization",
+            "avg_rating",
+            "rating_count",
+            "clone_count",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "user_rating",
+        )
+
+    def get_user_rating(self, obj: Template) -> int | None:
+        """Return the authenticated user's rating for this template, or null."""
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        rating = obj.ratings.filter(user=request.user).first()
+        return rating.score if rating else None
+
+    def validate_config(self, value: dict) -> dict:
+        """Validate the template config structure."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Config must be a JSON object.")
+        allowed_keys = {"sensors", "actuators", "automation_rules", "scenarios"}
+        for key in value:
+            if key not in allowed_keys:
+                raise serializers.ValidationError(
+                    f"Config key '{key}' is not allowed. Use: {', '.join(sorted(allowed_keys))}."
+                )
+        return value
+
+
+class TemplatePublishSerializer(serializers.Serializer):
+    """Serializer for publishing a zone configuration as a template.
+
+    Fields:
+        name, description, category, version, changelog, is_published.
+    """
+
+    name = serializers.CharField(max_length=150)
+    description = serializers.CharField(required=False, allow_blank=True, default="")
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=TemplateCategory.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    version = serializers.CharField(max_length=20, default="1.0.0")
+    changelog = serializers.CharField(required=False, allow_blank=True, default="")
+    is_published = serializers.BooleanField(default=True)
+
+
+class TemplateImportSerializer(serializers.Serializer):
+    """Serializer for importing a template into a zone.
+
+    Fields:
+        mode — 'merge' keeps existing resources, 'replace' wipes and recreates.
+    """
+
+    mode = serializers.ChoiceField(choices=["merge", "replace"], default="merge")

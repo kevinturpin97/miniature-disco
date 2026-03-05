@@ -25,6 +25,7 @@ const Analytics = lazy(() => import("@/pages/Analytics"));
 const Scenarios = lazy(() => import("@/pages/Scenarios"));
 const AcceptInvitation = lazy(() => import("@/pages/AcceptInvitation"));
 const QuickActions = lazy(() => import("@/pages/QuickActions"));
+const Marketplace = lazy(() => import("@/pages/Marketplace"));
 
 function PageFallback() {
   return (
@@ -140,6 +141,7 @@ function App() {
               <Route path="notifications" element={<Notifications />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="scenarios" element={<Scenarios />} />
+              <Route path="marketplace" element={<Marketplace />} />
               <Route path="settings" element={<Settings />} />
             </Route>
 

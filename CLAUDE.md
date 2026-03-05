@@ -817,14 +817,14 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 19 — Marketplace de Templates
 **Objectif : permettre aux utilisateurs de partager et réutiliser des configurations**
 
-- [ ] Modèle `Template` : snapshot exportable d'une zone (capteurs + actionneurs + règles + scénarios)
-- [ ] Modèle `TemplateCategory` : maraîchage, floriculture, hydroponie, champignons, etc.
-- [ ] API : publish, clone, rate (1-5 étoiles), search/filter templates
-- [ ] Frontend : page "Marketplace" avec cards, filtres, preview détaillée
-- [ ] Import d'un template sur une zone existante (merge ou replace)
-- [ ] Templates officiels Greenhouse (seed data) : tomate, laitue, fraise, basilic
-- [ ] Versioning des templates (`version` + changelog)
-- [ ] Tests : clone, import, conflits de merge
+- [x] Modèle `Template` : snapshot exportable d'une zone (capteurs + actionneurs + règles + scénarios)
+- [x] Modèle `TemplateCategory` : maraîchage, floriculture, hydroponie, champignons, etc.
+- [x] API : publish, clone, rate (1-5 étoiles), search/filter templates
+- [x] Frontend : page "Marketplace" avec cards, filtres, preview détaillée
+- [x] Import d'un template sur une zone existante (merge ou replace)
+- [x] Templates officiels Greenhouse (seed data) : tomate, laitue, fraise, basilic, tulipe, etc.
+- [x] Versioning des templates (`version` + changelog)
+- [x] Tests : clone, import, conflits de merge
 
 ---
 

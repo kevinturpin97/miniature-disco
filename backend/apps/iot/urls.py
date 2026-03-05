@@ -16,8 +16,11 @@ from .views import (
     ScenarioViewSet,
     ScheduleViewSet,
     SensorViewSet,
+    TemplateCategoryViewSet,
+    TemplateViewSet,
     VapidPublicKeyView,
     ZoneAnalyticsView,
+    ZonePublishTemplateView,
     ZoneReportPDFView,
     ZoneViewSet,
 )
@@ -88,6 +91,17 @@ schedule_detail = ScheduleViewSet.as_view(
 push_subscribe = PushSubscriptionView.as_view({"post": "create", "delete": "destroy"})
 vapid_public_key = VapidPublicKeyView.as_view({"get": "list"})
 
+# Templates (marketplace)
+template_list = TemplateViewSet.as_view({"get": "list", "post": "create"})
+template_detail = TemplateViewSet.as_view(
+    {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+)
+template_clone = TemplateViewSet.as_view({"post": "clone"})
+template_rate = TemplateViewSet.as_view({"post": "rate"})
+template_ratings = TemplateViewSet.as_view({"get": "ratings"})
+template_category_list = TemplateCategoryViewSet.as_view({"get": "list"})
+zone_publish_template = ZonePublishTemplateView.as_view({"post": "create"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -135,4 +149,12 @@ urlpatterns = [
     # Push notifications
     path("push/subscribe/", push_subscribe, name="push-subscribe"),
     path("push/vapid-key/", vapid_public_key, name="vapid-public-key"),
+    # Templates (marketplace)
+    path("templates/", template_list, name="template-list"),
+    path("templates/categories/", template_category_list, name="template-category-list"),
+    path("templates/<int:pk>/", template_detail, name="template-detail"),
+    path("templates/<int:pk>/clone/", template_clone, name="template-clone"),
+    path("templates/<int:pk>/rate/", template_rate, name="template-rate"),
+    path("templates/<int:pk>/ratings/", template_ratings, name="template-ratings"),
+    path("zones/<int:pk>/publish-template/", zone_publish_template, name="zone-publish-template"),
 ]

@@ -19,6 +19,9 @@ from .models import (
     Sensor,
     SensorReading,
     SensorReadingHourly,
+    Template,
+    TemplateCategory,
+    TemplateRating,
     Zone,
 )
 
@@ -173,3 +176,33 @@ class AuditEventAdmin(admin.ModelAdmin):
     search_fields = ("description", "user__username", "resource_type")
     readonly_fields = ("created_at",)
     date_hierarchy = "created_at"
+
+
+@admin.register(TemplateCategory)
+class TemplateCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "order")
+    prepopulated_fields = {"slug": ("name",)}
+    ordering = ("order", "name")
+
+
+class TemplateRatingInline(admin.TabularInline):
+    model = TemplateRating
+    extra = 0
+    readonly_fields = ("user", "score", "comment", "created_at")
+
+
+@admin.register(Template)
+class TemplateAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "organization", "version", "is_official", "is_published", "avg_rating", "clone_count", "created_at")
+    list_filter = ("is_official", "is_published", "category", "created_at")
+    search_fields = ("name", "description", "organization__name")
+    readonly_fields = ("avg_rating", "rating_count", "clone_count", "created_at", "updated_at")
+    inlines = [TemplateRatingInline]
+
+
+@admin.register(TemplateRating)
+class TemplateRatingAdmin(admin.ModelAdmin):
+    list_display = ("template", "user", "score", "created_at")
+    list_filter = ("score", "created_at")
+    search_fields = ("template__name", "user__username")
+    readonly_fields = ("created_at", "updated_at")

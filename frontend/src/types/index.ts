@@ -359,3 +359,133 @@ export interface AuthTokens {
   access: string;
   refresh: string;
 }
+
+// --- Marketplace Templates ---
+
+export interface TemplateCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  order: number;
+  template_count: number;
+}
+
+export interface TemplateSensorConfig {
+  sensor_type: SensorType;
+  label: string;
+  unit: string;
+  min_threshold: number | null;
+  max_threshold: number | null;
+}
+
+export interface TemplateActuatorConfig {
+  actuator_type: ActuatorType;
+  name: string;
+  gpio_pin: number | null;
+}
+
+export interface TemplateAutomationRuleConfig {
+  name: string;
+  description: string;
+  sensor_type: SensorType;
+  condition: "GT" | "LT" | "EQ" | "GTE" | "LTE";
+  threshold_value: number;
+  action_actuator_name: string;
+  action_actuator_type: ActuatorType;
+  action_command_type: CommandType;
+  action_value: number | null;
+  cooldown_seconds: number;
+}
+
+export interface TemplateScenarioStepConfig {
+  order: number;
+  action: "ON" | "OFF" | "SET";
+  action_value: number | null;
+  delay_seconds: number;
+  duration_seconds: number | null;
+  actuator_name: string;
+  actuator_type: ActuatorType;
+}
+
+export interface TemplateScenarioConfig {
+  name: string;
+  description: string;
+  steps: TemplateScenarioStepConfig[];
+}
+
+export interface TemplateConfig {
+  sensors: TemplateSensorConfig[];
+  actuators: TemplateActuatorConfig[];
+  automation_rules: TemplateAutomationRuleConfig[];
+  scenarios: TemplateScenarioConfig[];
+}
+
+export interface Template {
+  id: number;
+  organization: number | null;
+  organization_name: string;
+  category: number | null;
+  category_name: string;
+  name: string;
+  description: string;
+  is_official: boolean;
+  is_published: boolean;
+  version: string;
+  changelog: string;
+  config: TemplateConfig;
+  avg_rating: number;
+  rating_count: number;
+  clone_count: number;
+  created_by: number | null;
+  created_by_username: string;
+  created_at: string;
+  updated_at: string;
+  user_rating: number | null;
+}
+
+export interface TemplateRating {
+  id: number;
+  template: number;
+  user: number;
+  username: string;
+  score: number;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplatePayload {
+  name: string;
+  description?: string;
+  category?: number | null;
+  is_published?: boolean;
+  version?: string;
+  changelog?: string;
+  config?: TemplateConfig;
+}
+
+export interface TemplatePublishPayload {
+  name: string;
+  description?: string;
+  category?: number | null;
+  version?: string;
+  changelog?: string;
+  is_published?: boolean;
+}
+
+export interface TemplateClonePayload {
+  zone_id: number;
+  mode: "merge" | "replace";
+}
+
+export interface TemplateCloneResponse {
+  detail: string;
+  summary: {
+    sensors: number;
+    actuators: number;
+    automation_rules: number;
+    scenarios: number;
+  };
+}
