@@ -5,10 +5,12 @@ from django.contrib import admin
 from .models import (
     Actuator,
     Alert,
+    AnomalyRecord,
     AuditEvent,
     AutomationRule,
     Command,
     Greenhouse,
+    MLModel,
     NotificationChannel,
     NotificationLog,
     NotificationRule,
@@ -17,8 +19,10 @@ from .models import (
     ScenarioStep,
     Schedule,
     Sensor,
+    SensorPrediction,
     SensorReading,
     SensorReadingHourly,
+    SmartSuggestion,
     Template,
     TemplateCategory,
     TemplateRating,
@@ -206,3 +210,39 @@ class TemplateRatingAdmin(admin.ModelAdmin):
     list_filter = ("score", "created_at")
     search_fields = ("template__name", "user__username")
     readonly_fields = ("created_at", "updated_at")
+
+
+# Sprint 20 — AI & Predictions models
+
+
+@admin.register(MLModel)
+class MLModelAdmin(admin.ModelAdmin):
+    list_display = ("sensor", "model_type", "training_samples", "mean_absolute_error", "last_trained_at")
+    list_filter = ("model_type",)
+    search_fields = ("sensor__zone__name",)
+    readonly_fields = ("created_at", "last_trained_at")
+
+
+@admin.register(SensorPrediction)
+class SensorPredictionAdmin(admin.ModelAdmin):
+    list_display = ("sensor", "predicted_at", "predicted_value", "confidence_lower", "confidence_upper", "generated_at")
+    list_filter = ("sensor__sensor_type",)
+    readonly_fields = ("generated_at",)
+    date_hierarchy = "predicted_at"
+
+
+@admin.register(AnomalyRecord)
+class AnomalyRecordAdmin(admin.ModelAdmin):
+    list_display = ("sensor", "detection_method", "anomaly_score", "value", "detected_at")
+    list_filter = ("detection_method", "detected_at")
+    search_fields = ("sensor__zone__name", "explanation")
+    readonly_fields = ("detected_at",)
+    date_hierarchy = "detected_at"
+
+
+@admin.register(SmartSuggestion)
+class SmartSuggestionAdmin(admin.ModelAdmin):
+    list_display = ("sensor", "suggestion_type", "suggested_min", "suggested_max", "confidence", "is_applied", "created_at")
+    list_filter = ("suggestion_type", "is_applied")
+    search_fields = ("sensor__zone__name", "message")
+    readonly_fields = ("created_at",)

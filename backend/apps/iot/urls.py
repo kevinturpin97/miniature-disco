@@ -19,9 +19,13 @@ from .views import (
     TemplateCategoryViewSet,
     TemplateViewSet,
     VapidPublicKeyView,
+    ZoneAIReportView,
     ZoneAnalyticsView,
+    ZoneAnomaliesView,
+    ZonePredictionsView,
     ZonePublishTemplateView,
     ZoneReportPDFView,
+    ZoneSuggestionsView,
     ZoneViewSet,
 )
 
@@ -102,6 +106,13 @@ template_ratings = TemplateViewSet.as_view({"get": "ratings"})
 template_category_list = TemplateCategoryViewSet.as_view({"get": "list"})
 zone_publish_template = ZonePublishTemplateView.as_view({"post": "create"})
 
+# AI & Predictions (Sprint 20)
+zone_predictions = ZonePredictionsView.as_view({"get": "retrieve"})
+zone_anomalies = ZoneAnomaliesView.as_view({"get": "retrieve"})
+zone_suggestions = ZoneSuggestionsView.as_view({"get": "list"})
+zone_suggestions_apply = ZoneSuggestionsView.as_view({"post": "apply"})
+zone_ai_report = ZoneAIReportView.as_view({"get": "retrieve"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -157,4 +168,10 @@ urlpatterns = [
     path("templates/<int:pk>/rate/", template_rate, name="template-rate"),
     path("templates/<int:pk>/ratings/", template_ratings, name="template-ratings"),
     path("zones/<int:pk>/publish-template/", zone_publish_template, name="zone-publish-template"),
+    # AI & Predictions (Sprint 20)
+    path("zones/<int:pk>/predictions/", zone_predictions, name="zone-predictions"),
+    path("zones/<int:pk>/anomalies/", zone_anomalies, name="zone-anomalies"),
+    path("zones/<int:pk>/suggestions/", zone_suggestions, name="zone-suggestions"),
+    path("zones/<int:pk>/suggestions/apply/", zone_suggestions_apply, name="zone-suggestions-apply"),
+    path("zones/<int:pk>/ai-report/", zone_ai_report, name="zone-ai-report"),
 ]

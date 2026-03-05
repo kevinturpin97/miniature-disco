@@ -403,5 +403,26 @@
     "publishChangelog": "Historique des modifications",
     "publishing": "Publication en cours...",
     "publishSuccess": "Template publié !"
+  },
+  "predictions": {
+    "title": "Prédictions IA",
+    "forecast": "Prévision",
+    "next6h": "Prédiction sur les 6 prochaines heures",
+    "actual": "Réel",
+    "predicted": "Prédit",
+    "confidenceUpper": "Borne supérieure",
+    "confidenceLower": "Borne inférieure",
+    "noData": "Aucune donnée de prédiction disponible. Les modèles sont entraînés quotidiennement.",
+    "driftAlert": "Alerte de dérive",
+    "anomalyDetected": "Anomalie",
+    "anomalyDetails": "Détails de l'anomalie",
+    "value": "Valeur",
+    "score": "Score",
+    "more": "de plus",
+    "smartSuggestions": "Suggestions intelligentes",
+    "thresholdAdj": "Seuil",
+    "trendWarning": "Tendance",
+    "confidence": "confiance",
+    "suggested": "Plage suggérée"
   }
 }

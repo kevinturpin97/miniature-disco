@@ -35,4 +35,21 @@ app.conf.beat_schedule = {
         "task": "iot.check_schedules",
         "schedule": 60.0,  # Every 60 seconds
     },
+    # Sprint 20 — AI & ML tasks
+    "train-ml-models": {
+        "task": "iot.train_ml_models",
+        "schedule": crontab(hour=2, minute=0),  # Daily at 02:00 UTC
+    },
+    "generate-predictions": {
+        "task": "iot.generate_all_predictions",
+        "schedule": crontab(hour="*/4", minute=15),  # Every 4 hours at :15
+    },
+    "generate-smart-suggestions": {
+        "task": "iot.generate_smart_suggestions_task",
+        "schedule": crontab(hour=3, minute=0, day_of_week=1),  # Weekly Monday 03:00 UTC
+    },
+    "generate-weekly-ai-reports": {
+        "task": "iot.generate_weekly_ai_reports",
+        "schedule": crontab(hour=7, minute=0, day_of_week=1),  # Weekly Monday 07:00 UTC
+    },
 }

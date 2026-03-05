@@ -29,7 +29,9 @@
     "signingIn": "Signing in...",
     "createAccount": "Create account",
     "creatingAccount": "Creating account...",
-    "register": "Register"
+    "register": "Register",
+    "apply": "Apply",
+    "dismiss": "Dismiss"
   },
   "status": {
     "online": "Online",

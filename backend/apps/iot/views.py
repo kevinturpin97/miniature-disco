@@ -44,6 +44,8 @@ from .models import (
 from .serializers import (
     ActuatorSerializer,
     AlertSerializer,
+    AnomalyRecordSerializer,
+    ApplySuggestionSerializer,
     AutomationRuleSerializer,
     CommandSerializer,
     GreenhouseSerializer,
@@ -52,8 +54,10 @@ from .serializers import (
     NotificationRuleSerializer,
     ScenarioSerializer,
     ScheduleSerializer,
+    SensorPredictionSerializer,
     SensorReadingSerializer,
     SensorSerializer,
+    SmartSuggestionSerializer,
     TemplateCategorySerializer,
     TemplateImportSerializer,
     TemplatePublishSerializer,
@@ -1337,3 +1341,200 @@ class ZonePublishTemplateView(viewsets.ViewSet):
             TemplateSerializer(template, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+# ---------------------------------------------------------------------------
+# Sprint 20 — AI & Predictions views
+# ---------------------------------------------------------------------------
+
+
+class ZonePredictionsView(viewsets.ViewSet):
+    """Predictions for a zone's sensors (next 6 hours).
+
+    Endpoints:
+        GET /api/zones/{id}/predictions/  - Get predictions for all sensors in a zone.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> Response:
+        """Return predictions grouped by sensor for the zone."""
+        from .models import SensorPrediction
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        sensors = Sensor.objects.filter(zone=zone, is_active=True)
+        sensor_predictions = {}
+
+        for sensor in sensors:
+            predictions = SensorPrediction.objects.filter(
+                sensor=sensor,
+                predicted_at__gte=django_tz.now(),
+            ).order_by("predicted_at")
+
+            sensor_predictions[sensor.pk] = {
+                "sensor_id": sensor.pk,
+                "sensor_type": sensor.sensor_type,
+                "label": sensor.label or sensor.get_sensor_type_display(),
+                "unit": sensor.unit,
+                "predictions": SensorPredictionSerializer(predictions, many=True).data,
+            }
+
+        # Also include drift info
+        from .ml_engine import detect_drift
+
+        drift_data = {}
+        for sensor in sensors:
+            drift = detect_drift(sensor)
+            if drift:
+                drift_data[sensor.pk] = drift
+
+        return Response({
+            "zone_id": zone.pk,
+            "zone_name": zone.name,
+            "timestamp": django_tz.now().isoformat(),
+            "sensors": list(sensor_predictions.values()),
+            "drift": drift_data,
+        })
+
+
+class ZoneAnomaliesView(viewsets.ViewSet):
+    """Anomalies detected for a zone.
+
+    Endpoints:
+        GET /api/zones/{id}/anomalies/  - Get recent anomalies for a zone.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> Response:
+        """Return recent anomalies for a zone's sensors."""
+        from datetime import timedelta
+
+        from .models import AnomalyRecord
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        days = int(request.query_params.get("days", 7))
+        since = django_tz.now() - timedelta(days=days)
+
+        anomalies = (
+            AnomalyRecord.objects.filter(
+                sensor__zone=zone,
+                detected_at__gte=since,
+            )
+            .select_related("sensor", "sensor__zone")
+            .order_by("-detected_at")[:100]
+        )
+
+        return Response({
+            "zone_id": zone.pk,
+            "zone_name": zone.name,
+            "period_days": days,
+            "anomalies": AnomalyRecordSerializer(anomalies, many=True).data,
+        })
+
+
+class ZoneSuggestionsView(viewsets.ViewSet):
+    """Smart threshold suggestions for a zone.
+
+    Endpoints:
+        GET  /api/zones/{id}/suggestions/         - Get suggestions for a zone.
+        POST /api/zones/{id}/suggestions/apply/    - Apply a suggestion.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request, pk: int = None) -> Response:
+        """Return pending suggestions for a zone's sensors."""
+        from .models import SmartSuggestion
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        suggestions = (
+            SmartSuggestion.objects.filter(
+                sensor__zone=zone,
+                is_applied=False,
+            )
+            .select_related("sensor")
+            .order_by("-created_at")[:50]
+        )
+
+        return Response({
+            "zone_id": zone.pk,
+            "zone_name": zone.name,
+            "suggestions": SmartSuggestionSerializer(suggestions, many=True).data,
+        })
+
+    def apply(self, request: Request, pk: int = None) -> Response:
+        """Apply a smart suggestion to its sensor thresholds."""
+        from .models import SmartSuggestion
+
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        ser = ApplySuggestionSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+
+        suggestion = get_object_or_404(
+            SmartSuggestion,
+            pk=ser.validated_data["suggestion_id"],
+            sensor__zone=zone,
+            is_applied=False,
+        )
+
+        sensor = suggestion.sensor
+        if suggestion.suggested_min is not None:
+            sensor.min_threshold = suggestion.suggested_min
+        if suggestion.suggested_max is not None:
+            sensor.max_threshold = suggestion.suggested_max
+        sensor.save()
+
+        suggestion.is_applied = True
+        suggestion.save()
+
+        return Response({
+            "detail": f"Suggestion applied to {sensor.get_sensor_type_display()}.",
+            "sensor_id": sensor.pk,
+            "min_threshold": sensor.min_threshold,
+            "max_threshold": sensor.max_threshold,
+        })
+
+
+class ZoneAIReportView(viewsets.ViewSet):
+    """Weekly AI report for a zone.
+
+    Endpoints:
+        GET /api/zones/{id}/ai-report/  - Get the AI-generated weekly report.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> Response:
+        """Generate and return an AI report for the zone."""
+        org_ids = _user_org_ids(request.user)
+        zone = get_object_or_404(
+            Zone, pk=pk, greenhouse__organization_id__in=org_ids
+        )
+
+        from .ml_engine import generate_weekly_ai_report
+
+        report = generate_weekly_ai_report(zone.pk)
+
+        return Response({
+            "zone_id": zone.pk,
+            "zone_name": zone.name,
+            "report": report,
+            "generated_at": django_tz.now().isoformat(),
+        })

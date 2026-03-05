@@ -713,3 +713,97 @@ class TemplateImportSerializer(serializers.Serializer):
     """
 
     mode = serializers.ChoiceField(choices=["merge", "replace"], default="merge")
+
+
+# ---------------------------------------------------------------------------
+# Sprint 20 — AI & Predictions serializers
+# ---------------------------------------------------------------------------
+
+
+class SensorPredictionSerializer(serializers.ModelSerializer):
+    """Serializer for SensorPrediction (read-only).
+
+    Fields:
+        id, sensor, predicted_at, predicted_value, confidence_lower,
+        confidence_upper, generated_at.
+    """
+
+    class Meta:
+        from .models import SensorPrediction
+
+        model = SensorPrediction
+        fields = (
+            "id",
+            "sensor",
+            "predicted_at",
+            "predicted_value",
+            "confidence_lower",
+            "confidence_upper",
+            "generated_at",
+        )
+        read_only_fields = fields
+
+
+class AnomalyRecordSerializer(serializers.ModelSerializer):
+    """Serializer for AnomalyRecord (read-only).
+
+    Fields:
+        id, sensor, reading, detection_method, anomaly_score,
+        value, explanation, detected_at.
+    """
+
+    sensor_type = serializers.CharField(source="sensor.sensor_type", read_only=True)
+    zone_name = serializers.CharField(source="sensor.zone.name", read_only=True)
+
+    class Meta:
+        from .models import AnomalyRecord
+
+        model = AnomalyRecord
+        fields = (
+            "id",
+            "sensor",
+            "sensor_type",
+            "zone_name",
+            "reading",
+            "detection_method",
+            "anomaly_score",
+            "value",
+            "explanation",
+            "detected_at",
+        )
+        read_only_fields = fields
+
+
+class SmartSuggestionSerializer(serializers.ModelSerializer):
+    """Serializer for SmartSuggestion (read-only).
+
+    Fields:
+        id, sensor, sensor_type, suggestion_type, message,
+        suggested_min, suggested_max, confidence, is_applied, created_at.
+    """
+
+    sensor_type = serializers.CharField(source="sensor.sensor_type", read_only=True)
+
+    class Meta:
+        from .models import SmartSuggestion
+
+        model = SmartSuggestion
+        fields = (
+            "id",
+            "sensor",
+            "sensor_type",
+            "suggestion_type",
+            "message",
+            "suggested_min",
+            "suggested_max",
+            "confidence",
+            "is_applied",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class ApplySuggestionSerializer(serializers.Serializer):
+    """Serializer for applying a smart suggestion to a sensor."""
+
+    suggestion_id = serializers.IntegerField()

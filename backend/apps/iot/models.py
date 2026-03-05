@@ -792,3 +792,134 @@ class TemplateRating(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} → {self.template.name}: {self.score}/5"
+
+
+class MLModel(models.Model):
+    """Stores trained ML model metadata and serialized model data per sensor."""
+
+    class ModelType(models.TextChoices):
+        ISOLATION_FOREST = "IF", "Isolation Forest"
+        LINEAR_REGRESSION = "LR", "Linear Regression"
+
+    sensor = models.ForeignKey(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name="ml_models",
+    )
+    model_type = models.CharField(max_length=5, choices=ModelType.choices)
+    model_data = models.BinaryField(
+        help_text="Pickled scikit-learn model",
+    )
+    training_samples = models.PositiveIntegerField(default=0)
+    mean_absolute_error = models.FloatField(null=True, blank=True)
+    last_trained_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["sensor", "model_type"]
+        ordering = ["-last_trained_at"]
+
+    def __str__(self) -> str:
+        return f"{self.get_model_type_display()} for {self.sensor}"
+
+
+class SensorPrediction(models.Model):
+    """Stores predicted sensor values for the next 6 hours."""
+
+    sensor = models.ForeignKey(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name="predictions",
+    )
+    predicted_at = models.DateTimeField(
+        help_text="The future timestamp this prediction is for",
+    )
+    predicted_value = models.FloatField()
+    confidence_lower = models.FloatField(
+        help_text="Lower bound of 95% confidence interval",
+    )
+    confidence_upper = models.FloatField(
+        help_text="Upper bound of 95% confidence interval",
+    )
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["predicted_at"]
+        indexes = [
+            models.Index(fields=["sensor", "predicted_at"]),
+            models.Index(fields=["sensor", "-generated_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.sensor}: {self.predicted_value:.2f} @ {self.predicted_at}"
+
+
+class AnomalyRecord(models.Model):
+    """Records anomalies detected by ML models."""
+
+    class DetectionMethod(models.TextChoices):
+        Z_SCORE = "ZSCORE", "Z-Score"
+        ISOLATION_FOREST = "IF", "Isolation Forest"
+
+    sensor = models.ForeignKey(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name="anomalies",
+    )
+    reading = models.ForeignKey(
+        SensorReading,
+        on_delete=models.CASCADE,
+        related_name="anomalies",
+    )
+    detection_method = models.CharField(
+        max_length=10,
+        choices=DetectionMethod.choices,
+    )
+    anomaly_score = models.FloatField(
+        help_text="Anomaly score (higher = more anomalous)",
+    )
+    value = models.FloatField()
+    explanation = models.TextField(blank=True)
+    detected_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-detected_at"]
+        indexes = [
+            models.Index(fields=["sensor", "-detected_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Anomaly on {self.sensor}: score={self.anomaly_score:.2f}"
+
+
+class SmartSuggestion(models.Model):
+    """AI-generated threshold adjustment suggestions."""
+
+    class SuggestionType(models.TextChoices):
+        THRESHOLD_ADJUST = "THRESH", "Threshold Adjustment"
+        TREND_WARNING = "TREND", "Trend Warning"
+
+    sensor = models.ForeignKey(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name="suggestions",
+    )
+    suggestion_type = models.CharField(
+        max_length=10,
+        choices=SuggestionType.choices,
+    )
+    message = models.TextField()
+    suggested_min = models.FloatField(null=True, blank=True)
+    suggested_max = models.FloatField(null=True, blank=True)
+    confidence = models.FloatField(
+        help_text="Confidence score (0-1)",
+        default=0.0,
+    )
+    is_applied = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Suggestion for {self.sensor}: {self.message[:50]}"

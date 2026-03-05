@@ -123,3 +123,25 @@ def trigger_anomaly_detection(
     from .tasks import detect_anomalies_task
 
     detect_anomalies_task.delay(instance.pk)
+
+
+@receiver(post_save, sender=SensorReading)
+def trigger_ml_anomaly_detection(
+    sender: type,
+    instance: SensorReading,
+    created: bool,
+    **kwargs: object,
+) -> None:
+    """Dispatch the ML-based anomaly detection Celery task for new readings.
+
+    Args:
+        sender: The SensorReading model class.
+        instance: The newly created SensorReading.
+        created: True if the instance was just created.
+    """
+    if not created:
+        return
+
+    from .tasks import detect_anomaly_ml_task
+
+    detect_anomaly_ml_task.delay(instance.pk)

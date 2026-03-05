@@ -33,6 +33,8 @@ from .models import (
     Zone,
 )
 
+# Sprint 20 imports (deferred in functions to avoid circular imports)
+
 logger = logging.getLogger(__name__)
 
 
@@ -837,3 +839,182 @@ def _cron_matches(field: str, value: int) -> bool:
         return True
     parts = [p.strip() for p in field.split(",")]
     return str(value) in parts
+
+
+# ---------------------------------------------------------------------------
+# Sprint 20 — AI & Predictions tasks
+# ---------------------------------------------------------------------------
+
+
+@shared_task(name="iot.train_ml_models")
+def train_ml_models() -> dict[str, int]:
+    """Train ML models (Isolation Forest + Linear Regression) for all active sensors.
+
+    Runs daily via Celery beat. Trains incrementally using recent data.
+
+    Returns:
+        Dict with ``sensors_processed``, ``if_trained``, and ``lr_trained`` counts.
+    """
+    from .ml_engine import train_isolation_forest, train_linear_regression
+
+    sensors = Sensor.objects.filter(is_active=True)
+    if_trained = 0
+    lr_trained = 0
+
+    for sensor in sensors:
+        try:
+            if train_isolation_forest(sensor):
+                if_trained += 1
+        except Exception as exc:
+            logger.error("IF training failed for sensor=%s: %s", sensor.pk, exc)
+
+        try:
+            if train_linear_regression(sensor):
+                lr_trained += 1
+        except Exception as exc:
+            logger.error("LR training failed for sensor=%s: %s", sensor.pk, exc)
+
+    logger.info(
+        "ML training complete: sensors=%d IF=%d LR=%d",
+        sensors.count(),
+        if_trained,
+        lr_trained,
+    )
+    return {
+        "sensors_processed": sensors.count(),
+        "if_trained": if_trained,
+        "lr_trained": lr_trained,
+    }
+
+
+@shared_task(name="iot.generate_all_predictions")
+def generate_all_predictions() -> dict[str, int]:
+    """Generate 6-hour predictions for all sensors with trained LR models.
+
+    Runs after model training or periodically.
+
+    Returns:
+        Dict with ``sensors_processed`` and ``predictions_created`` counts.
+    """
+    from .ml_engine import generate_predictions
+    from .models import MLModel
+
+    lr_models = MLModel.objects.filter(
+        model_type=MLModel.ModelType.LINEAR_REGRESSION,
+    ).select_related("sensor")
+
+    predictions_created = 0
+    for ml_model in lr_models:
+        try:
+            preds = generate_predictions(ml_model.sensor)
+            predictions_created += len(preds)
+        except Exception as exc:
+            logger.error(
+                "Prediction generation failed for sensor=%s: %s",
+                ml_model.sensor_id,
+                exc,
+            )
+
+    logger.info(
+        "Prediction generation complete: models=%d predictions=%d",
+        lr_models.count(),
+        predictions_created,
+    )
+    return {
+        "sensors_processed": lr_models.count(),
+        "predictions_created": predictions_created,
+    }
+
+
+@shared_task(name="iot.detect_anomaly_ml_task")
+def detect_anomaly_ml_task(reading_id: int) -> dict[str, bool]:
+    """Detect anomalies using Isolation Forest for a new reading.
+
+    Called after each SensorReading is persisted via signal.
+
+    Args:
+        reading_id: Primary key of the SensorReading to evaluate.
+
+    Returns:
+        Dict with ``anomaly`` boolean.
+    """
+    try:
+        reading = (
+            SensorReading.objects
+            .select_related("sensor", "sensor__zone")
+            .get(pk=reading_id)
+        )
+    except SensorReading.DoesNotExist:
+        logger.warning("SensorReading %s not found — skipping ML anomaly detection", reading_id)
+        return {"anomaly": False}
+
+    from .ml_engine import detect_anomaly_ml
+
+    result = detect_anomaly_ml(reading)
+    return {"anomaly": result is not None}
+
+
+@shared_task(name="iot.generate_smart_suggestions_task")
+def generate_smart_suggestions_task() -> dict[str, int]:
+    """Generate smart threshold suggestions for all active sensors.
+
+    Runs weekly via Celery beat.
+
+    Returns:
+        Dict with ``sensors_processed`` and ``suggestions_created`` counts.
+    """
+    from .ml_engine import generate_smart_suggestions
+
+    sensors = Sensor.objects.filter(is_active=True)
+    suggestions_created = 0
+
+    for sensor in sensors:
+        try:
+            suggestions = generate_smart_suggestions(sensor)
+            suggestions_created += len(suggestions)
+        except Exception as exc:
+            logger.error("Suggestion generation failed for sensor=%s: %s", sensor.pk, exc)
+
+    logger.info(
+        "Smart suggestions complete: sensors=%d suggestions=%d",
+        sensors.count(),
+        suggestions_created,
+    )
+    return {
+        "sensors_processed": sensors.count(),
+        "suggestions_created": suggestions_created,
+    }
+
+
+@shared_task(name="iot.generate_weekly_ai_reports")
+def generate_weekly_ai_reports() -> dict[str, int]:
+    """Generate weekly AI reports for all active zones.
+
+    Runs weekly via Celery beat (Monday 7am).
+
+    Returns:
+        Dict with ``zones_processed`` and ``reports_generated`` counts.
+    """
+    from .ml_engine import generate_weekly_ai_report
+
+    zones = Zone.objects.filter(is_active=True)
+    reports_generated = 0
+
+    for zone in zones:
+        try:
+            report = generate_weekly_ai_report(zone.pk)
+            if report:
+                reports_generated += 1
+                logger.info("Weekly AI report for zone=%s: %d chars", zone.pk, len(report))
+        except Exception as exc:
+            logger.error("Weekly AI report failed for zone=%s: %s", zone.pk, exc)
+
+    logger.info(
+        "Weekly AI reports complete: zones=%d reports=%d",
+        zones.count(),
+        reports_generated,
+    )
+    return {
+        "zones_processed": zones.count(),
+        "reports_generated": reports_generated,
+    }

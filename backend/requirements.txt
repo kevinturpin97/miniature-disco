@@ -28,3 +28,7 @@ django-prometheus==2.3
 django-ratelimit==4.1
 django-pg-zero-downtime-migrations==0.19
 locust==2.31
+# Sprint 20 — AI & Predictions
+scikit-learn==1.5
+numpy==1.26
+jinja2==3.1

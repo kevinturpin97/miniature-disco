@@ -403,5 +403,26 @@
     "publishChangelog": "Changelog",
     "publishing": "Publishing...",
     "publishSuccess": "Template published!"
+  },
+  "predictions": {
+    "title": "AI Predictions",
+    "forecast": "Forecast",
+    "next6h": "Next 6 hours prediction",
+    "actual": "Actual",
+    "predicted": "Predicted",
+    "confidenceUpper": "Upper bound",
+    "confidenceLower": "Lower bound",
+    "noData": "No prediction data available. Models are trained daily.",
+    "driftAlert": "Drift alert",
+    "anomalyDetected": "Anomaly",
+    "anomalyDetails": "Anomaly Details",
+    "value": "Value",
+    "score": "Score",
+    "more": "more",
+    "smartSuggestions": "Smart Suggestions",
+    "thresholdAdj": "Threshold",
+    "trendWarning": "Trend",
+    "confidence": "confidence",
+    "suggested": "Suggested range"
   }
 }

@@ -831,15 +831,15 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ### SPRINT 20 — Intelligence Artificielle & Prédictions
 **Objectif : valeur ajoutée IA sur les données collectées**
 
-- [ ] Prédiction de dérive : régression linéaire sur les 24 dernières heures → alerte si tendance critique
-- [ ] Détection d'anomalies ML : Isolation Forest (scikit-learn) sur les readings par capteur
-- [ ] Endpoint `/api/zones/{id}/predictions/` : valeurs prédites sur les 6 prochaines heures
-- [ ] "Smart Suggestions" : recommandation d'ajustement de seuils basée sur l'historique
-- [ ] Rapport hebdomadaire IA : résumé en langage naturel (template Jinja2 + stats)
-- [ ] Celery task : entraînement incrémental des modèles par zone (toutes les 24h)
-- [ ] Frontend : widget "Prédictions" dans ZoneDetail (graphe + intervalle de confiance)
-- [ ] Frontend : badge "Anomalie détectée" avec explication
-- [ ] Tests : fixtures de séries temporelles connues, assertions sur prédictions
+- [x] Prédiction de dérive : régression linéaire sur les 24 dernières heures → alerte si tendance critique
+- [x] Détection d'anomalies ML : Isolation Forest (scikit-learn) sur les readings par capteur
+- [x] Endpoint `/api/zones/{id}/predictions/` : valeurs prédites sur les 6 prochaines heures
+- [x] "Smart Suggestions" : recommandation d'ajustement de seuils basée sur l'historique
+- [x] Rapport hebdomadaire IA : résumé en langage naturel (template Jinja2 + stats)
+- [x] Celery task : entraînement incrémental des modèles par zone (toutes les 24h)
+- [x] Frontend : widget "Prédictions" dans ZoneDetail (graphe + intervalle de confiance)
+- [x] Frontend : badge "Anomalie détectée" avec explication
+- [x] Tests : fixtures de séries temporelles connues, assertions sur prédictions
 
 ---
 

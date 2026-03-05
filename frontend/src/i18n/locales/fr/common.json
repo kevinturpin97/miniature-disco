@@ -29,7 +29,9 @@
     "signingIn": "Connexion en cours...",
     "createAccount": "Créer un compte",
     "creatingAccount": "Création en cours...",
-    "register": "S'inscrire"
+    "register": "S'inscrire",
+    "apply": "Appliquer",
+    "dismiss": "Ignorer"
   },
   "status": {
     "online": "En ligne",

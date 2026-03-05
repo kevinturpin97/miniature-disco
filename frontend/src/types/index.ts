@@ -489,3 +489,90 @@ export interface TemplateCloneResponse {
     scenarios: number;
   };
 }
+
+// --- AI & Predictions (Sprint 20) ---
+
+export interface PredictionPoint {
+  id: number;
+  sensor: number;
+  predicted_at: string;
+  predicted_value: number;
+  confidence_lower: number;
+  confidence_upper: number;
+  generated_at: string;
+}
+
+export interface SensorPredictionData {
+  sensor_id: number;
+  sensor_type: SensorType;
+  label: string;
+  unit: string;
+  predictions: PredictionPoint[];
+}
+
+export interface DriftInfo {
+  sensor_id: number;
+  slope_per_hour: number;
+  current_value: number;
+  predicted_6h: number;
+  trend: "rising" | "falling" | "stable";
+  drift_alert: boolean;
+}
+
+export interface ZonePredictions {
+  zone_id: number;
+  zone_name: string;
+  timestamp: string;
+  sensors: SensorPredictionData[];
+  drift: Record<number, DriftInfo>;
+}
+
+export type DetectionMethod = "ZSCORE" | "IF";
+
+export interface AnomalyRecordData {
+  id: number;
+  sensor: number;
+  sensor_type: SensorType;
+  zone_name: string;
+  reading: number;
+  detection_method: DetectionMethod;
+  anomaly_score: number;
+  value: number;
+  explanation: string;
+  detected_at: string;
+}
+
+export interface ZoneAnomalies {
+  zone_id: number;
+  zone_name: string;
+  period_days: number;
+  anomalies: AnomalyRecordData[];
+}
+
+export type SuggestionType = "THRESH" | "TREND";
+
+export interface SmartSuggestionData {
+  id: number;
+  sensor: number;
+  sensor_type: SensorType;
+  suggestion_type: SuggestionType;
+  message: string;
+  suggested_min: number | null;
+  suggested_max: number | null;
+  confidence: number;
+  is_applied: boolean;
+  created_at: string;
+}
+
+export interface ZoneSuggestions {
+  zone_id: number;
+  zone_name: string;
+  suggestions: SmartSuggestionData[];
+}
+
+export interface ZoneAIReport {
+  zone_id: number;
+  zone_name: string;
+  report: string;
+  generated_at: string;
+}

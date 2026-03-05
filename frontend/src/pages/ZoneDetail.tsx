@@ -21,13 +21,17 @@ import toast from "react-hot-toast";
 import { getZone, exportZoneCsv } from "@/api/zones";
 import { listSensors, getSensorReadings, updateSensor } from "@/api/sensors";
 import { listActuators } from "@/api/actuators";
+import { getZonePredictions, getZoneAnomalies, getZoneSuggestions } from "@/api/analytics";
 import { useSensorData } from "@/hooks/useSensorData";
 import { useSensorStore } from "@/stores/sensorStore";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Spinner } from "@/components/ui/Spinner";
+import { AnomalyBadge } from "@/components/ui/AnomalyBadge";
+import { SmartSuggestionCard } from "@/components/ui/SmartSuggestionCard";
+import { PredictionChart } from "@/components/charts/PredictionChart";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS, ACTUATOR_TYPE_LABELS } from "@/utils/constants";
 import { formatDate, formatRelativeTime, formatSensorValue } from "@/utils/formatters";
-import type { Zone, Sensor, SensorReading, Actuator } from "@/types";
+import type { Zone, Sensor, SensorReading, Actuator, ZonePredictions, ZoneAnomalies, ZoneSuggestions } from "@/types";
 
 type Period = "1h" | "24h" | "7d" | "custom";
 
@@ -62,6 +66,11 @@ export default function ZoneDetail() {
   const [editingThresholds, setEditingThresholds] = useState<number | null>(null);
   const [thresholdForm, setThresholdForm] = useState<{ min: string; max: string }>({ min: "", max: "" });
   const [savingThresholds, setSavingThresholds] = useState(false);
+
+  // AI & Predictions state (Sprint 20)
+  const [predictions, setPredictions] = useState<ZonePredictions | null>(null);
+  const [anomalies, setAnomalies] = useState<ZoneAnomalies | null>(null);
+  const [suggestions, setSuggestions] = useState<ZoneSuggestions | null>(null);
 
   // Real-time WebSocket data
   const { isConnected } = useSensorData(numericZoneId);
@@ -108,6 +117,29 @@ export default function ZoneDetail() {
     }
     fetchZoneData();
   }, [numericZoneId]);
+
+  // Fetch AI predictions, anomalies, and suggestions
+  const fetchAIData = useCallback(async () => {
+    if (!numericZoneId) return;
+    try {
+      const [predData, anomData, sugData] = await Promise.all([
+        getZonePredictions(numericZoneId).catch(() => null),
+        getZoneAnomalies(numericZoneId).catch(() => null),
+        getZoneSuggestions(numericZoneId).catch(() => null),
+      ]);
+      if (predData) setPredictions(predData);
+      if (anomData) setAnomalies(anomData);
+      if (sugData) setSuggestions(sugData);
+    } catch {
+      // Silently fail — AI features are optional
+    }
+  }, [numericZoneId]);
+
+  useEffect(() => {
+    if (sensors.length > 0) {
+      fetchAIData();
+    }
+  }, [sensors, fetchAIData]);
 
   // Fetch readings when sensors or time range change
   useEffect(() => {
@@ -354,7 +386,12 @@ export default function ZoneDetail() {
             return (
               <div key={sensor.id} className="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="font-medium text-base-content">{sensorLabel}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-base-content">{sensorLabel}</h3>
+                    {anomalies && anomalies.anomalies.length > 0 && (
+                      <AnomalyBadge anomalies={anomalies.anomalies} sensorId={sensor.id} />
+                    )}
+                  </div>
                   <span className="text-sm text-base-content/60">{unit}</span>
                 </div>
                 {sensorChartData.length > 0 ? (
@@ -379,6 +416,40 @@ export default function ZoneDetail() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* AI Smart Suggestions */}
+      {suggestions && suggestions.suggestions.length > 0 && numericZoneId && (
+        <SmartSuggestionCard
+          suggestions={suggestions.suggestions}
+          zoneId={numericZoneId}
+          onApplied={fetchAIData}
+        />
+      )}
+
+      {/* AI Prediction Charts */}
+      {predictions && predictions.sensors.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-base-content">
+            {tp("predictions.title")}
+            <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">AI</span>
+          </h2>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {predictions.sensors.map((sensorPred, i) => {
+              const recentForSensor = (readings[sensorPred.sensor_id] ?? []).slice(0, 20);
+              const drift = predictions.drift[sensorPred.sensor_id];
+              return (
+                <PredictionChart
+                  key={sensorPred.sensor_id}
+                  sensorPrediction={sensorPred}
+                  drift={drift}
+                  recentReadings={recentForSensor}
+                  color={CHART_COLORS[i % CHART_COLORS.length]}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -424,7 +495,12 @@ export default function ZoneDetail() {
                   <tr key={sensor.id} className="hover:bg-base-200">
                     <td className="px-4 py-3 font-medium text-base-content">{label}</td>
                     <td className={`px-4 py-3 font-semibold ${isOutOfRange ? "text-error" : "text-base-content"}`}>
-                      {lastValue != null ? formatSensorValue(lastValue, unit) : "--"}
+                      <div className="flex items-center gap-2">
+                        <span>{lastValue != null ? formatSensorValue(lastValue, unit) : "--"}</span>
+                        {anomalies && anomalies.anomalies.length > 0 && (
+                          <AnomalyBadge anomalies={anomalies.anomalies} sensorId={sensor.id} />
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-base-content/60">
                       {sensor.min_threshold !== null || sensor.max_threshold !== null ? (
