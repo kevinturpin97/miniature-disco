@@ -95,7 +95,7 @@ class MqttWorker:
         properties: mqtt.Properties | None = None,
     ) -> None:
         """Subscribe to sensor and ACK topics on successful connection."""
-        if rc == mqtt.ReasonCode(mqtt.CONNACK_ACCEPTED):
+        if not rc.is_failure:
             client.subscribe(TOPIC_SENSORS, qos=1)
             client.subscribe(TOPIC_COMMAND_ACK, qos=1)
             logger.info("MQTT connected — subscribed to %s, %s", TOPIC_SENSORS, TOPIC_COMMAND_ACK)
@@ -111,7 +111,7 @@ class MqttWorker:
         properties: mqtt.Properties | None = None,
     ) -> None:
         """Log unexpected disconnections."""
-        if rc != mqtt.ReasonCode(mqtt.CONNACK_ACCEPTED):
+        if rc.is_failure:
             logger.warning("MQTT unexpected disconnect: %s", rc)
 
     def _on_message(

@@ -923,3 +923,116 @@ class SmartSuggestion(models.Model):
 
     def __str__(self) -> str:
         return f"Suggestion for {self.sensor}: {self.message[:50]}"
+
+
+class SensorReadingDaily(models.Model):
+    """Pre-aggregated daily sensor readings for long-term analytics."""
+
+    sensor = models.ForeignKey(
+        Sensor,
+        on_delete=models.CASCADE,
+        related_name="daily_readings",
+    )
+    date = models.DateField(help_text="The calendar date for this bucket")
+    avg_value = models.FloatField()
+    min_value = models.FloatField()
+    max_value = models.FloatField()
+    stddev_value = models.FloatField(default=0.0)
+    count = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["sensor", "date"]
+        ordering = ["-date"]
+        indexes = [
+            models.Index(fields=["sensor", "-date"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.sensor} @ {self.date}: avg={self.avg_value:.2f} ({self.count} readings)"
+
+
+class RetentionPolicy(models.Model):
+    """Configurable data retention policy per organization."""
+
+    organization = models.OneToOneField(
+        "api.Organization",
+        on_delete=models.CASCADE,
+        related_name="retention_policy",
+    )
+    raw_retention_days = models.PositiveIntegerField(
+        default=30,
+        help_text="Days to keep raw SensorReading data (0 = forever)",
+    )
+    hourly_retention_days = models.PositiveIntegerField(
+        default=365,
+        help_text="Days to keep hourly aggregated data (0 = forever)",
+    )
+    daily_retention_days = models.PositiveIntegerField(
+        default=0,
+        help_text="Days to keep daily aggregated data (0 = forever)",
+    )
+    archive_to_cold_storage = models.BooleanField(
+        default=False,
+        help_text="Whether to archive data to S3/MinIO before deletion",
+    )
+    cold_storage_bucket = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="S3/MinIO bucket name for cold storage archival",
+    )
+    cold_storage_prefix = models.CharField(
+        max_length=255,
+        blank=True,
+        default="greenhouse-archive/",
+        help_text="Key prefix within the bucket",
+    )
+    last_cleanup_at = models.DateTimeField(null=True, blank=True)
+    last_archive_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "retention policies"
+
+    def __str__(self) -> str:
+        return f"RetentionPolicy({self.organization.name}: raw={self.raw_retention_days}d, hourly={self.hourly_retention_days}d)"
+
+
+class DataArchiveLog(models.Model):
+    """Audit trail for data archival operations."""
+
+    class ArchiveType(models.TextChoices):
+        RAW_READINGS = "RAW", "Raw Readings"
+        HOURLY_READINGS = "HOURLY", "Hourly Readings"
+
+    class Status(models.TextChoices):
+        STARTED = "STARTED", "Started"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    organization = models.ForeignKey(
+        "api.Organization",
+        on_delete=models.CASCADE,
+        related_name="archive_logs",
+    )
+    archive_type = models.CharField(max_length=10, choices=ArchiveType.choices)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.STARTED)
+    records_archived = models.PositiveIntegerField(default=0)
+    records_deleted = models.PositiveIntegerField(default=0)
+    date_range_start = models.DateTimeField(help_text="Start of archived date range")
+    date_range_end = models.DateTimeField(help_text="End of archived date range")
+    storage_path = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="S3/MinIO path where data was archived",
+    )
+    error_message = models.TextField(blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self) -> str:
+        return f"Archive({self.archive_type} {self.status} @ {self.started_at})"

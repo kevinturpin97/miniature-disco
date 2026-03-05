@@ -1018,3 +1018,117 @@ def generate_weekly_ai_reports() -> dict[str, int]:
         "zones_processed": zones.count(),
         "reports_generated": reports_generated,
     }
+
+
+# ---------------------------------------------------------------------------
+# Sprint 23 — Data Pipeline & Long-Term History tasks
+# ---------------------------------------------------------------------------
+
+
+@shared_task(name="iot.aggregate_daily_readings")
+def aggregate_daily_readings_task() -> dict[str, int]:
+    """Aggregate raw sensor readings into daily buckets.
+
+    Runs daily via Celery beat to maintain the
+    ``SensorReadingDaily`` aggregation table.
+
+    Returns:
+        Dict with ``sensors_processed`` and ``buckets_created`` counts.
+    """
+    from .data_pipeline import aggregate_daily_readings
+
+    result = aggregate_daily_readings()
+    logger.info(
+        "Daily aggregation complete: sensors=%d buckets=%d",
+        result["sensors_processed"],
+        result["buckets_created"],
+    )
+    return result
+
+
+@shared_task(name="iot.enforce_retention_policies")
+def enforce_retention_policies_task() -> dict:
+    """Enforce data retention policies for all organizations.
+
+    Runs daily via Celery beat. Deletes expired raw readings,
+    hourly aggregations, and daily aggregations based on per-org
+    RetentionPolicy configuration.
+
+    Returns:
+        Dict with per-org deletion statistics.
+    """
+    from .data_pipeline import enforce_retention_policies
+
+    result = enforce_retention_policies()
+    logger.info(
+        "Retention enforcement complete: orgs=%d",
+        result["organizations_processed"],
+    )
+    return result
+
+
+@shared_task(name="iot.archive_cold_storage")
+def archive_cold_storage_task() -> dict[str, int]:
+    """Archive expired data to S3/MinIO cold storage before deletion.
+
+    Runs daily via Celery beat. Only processes organizations with
+    cold storage archival enabled in their RetentionPolicy.
+
+    Returns:
+        Dict with ``organizations_processed`` and ``total_archived`` counts.
+    """
+    from .data_pipeline import archive_to_cold_storage
+    from .models import RetentionPolicy
+
+    policies = RetentionPolicy.objects.filter(
+        archive_to_cold_storage=True,
+    ).select_related("organization")
+
+    orgs_processed = 0
+    total_archived = 0
+
+    for policy in policies:
+        result = archive_to_cold_storage(policy)
+        if result.get("archived"):
+            total_archived += result.get("records", 0)
+        orgs_processed += 1
+
+    logger.info(
+        "Cold storage archival complete: orgs=%d records=%d",
+        orgs_processed,
+        total_archived,
+    )
+    return {"organizations_processed": orgs_processed, "total_archived": total_archived}
+
+
+@shared_task(name="iot.ensure_partitions")
+def ensure_partitions_task() -> dict:
+    """Ensure monthly PostgreSQL partitions exist for SensorReading.
+
+    Runs daily via Celery beat to pre-create partitions for the
+    current month and next 2 months.
+
+    Returns:
+        Dict with partition maintenance status.
+    """
+    from .data_pipeline import ensure_partitions
+
+    result = ensure_partitions()
+    logger.info("Partition maintenance: %s", result.get("status"))
+    return result
+
+
+@shared_task(name="iot.drop_old_partitions")
+def drop_old_partitions_task() -> dict:
+    """Drop empty partitions older than 6 months.
+
+    Runs monthly via Celery beat to clean up unused partition tables.
+
+    Returns:
+        Dict with dropped partition info.
+    """
+    from .data_pipeline import drop_old_partitions
+
+    result = drop_old_partitions(months_to_keep=6)
+    logger.info("Partition cleanup: %s", result)
+    return result

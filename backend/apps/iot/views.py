@@ -28,10 +28,12 @@ from .models import (
     Alert,
     AutomationRule,
     Command,
+    DataArchiveLog,
     Greenhouse,
     NotificationChannel,
     NotificationLog,
     NotificationRule,
+    RetentionPolicy,
     Scenario,
     Schedule,
     Sensor,
@@ -48,10 +50,12 @@ from .serializers import (
     ApplySuggestionSerializer,
     AutomationRuleSerializer,
     CommandSerializer,
+    DataArchiveLogSerializer,
     GreenhouseSerializer,
     NotificationChannelSerializer,
     NotificationLogSerializer,
     NotificationRuleSerializer,
+    RetentionPolicySerializer,
     ScenarioSerializer,
     ScheduleSerializer,
     SensorPredictionSerializer,
@@ -1537,4 +1541,80 @@ class ZoneAIReportView(viewsets.ViewSet):
             "zone_name": zone.name,
             "report": report,
             "generated_at": django_tz.now().isoformat(),
+        })
+
+
+class RetentionPolicyView(viewsets.ViewSet):
+    """Manage the data retention policy for an organization.
+
+    Endpoints:
+        GET    /api/orgs/{slug}/retention-policy/  - Retrieve current policy.
+        PUT    /api/orgs/{slug}/retention-policy/   - Replace policy.
+        PATCH  /api/orgs/{slug}/retention-policy/   - Partial update.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def _get_org(self, request: Request, slug: str) -> Organization:
+        """Return the organization, ensuring the user is a member."""
+        org_ids = _user_org_ids(request.user)
+        return get_object_or_404(Organization, slug=slug, pk__in=org_ids)
+
+    def retrieve(self, request: Request, slug: str = None) -> Response:
+        """Return the retention policy for the organization."""
+        org = self._get_org(request, slug)
+        policy, _ = RetentionPolicy.objects.get_or_create(organization=org)
+        serializer = RetentionPolicySerializer(policy)
+        return Response(serializer.data)
+
+    def update(self, request: Request, slug: str = None) -> Response:
+        """Full update of the retention policy."""
+        org = self._get_org(request, slug)
+        policy, _ = RetentionPolicy.objects.get_or_create(organization=org)
+        serializer = RetentionPolicySerializer(policy, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def partial_update(self, request: Request, slug: str = None) -> Response:
+        """Partial update of the retention policy."""
+        org = self._get_org(request, slug)
+        policy, _ = RetentionPolicy.objects.get_or_create(organization=org)
+        serializer = RetentionPolicySerializer(policy, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class DataPipelineView(viewsets.ViewSet):
+    """Data pipeline status and management for an organization.
+
+    Endpoints:
+        GET /api/orgs/{slug}/data-pipeline/  - Pipeline status overview.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request, slug: str = None) -> Response:
+        """Return data pipeline status including partitions and archive logs."""
+        org_ids = _user_org_ids(request.user)
+        org = get_object_or_404(Organization, slug=slug, pk__in=org_ids)
+
+        from .data_pipeline import get_partition_info
+
+        # Get retention policy
+        policy = RetentionPolicy.objects.filter(organization=org).first()
+        policy_data = RetentionPolicySerializer(policy).data if policy else None
+
+        # Get recent archive logs
+        archive_logs = DataArchiveLog.objects.filter(organization=org)[:10]
+        archive_data = DataArchiveLogSerializer(archive_logs, many=True).data
+
+        # Get partition info
+        partitions = get_partition_info()
+
+        return Response({
+            "retention_policy": policy_data,
+            "archive_logs": archive_data,
+            "partitions": partitions,
         })

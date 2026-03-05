@@ -113,6 +113,15 @@ zone_suggestions = ZoneSuggestionsView.as_view({"get": "list"})
 zone_suggestions_apply = ZoneSuggestionsView.as_view({"post": "apply"})
 zone_ai_report = ZoneAIReportView.as_view({"get": "retrieve"})
 
+# Data Pipeline (Sprint 23)
+from .views import DataPipelineView, RetentionPolicyView
+from .streaming import stream_zone_readings
+
+retention_policy_detail = RetentionPolicyView.as_view({
+    "get": "retrieve", "put": "update", "patch": "partial_update",
+})
+data_pipeline_status = DataPipelineView.as_view({"get": "list"})
+
 urlpatterns = [
     # Greenhouses
     path("greenhouses/", greenhouse_list, name="greenhouse-list"),
@@ -174,4 +183,8 @@ urlpatterns = [
     path("zones/<int:pk>/suggestions/", zone_suggestions, name="zone-suggestions"),
     path("zones/<int:pk>/suggestions/apply/", zone_suggestions_apply, name="zone-suggestions-apply"),
     path("zones/<int:pk>/ai-report/", zone_ai_report, name="zone-ai-report"),
+    # Data Pipeline & Streaming (Sprint 23)
+    path("zones/<int:pk>/readings/stream/", stream_zone_readings, name="zone-readings-stream"),
+    path("orgs/<slug:slug>/retention-policy/", retention_policy_detail, name="retention-policy"),
+    path("orgs/<slug:slug>/data-pipeline/", data_pipeline_status, name="data-pipeline-status"),
 ]

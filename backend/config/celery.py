@@ -57,4 +57,25 @@ app.conf.beat_schedule = {
         "task": "api.check_trial_expiry",
         "schedule": crontab(hour=9, minute=0),  # Daily at 09:00 UTC
     },
+    # Sprint 23 — Data Pipeline & Long-Term History
+    "aggregate-daily-readings": {
+        "task": "iot.aggregate_daily_readings",
+        "schedule": crontab(hour=0, minute=30),  # Daily at 00:30 UTC
+    },
+    "enforce-retention-policies": {
+        "task": "iot.enforce_retention_policies",
+        "schedule": crontab(hour=1, minute=0),  # Daily at 01:00 UTC
+    },
+    "archive-cold-storage": {
+        "task": "iot.archive_cold_storage",
+        "schedule": crontab(hour=0, minute=45),  # Daily at 00:45 UTC (before retention)
+    },
+    "ensure-partitions": {
+        "task": "iot.ensure_partitions",
+        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
+    },
+    "drop-old-partitions": {
+        "task": "iot.drop_old_partitions",
+        "schedule": crontab(hour=4, minute=0, day_of_month=1),  # Monthly on 1st at 04:00
+    },
 }

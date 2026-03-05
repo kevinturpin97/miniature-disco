@@ -807,3 +807,60 @@ class ApplySuggestionSerializer(serializers.Serializer):
     """Serializer for applying a smart suggestion to a sensor."""
 
     suggestion_id = serializers.IntegerField()
+
+
+class RetentionPolicySerializer(serializers.ModelSerializer):
+    """Serializer for the per-organization data retention policy.
+
+    Fields:
+        raw_retention_days, hourly_retention_days, daily_retention_days,
+        archive_to_cold_storage, cold_storage_bucket, cold_storage_prefix,
+        last_cleanup_at, last_archive_at, created_at, updated_at.
+    """
+
+    class Meta:
+        from .models import RetentionPolicy
+
+        model = RetentionPolicy
+        fields = (
+            "raw_retention_days",
+            "hourly_retention_days",
+            "daily_retention_days",
+            "archive_to_cold_storage",
+            "cold_storage_bucket",
+            "cold_storage_prefix",
+            "last_cleanup_at",
+            "last_archive_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("last_cleanup_at", "last_archive_at", "created_at", "updated_at")
+
+
+class DataArchiveLogSerializer(serializers.ModelSerializer):
+    """Serializer for data archival audit log entries.
+
+    Fields:
+        id, archive_type, status, records_archived, records_deleted,
+        date_range_start, date_range_end, storage_path, error_message,
+        started_at, completed_at.
+    """
+
+    class Meta:
+        from .models import DataArchiveLog
+
+        model = DataArchiveLog
+        fields = (
+            "id",
+            "archive_type",
+            "status",
+            "records_archived",
+            "records_deleted",
+            "date_range_start",
+            "date_range_end",
+            "storage_path",
+            "error_message",
+            "started_at",
+            "completed_at",
+        )
+        read_only_fields = fields
