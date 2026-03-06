@@ -45,7 +45,7 @@ class Command(BaseCommand):
         # Create demo user
         user, created = User.objects.get_or_create(
             username=SEED_USERNAME,
-            defaults={"email": SEED_EMAIL, "first_name": "Demo", "last_name": "User"},
+            defaults={"email": SEED_EMAIL, "first_name": "Demo", "last_name": "User", "is_staff": True, "is_superuser": True},
         )
         if created:
             user.set_password(SEED_PASSWORD)

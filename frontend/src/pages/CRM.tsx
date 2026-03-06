@@ -11,6 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import axios from "axios";
 import { FeatureGate } from "@/components/ui/FeatureGate";
 import {
   listCRMTenants,
@@ -20,7 +21,6 @@ import {
   type CRMTenant,
   type CRMStats,
 } from "@/api/crm";
-import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/utils/cn";
 
 // ---------------------------------------------------------------------------
@@ -68,23 +68,28 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 
 export default function CRM() {
   const { t } = useTranslation();
-  const accessToken = useAuthStore((s) => s.accessToken);
 
   const [stats, setStats] = useState<CRMStats | null>(null);
   const [tenants, setTenants] = useState<CRMTenant[]>([]);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [impersonating, setImpersonating] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setAccessDenied(false);
     try {
       const [s, ts] = await Promise.all([getCRMStats(), listCRMTenants()]);
       setStats(s);
       setTenants(ts);
-    } catch {
-      toast.error("Failed to load CRM data");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        setAccessDenied(true);
+      } else {
+        toast.error("Failed to load CRM data");
+      }
     } finally {
       setLoading(false);
     }
@@ -119,6 +124,19 @@ export default function CRM() {
     const matchPlan = planFilter === "all" || t.plan === planFilter;
     return matchSearch && matchPlan;
   });
+
+  if (accessDenied) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4 text-center">
+        <div className="text-5xl">🔒</div>
+        <h2 className="text-xl font-bold">Access Restricted</h2>
+        <p className="text-base-content/60 max-w-sm">
+          The CRM dashboard is reserved for platform operators.
+          Contact your administrator to request access.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <FeatureGate
