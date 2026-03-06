@@ -312,9 +312,8 @@ class Command(BaseCommand):
         for gh_idx, name, relay_id, description, interval_s in ZONES:
             gh = greenhouse_objects[gh_idx]
             zone, _ = Zone.objects.get_or_create(
-                greenhouse=gh,
-                name=name,
-                defaults={"relay_id": relay_id, "description": description, "transmission_interval": interval_s},
+                relay_id=relay_id,
+                defaults={"greenhouse": gh, "name": name, "description": description, "transmission_interval": interval_s},
             )
             zone_objects.append(zone)
         self.stdout.write(f"  Zones: {len(zone_objects)}")
