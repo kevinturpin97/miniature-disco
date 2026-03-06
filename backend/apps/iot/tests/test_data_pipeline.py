@@ -187,14 +187,11 @@ class TestEnforceRetentionPolicies:
         )
 
         now = timezone.now()
-        # Old reading (should be deleted)
-        SensorReading.objects.create(
-            sensor=sensor, value=10.0, received_at=now - timedelta(days=10)
-        )
+        # Old reading (should be deleted) — use update() to bypass auto_now_add
+        old = SensorReading.objects.create(sensor=sensor, value=10.0)
+        SensorReading.objects.filter(pk=old.pk).update(received_at=now - timedelta(days=10))
         # Recent reading (should remain)
-        SensorReading.objects.create(
-            sensor=sensor, value=20.0, received_at=now
-        )
+        SensorReading.objects.create(sensor=sensor, value=20.0)
 
         result = enforce_retention_policies()
         assert result["organizations_processed"] == 1
@@ -281,13 +278,10 @@ class TestArchiveToColdStorage:
         )
 
         now = timezone.now()
-        # Create old readings to archive
+        # Create old readings to archive — use update() to bypass auto_now_add
         for i in range(5):
-            SensorReading.objects.create(
-                sensor=sensor,
-                value=20.0 + i,
-                received_at=now - timedelta(days=10 + i),
-            )
+            r = SensorReading.objects.create(sensor=sensor, value=20.0 + i)
+            SensorReading.objects.filter(pk=r.pk).update(received_at=now - timedelta(days=10 + i))
 
         mock_s3 = MagicMock()
         mock_boto3.client.return_value = mock_s3
@@ -316,9 +310,8 @@ class TestArchiveToColdStorage:
         )
 
         now = timezone.now()
-        SensorReading.objects.create(
-            sensor=sensor, value=20.0, received_at=now - timedelta(days=10)
-        )
+        r = SensorReading.objects.create(sensor=sensor, value=20.0)
+        SensorReading.objects.filter(pk=r.pk).update(received_at=now - timedelta(days=10))
 
         mock_s3 = MagicMock()
         mock_s3.put_object.side_effect = Exception("S3 connection error")

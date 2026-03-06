@@ -28,12 +28,6 @@ vi.mock("@/utils/formatters", () => ({
   formatRelativeTime: (d: string) => `relative(${d})`,
 }));
 
-// Mock Spinner
-vi.mock("@/components/ui/Spinner", () => ({
-  Spinner: ({ className }: { className?: string }) => (
-    <div data-testid="spinner" className={className} />
-  ),
-}));
 
 import { listAlerts, acknowledgeAlert } from "@/api/alerts";
 
@@ -53,10 +47,10 @@ describe("Alerts page", () => {
     vi.clearAllMocks();
   });
 
-  it("shows loading spinner initially", () => {
+  it("shows loading skeleton initially", () => {
     mockListAlerts.mockReturnValue(new Promise(() => {})); // never resolves
-    renderAlerts();
-    expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    const { container } = renderAlerts();
+    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("shows empty state on fetch failure (errors handled via toast)", async () => {

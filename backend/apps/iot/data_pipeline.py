@@ -12,6 +12,11 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+try:
+    import boto3
+except ImportError:
+    boto3 = None  # type: ignore[assignment]
+
 from django.db import connection
 from django.db.models import Avg, Count, Max, Min, StdDev
 from django.db.models.functions import TruncDate
@@ -190,9 +195,7 @@ def archive_to_cold_storage(policy: RetentionPolicy) -> dict[str, Any]:
     if not policy.archive_to_cold_storage or not policy.cold_storage_bucket:
         return {"archived": False, "reason": "Cold storage not configured"}
 
-    try:
-        import boto3
-    except ImportError:
+    if boto3 is None:
         logger.error("boto3 is required for cold storage archival")
         return {"archived": False, "reason": "boto3 not installed"}
 

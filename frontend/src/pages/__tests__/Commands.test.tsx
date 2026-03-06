@@ -27,12 +27,6 @@ vi.mock("@/utils/formatters", () => ({
   formatDate: (d: string) => d,
 }));
 
-// Mock Spinner
-vi.mock("@/components/ui/Spinner", () => ({
-  Spinner: ({ className }: { className?: string }) => (
-    <div data-testid="spinner" className={className} />
-  ),
-}));
 
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
@@ -58,11 +52,11 @@ describe("Commands page", () => {
     vi.useRealTimers();
   });
 
-  it("shows loading spinner initially", () => {
+  it("shows loading skeleton initially", () => {
     // Never resolve to keep loading state
     mockListGreenhouses.mockReturnValue(new Promise(() => {}));
-    renderCommands();
-    expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    const { container } = renderCommands();
+    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("shows title and subtitle after loading", async () => {

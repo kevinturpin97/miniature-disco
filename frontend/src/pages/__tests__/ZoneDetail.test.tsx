@@ -15,9 +15,15 @@ vi.mock("@/api/zones", () => ({
 vi.mock("@/api/sensors", () => ({
   listSensors: vi.fn(),
   getSensorReadings: vi.fn(),
+  updateSensor: vi.fn(),
 }));
 vi.mock("@/api/actuators", () => ({
   listActuators: vi.fn(),
+}));
+vi.mock("@/api/analytics", () => ({
+  getZonePredictions: vi.fn().mockResolvedValue({ zone_id: 10, zone_name: "Zone Alpha", timestamp: "", sensors: [], drift: {} }),
+  getZoneAnomalies: vi.fn().mockResolvedValue({ zone_id: 10, zone_name: "Zone Alpha", period_days: 7, anomalies: [] }),
+  getZoneSuggestions: vi.fn().mockResolvedValue({ zone_id: 10, zone_name: "Zone Alpha", suggestions: [] }),
 }));
 
 // Mock hooks — avoid real WebSocket
@@ -150,12 +156,12 @@ describe("ZoneDetail page", () => {
     vi.clearAllMocks();
   });
 
-  it("shows loading spinner initially", () => {
+  it("shows loading skeleton initially", () => {
     mockedGetZone.mockReturnValue(new Promise(() => {}));
     mockedListSensors.mockReturnValue(new Promise(() => {}));
     mockedListActuators.mockReturnValue(new Promise(() => {}));
-    renderZoneDetail();
-    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
+    const { container } = renderZoneDetail();
+    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("renders zone header with name and relay ID", async () => {
@@ -166,7 +172,7 @@ describe("ZoneDetail page", () => {
       expect(screen.getByRole("heading", { name: "Zone Alpha" })).toBeInTheDocument();
     });
     expect(screen.getByText("Relay #42")).toBeInTheDocument();
-    expect(screen.getByText("Online")).toBeInTheDocument();
+    expect(screen.getAllByText("Online")[0]).toBeInTheDocument();
   });
 
   it("renders period selector buttons", async () => {
@@ -216,7 +222,7 @@ describe("ZoneDetail page", () => {
 
   it("shows custom date pickers when Custom period is selected", async () => {
     setupSuccessMocks();
-    renderZoneDetail();
+    const { container } = renderZoneDetail();
 
     await waitFor(() => {
       expect(screen.getByText("Custom")).toBeInTheDocument();
@@ -225,7 +231,8 @@ describe("ZoneDetail page", () => {
     fireEvent.click(screen.getByText("Custom"));
 
     await waitFor(() => {
-      expect(screen.getByText("to")).toBeInTheDocument();
+      const inputs = container.querySelectorAll('input[type="datetime-local"]');
+      expect(inputs.length).toBe(2);
     });
   });
 

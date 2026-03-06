@@ -33,12 +33,6 @@ vi.mock("@/utils/formatters", () => ({
   formatRelativeTime: (d: string) => d,
 }));
 
-// Mock Spinner
-vi.mock("@/components/ui/Spinner", () => ({
-  Spinner: ({ className }: { className?: string }) => (
-    <div data-testid="spinner" className={className} />
-  ),
-}));
 
 // Mock Modal
 vi.mock("@/components/ui/Modal", () => ({
@@ -183,10 +177,10 @@ describe("Automations page", () => {
     vi.clearAllMocks();
   });
 
-  it("shows loading spinner initially", () => {
+  it("shows loading skeleton initially", () => {
     mockListGreenhouses.mockReturnValue(new Promise(() => {}));
-    renderAutomations();
-    expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    const { container } = renderAutomations();
+    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("shows title and subtitle after loading", async () => {
@@ -299,7 +293,7 @@ describe("Automations page", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Cool when hot")).toBeInTheDocument();
+      expect(screen.getAllByText("Cool when hot")[0]).toBeInTheDocument();
     });
     expect(screen.getByText("Activate fan above 30C")).toBeInTheDocument();
     expect(screen.getByText("Temperature")).toBeInTheDocument();
@@ -320,7 +314,7 @@ describe("Automations page", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Cool when hot")).toBeInTheDocument();
+      expect(screen.getAllByText("Cool when hot")[0]).toBeInTheDocument();
     });
 
     // Active badge
@@ -343,7 +337,7 @@ describe("Automations page", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Cool when hot")).toBeInTheDocument();
+      expect(screen.getAllByText("Cool when hot")[0]).toBeInTheDocument();
     });
 
     // Click the toggle button (shows "Inactive" text to deactivate an active rule)
@@ -374,7 +368,7 @@ describe("Automations page", () => {
       expect(screen.getByText("Add Rule")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText("Add Rule"));
+    fireEvent.click(screen.getAllByText("Add Rule")[0]);
 
     await waitFor(() => {
       expect(screen.getByTestId("modal")).toBeInTheDocument();
@@ -395,7 +389,7 @@ describe("Automations page", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Cool when hot")).toBeInTheDocument();
+      expect(screen.getAllByText("Cool when hot")[0]).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Edit"));
@@ -421,7 +415,7 @@ describe("Automations page", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Cool when hot")).toBeInTheDocument();
+      expect(screen.getAllByText("Cool when hot")[0]).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Delete"));
@@ -451,7 +445,7 @@ describe("Automations page", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Cool when hot")).toBeInTheDocument();
+      expect(screen.getAllByText("Cool when hot")[0]).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Delete"));
@@ -526,9 +520,9 @@ describe("Automations page", () => {
     // "Main Fan" appears in both the rule card and the trigger history table
     const fanTexts = screen.getAllByText("Main Fan");
     expect(fanTexts.length).toBe(2);
-    // "Cool when hot" appears in both the rule card and the trigger history rule column
+    // "Cool when hot" appears in the AutomationChip, the rule card, and the trigger history row
     const ruleTexts = screen.getAllByText("Cool when hot");
-    expect(ruleTexts.length).toBe(2);
+    expect(ruleTexts.length).toBe(3);
     expect(screen.getByText("Acknowledged")).toBeInTheDocument();
   });
 });

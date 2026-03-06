@@ -2606,7 +2606,6 @@ def _check_zone_permission(request: "Request", zone: "Zone") -> None:
         has_access = Membership.objects.filter(
             organization_id=greenhouse.organization_id,
             user=request.user,
-            is_active=True,
         ).exists()
         if not has_access and greenhouse.owner_id != request.user.pk:
             raise PermissionDenied("You do not have access to this zone.")
