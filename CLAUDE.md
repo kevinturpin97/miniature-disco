@@ -1055,6 +1055,41 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 
 ---
 
+## SPRINT 30 — Design System & UI/UX Foundation
+- [x] Définir la palette dark mode : `bg-dark: #0b0f12`, `primary: #00ff9c`, `secondary: #00d9ff`, `warning: #ffb300`, `danger: #ff4d4f`
+- [x] Définir la palette light mode : `bg: #f6f8f9`, `primary: #1e7f5c`, `accent: #2dbf7f`
+- [x] Intégrer les tokens de couleur dans Tailwind config (`extend.colors`) et variables CSS DaisyUI
+- [x] Configurer le thème DaisyUI custom "greenhouse-dark" et "greenhouse-light"
+- [x] Installer et configurer Framer Motion pour les animations (déjà installé, utilisé activement)
+- [x] Installer Lucide React + Heroicons, définir les icônes standards par contexte (capteur, actionneur, alerte, zone)
+- [x] Implémenter les effets glassmorphism : `backdrop-blur`, `bg-opacity`, `border-white/10`
+- [x] Implémenter les glow borders : `box-shadow` néon vert/cyan sur les cards actives
+- [x] Implémenter les gradient blur de fond sur les pages principales
+- [x] Composant `<GlowCard />` : card avec glow border animé au hover, glassmorphism background
+- [x] Composant `<MetricTile />` : tuile de métrique avec valeur, unité, tendance et sparkline
+- [x] Composant `<LiveIndicator />` : point pulsant vert/rouge selon l'état de connexion
+- [x] Composant `<ZoneStatusBadge />` : badge zone avec couleur selon état (online, offline, alerte)
+- [x] Composant `<AutomationChip />` : chip compact affichant une règle active avec icône
+- [x] Composant `<CommandButton />` : bouton ON/OFF avec feedback 3 états et animation
+- [x] Composant `<SensorChart />` : graphique Recharts standardisé avec thème dark/light intégré
+- [x] Micro-animation "capteur connecté" : pulse vert sur `<LiveIndicator />` à la réception d'un reading
+- [x] Micro-animation "automation déclenchée" : ripple animation sur `<AutomationChip />` au trigger
+- [x] Micro-animation "alerte acquittée" : confetti léger (Framer Motion) sur acknowledge
+- [x] Micro-animation "commande envoyée" : progress pulse sur `<CommandButton />` pendant PENDING
+- [x] Dashboard signature : layout 4 blocs (Global Overview, Map/Zones, Live Feed, Alerts)
+- [x] Dashboard : widgets Global Overview avec live gauges (greenhouses, zones, zones online, alertes actives)
+- [x] Dashboard : zone cards avec GlowCard + ZoneStatusBadge et statut en temps réel
+- [x] Dashboard : live feed des dernières lectures en scroll infini
+- [x] Optimisation performance Edge : `prefers-reduced-motion` respecté sur toutes les animations
+- [x] Optimisation performance Edge : animations CSS uniquement (GPU transforms), zéro JS runtime pour les effets visuels
+- [x] Optimisation performance Edge : lazy loading des composants `<SensorChart />` (hors viewport non rendu via IntersectionObserver)
+- [x] Documenter le design system dans `docs/design-system.md` : tokens, composants, usages, exemples
+- [x] Tests Vitest sur chaque composant UI (`<GlowCard />`, `<MetricTile />`, `<LiveIndicator />`, `<ZoneStatusBadge />`, `<AutomationChip />`, `<CommandButton />`, `<SensorChart />`) — 295 tests, 0 failures
+- [ ] Tests Lighthouse après intégration : Performance > 90 maintenu malgré les animations (à valider en environnement cible)
+- [ ] QA cross-device : vérifier les effets glassmorphism et glow sur mobile (iOS Safari, Android Chrome) (à valider en device réel)
+
+---
+
 ## CONVENTIONS DE CODE
 
 ### Python (Backend + Bridge)

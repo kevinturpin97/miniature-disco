@@ -1,8 +1,81 @@
 @import "tailwindcss";
+@plugin "daisyui";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ============================================================
+   GREENHOUSE DESIGN SYSTEM — Sprint 30
+   Color tokens, DaisyUI themes, glassmorphism, glow utilities
+   ============================================================ */
+
+/* ---- DaisyUI custom themes ---- */
+@plugin "daisyui/theme" {
+  name: "greenhouse-dark";
+  default: false;
+  color-scheme: dark;
+  --color-base-100: #0b0f12;
+  --color-base-200: #111720;
+  --color-base-300: #1a2232;
+  --color-base-content: #e8f0fe;
+  --color-primary: #00ff9c;
+  --color-primary-content: #001a0e;
+  --color-secondary: #00d9ff;
+  --color-secondary-content: #001a22;
+  --color-accent: #2dbf7f;
+  --color-accent-content: #001a0e;
+  --color-neutral: #1a2232;
+  --color-neutral-content: #e8f0fe;
+  --color-info: #00d9ff;
+  --color-info-content: #001a22;
+  --color-success: #00ff9c;
+  --color-success-content: #001a0e;
+  --color-warning: #ffb300;
+  --color-warning-content: #1a0e00;
+  --color-error: #ff4d4f;
+  --color-error-content: #1a0000;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.75rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "greenhouse-light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #f6f8f9;
+  --color-base-200: #edf0f2;
+  --color-base-300: #e1e5e9;
+  --color-base-content: #1a2232;
+  --color-primary: #1e7f5c;
+  --color-primary-content: #f6f8f9;
+  --color-secondary: #0e6a8f;
+  --color-secondary-content: #f6f8f9;
+  --color-accent: #2dbf7f;
+  --color-accent-content: #001a0e;
+  --color-neutral: #e1e5e9;
+  --color-neutral-content: #1a2232;
+  --color-info: #0e6a8f;
+  --color-info-content: #f6f8f9;
+  --color-success: #1e7f5c;
+  --color-success-content: #f6f8f9;
+  --color-warning: #b37d00;
+  --color-warning-content: #1a0e00;
+  --color-error: #cc1a1c;
+  --color-error-content: #f6f8f9;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.75rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* ---- Tailwind v4 theme tokens ---- */
 @theme inline {
+  /* Semantic colors mapped to CSS vars */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -33,79 +106,100 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-accent: hsl(var(--sidebar-accent));
   --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+
+  /* Greenhouse brand tokens — Sprint 30 */
+  --color-gh-primary: #00ff9c;
+  --color-gh-primary-light: #1e7f5c;
+  --color-gh-secondary: #00d9ff;
+  --color-gh-secondary-light: #0e6a8f;
+  --color-gh-accent: #2dbf7f;
+  --color-gh-warning: #ffb300;
+  --color-gh-danger: #ff4d4f;
+  --color-gh-bg-dark: #0b0f12;
+  --color-gh-surface-dark: #111720;
+  --color-gh-surface2-dark: #1a2232;
+  --color-gh-bg-light: #f6f8f9;
+  --color-gh-surface-light: #edf0f2;
+
+  /* Radii */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ---- Light mode CSS vars ---- */
 :root {
-  --background: 0 0% 99%;
-  --foreground: 240 6% 10%;
+  --background: 200 20% 97%;
+  --foreground: 215 30% 16%;
   --card: 0 0% 100%;
-  --card-foreground: 240 6% 10%;
+  --card-foreground: 215 30% 16%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 6% 10%;
-  --primary: 152 60% 42%;
+  --popover-foreground: 215 30% 16%;
+  --primary: 155 62% 31%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 96%;
   --secondary-foreground: 220 9% 30%;
   --muted: 220 14% 96%;
   --muted-foreground: 220 9% 46%;
-  --accent: 220 14% 96%;
-  --accent-foreground: 220 9% 30%;
-  --destructive: 0 84% 60%;
+  --accent: 152 62% 46%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 359 100% 65%;
   --destructive-foreground: 0 0% 100%;
   --border: 220 13% 91%;
   --input: 220 13% 91%;
-  --ring: 152 60% 42%;
+  --ring: 155 62% 31%;
   --radius: 0.625rem;
-  --success: 152 60% 42%;
+  --success: 155 62% 31%;
   --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 38 92% 10%;
-  --info: 217 91% 60%;
+  --warning: 42 100% 40%;
+  --warning-foreground: 42 100% 10%;
+  --info: 190 100% 30%;
   --info-foreground: 0 0% 100%;
-  --sidebar: 0 0% 98%;
-  --sidebar-foreground: 240 6% 10%;
+  --sidebar: 200 20% 97%;
+  --sidebar-foreground: 215 30% 16%;
   --sidebar-border: 220 13% 91%;
-  --sidebar-accent: 152 60% 42%;
+  --sidebar-accent: 155 62% 31%;
   --sidebar-accent-foreground: 0 0% 100%;
 }
 
+/* ---- Dark mode CSS vars ---- */
 .dark {
-  --background: 224 12% 8%;
-  --foreground: 220 9% 94%;
-  --card: 224 12% 11%;
-  --card-foreground: 220 9% 94%;
-  --popover: 224 12% 11%;
-  --popover-foreground: 220 9% 94%;
-  --primary: 152 60% 48%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 215 20% 16%;
-  --secondary-foreground: 220 9% 80%;
+  --background: 210 27% 6%;
+  --foreground: 210 20% 94%;
+  --card: 215 25% 10%;
+  --card-foreground: 210 20% 94%;
+  --popover: 215 25% 10%;
+  --popover-foreground: 210 20% 94%;
+  --primary: 157 100% 50%;
+  --primary-foreground: 157 100% 8%;
+  --secondary: 190 100% 50%;
+  --secondary-foreground: 190 100% 8%;
   --muted: 215 20% 16%;
   --muted-foreground: 215 14% 55%;
-  --accent: 215 20% 16%;
-  --accent-foreground: 220 9% 80%;
-  --destructive: 0 62% 50%;
+  --accent: 152 62% 46%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 359 100% 65%;
   --destructive-foreground: 0 0% 100%;
-  --border: 215 20% 22%;
-  --input: 215 20% 22%;
-  --ring: 152 60% 48%;
-  --success: 152 60% 48%;
-  --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 38 92% 10%;
-  --info: 217 91% 60%;
-  --info-foreground: 0 0% 100%;
-  --sidebar: 224 12% 10%;
-  --sidebar-foreground: 220 9% 94%;
-  --sidebar-border: 215 20% 22%;
-  --sidebar-accent: 152 60% 48%;
-  --sidebar-accent-foreground: 0 0% 100%;
+  --border: 215 20% 18%;
+  --input: 215 20% 18%;
+  --ring: 157 100% 50%;
+  --success: 157 100% 50%;
+  --success-foreground: 157 100% 8%;
+  --warning: 42 100% 50%;
+  --warning-foreground: 42 100% 10%;
+  --info: 190 100% 50%;
+  --info-foreground: 190 100% 8%;
+  --sidebar: 210 27% 8%;
+  --sidebar-foreground: 210 20% 94%;
+  --sidebar-border: 215 20% 15%;
+  --sidebar-accent: 157 100% 50%;
+  --sidebar-accent-foreground: 157 100% 8%;
 }
 
+/* ============================================================
+   GLOBAL BASE
+   ============================================================ */
 body {
   margin: 0;
   font-family:
@@ -130,5 +224,241 @@ body {
 @supports (padding: env(safe-area-inset-bottom)) {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ============================================================
+   GLASSMORPHISM UTILITIES
+   ============================================================ */
+.glass {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-light {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(11, 15, 18, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Auto-adaptive glass: light in light mode, dark in dark mode */
+.glass-auto {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+:where(.dark, .dark *) .glass-auto {
+  background-color: rgba(11, 15, 18, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ============================================================
+   GLOW BORDER UTILITIES
+   ============================================================ */
+.glow-green {
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 156, 0.3),
+    0 0 12px rgba(0, 255, 156, 0.15),
+    0 0 24px rgba(0, 255, 156, 0.06);
+}
+
+.glow-green-hover {
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-green-hover:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 156, 0.5),
+    0 0 20px rgba(0, 255, 156, 0.25),
+    0 0 40px rgba(0, 255, 156, 0.1);
+}
+
+.glow-cyan {
+  box-shadow:
+    0 0 0 1px rgba(0, 217, 255, 0.3),
+    0 0 12px rgba(0, 217, 255, 0.15),
+    0 0 24px rgba(0, 217, 255, 0.06);
+}
+
+.glow-cyan-hover {
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-cyan-hover:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 217, 255, 0.5),
+    0 0 20px rgba(0, 217, 255, 0.25),
+    0 0 40px rgba(0, 217, 255, 0.1);
+}
+
+.glow-warning {
+  box-shadow:
+    0 0 0 1px rgba(255, 179, 0, 0.3),
+    0 0 12px rgba(255, 179, 0, 0.15);
+}
+
+.glow-danger {
+  box-shadow:
+    0 0 0 1px rgba(255, 77, 79, 0.3),
+    0 0 12px rgba(255, 77, 79, 0.15);
+}
+
+/* Active card glow animation */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(0, 255, 156, 0.3),
+      0 0 12px rgba(0, 255, 156, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(0, 255, 156, 0.6),
+      0 0 24px rgba(0, 255, 156, 0.3),
+      0 0 40px rgba(0, 255, 156, 0.1);
+  }
+}
+
+.glow-active {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-active {
+    animation: none;
+    box-shadow:
+      0 0 0 1px rgba(0, 255, 156, 0.4),
+      0 0 12px rgba(0, 255, 156, 0.2);
+  }
+}
+
+/* ============================================================
+   GRADIENT BLUR BACKGROUNDS
+   ============================================================ */
+.gradient-blur-primary {
+  position: relative;
+}
+
+.gradient-blur-primary::before {
+  content: "";
+  position: fixed;
+  top: -20%;
+  right: -10%;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(0, 255, 156, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gradient-blur-secondary::after {
+  content: "";
+  position: fixed;
+  bottom: -10%;
+  left: -5%;
+  width: 30vw;
+  height: 30vw;
+  background: radial-gradient(circle, rgba(0, 217, 255, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   MICRO-ANIMATION KEYFRAMES
+   ============================================================ */
+
+/* 1. Sensor connected — green pulse on LiveIndicator */
+@keyframes live-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-live-pulse {
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+
+/* 2. Automation triggered — ripple */
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 0.7s ease-out forwards;
+}
+
+/* 3. Command pending — progress pulse */
+@keyframes command-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-command-pulse {
+  animation: command-pulse 1.2s ease-in-out infinite;
+}
+
+/* 4. Alert acknowledged — confetti (simple fade-scale) */
+@keyframes confetti-burst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.4) rotate(15deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confetti-burst 0.6s ease-out forwards;
+}
+
+/* ============================================================
+   REDUCED MOTION — GPU transforms only, no JS-driven effects
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-live-pulse,
+  .animate-ripple,
+  .animate-command-pulse,
+  .animate-confetti {
+    animation: none;
+  }
+
+  /* Preserve GPU-accelerated static transforms */
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

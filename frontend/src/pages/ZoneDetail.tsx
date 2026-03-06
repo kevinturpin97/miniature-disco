@@ -19,20 +19,40 @@ import {
 } from "recharts";
 import { format, subHours, subDays } from "date-fns";
 import toast from "react-hot-toast";
+import {
+  Download,
+  Wifi,
+  WifiOff,
+  Thermometer,
+  Sliders,
+  Zap,
+  Activity,
+  Power,
+  PowerOff,
+  Pencil,
+  Check,
+  X,
+} from "lucide-react";
 import { getZone, exportZoneCsv } from "@/api/zones";
 import { listSensors, getSensorReadings, updateSensor } from "@/api/sensors";
 import { listActuators } from "@/api/actuators";
 import { getZonePredictions, getZoneAnomalies, getZoneSuggestions } from "@/api/analytics";
 import { useSensorData } from "@/hooks/useSensorData";
 import { useSensorStore } from "@/stores/sensorStore";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Spinner } from "@/components/ui/Spinner";
+import { GlowCard } from "@/components/ui/GlowCard";
+import { MetricTile } from "@/components/ui/MetricTile";
+import { LiveIndicator } from "@/components/ui/LiveIndicator";
+import { ZoneStatusBadge } from "@/components/ui/ZoneStatusBadge";
+import { SensorChart } from "@/components/ui/SensorChart";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { AnomalyBadge } from "@/components/ui/AnomalyBadge";
 import { SmartSuggestionCard } from "@/components/ui/SmartSuggestionCard";
 import { PredictionChart } from "@/components/charts/PredictionChart";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS, ACTUATOR_TYPE_LABELS } from "@/utils/constants";
 import { formatDate, formatRelativeTime, formatSensorValue } from "@/utils/formatters";
 import { lttbDownsample, BIG_DATA_THRESHOLD, BIG_DATA_TARGET_POINTS } from "@/utils/downsample";
+import { useThemeStore } from "@/stores/themeStore";
+import { cn } from "@/utils/cn";
 import type { Zone, Sensor, SensorReading, Actuator, ZonePredictions, ZoneAnomalies, ZoneSuggestions } from "@/types";
 
 type Period = "1h" | "24h" | "7d" | "custom";
@@ -45,13 +65,14 @@ interface ChartDataPoint {
 
 const PERIOD_VALUES: Period[] = ["1h", "24h", "7d", "custom"];
 
-const CHART_COLORS = ["#16a34a", "#2563eb", "#d97706", "#dc2626", "#7c3aed", "#0891b2"];
+const CHART_COLORS = ["#00ff9c", "#00d9ff", "#ffb300", "#ff4d4f", "#a78bfa", "#2dbf7f"];
 
 export default function ZoneDetail() {
   const { zoneId } = useParams<{ zoneId: string }>();
   const numericZoneId = zoneId ? Number(zoneId) : null;
   const { t } = useTranslation();
   const { t: tp } = useTranslation("pages");
+  const theme = useThemeStore((s) => s.theme);
 
   const [zone, setZone] = useState<Zone | null>(null);
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -268,22 +289,32 @@ export default function ZoneDetail() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="h-8 w-8" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64 rounded-xl" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+        </div>
+        <Skeleton className="h-64 rounded-xl" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+        </div>
       </div>
     );
   }
 
   if (!zone) {
     return (
-      <div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
+      <GlowCard variant="danger" className="p-4 text-sm text-destructive">
         Zone not found.
-      </div>
+      </GlowCard>
     );
   }
 
+  const gridStroke = theme === "dark" ? "rgba(255,255,255,0.06)" : "#e5e7eb";
+  const tickStyle = { fontSize: 11, fill: theme === "dark" ? "#6b7280" : "#9ca3af" };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative gradient-blur-primary gradient-blur-secondary">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -295,46 +326,78 @@ export default function ZoneDetail() {
             className="mb-1"
           />
           <h1 className="mt-1 text-2xl font-bold text-foreground">{zone.name}</h1>
-          <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
-            <span>Relay #{zone.relay_id}</span>
-            <StatusBadge online={zone.is_online} />
+          <div className="mt-1 flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Relay #{zone.relay_id}</span>
+            <ZoneStatusBadge state={zone.is_online ? "online" : "offline"} />
             {isConnected && (
-              <span className="flex items-center gap-1 text-xs text-green-600">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-                {t("status.live")}
-              </span>
+              <LiveIndicator state="live" size="sm" label="WebSocket connected" />
             )}
           </div>
           {zone.last_seen && (
             <p className="mt-0.5 text-xs text-muted-foreground/60">
-              Last seen {formatRelativeTime(zone.last_seen)}
+              {t("labels.lastSeen")} {formatRelativeTime(zone.last_seen)}
             </p>
           )}
         </div>
         <button
           onClick={handleExportCsv}
           disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm transition-colors hover:bg-accent disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-primary/30 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <Download className="size-4" aria-hidden="true" />
           {exporting ? tp("zoneDetail.exporting") : tp("zoneDetail.exportCsv")}
         </button>
       </div>
 
+      {/* Quick Metrics */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <GlowCard variant={zone.is_online ? "green" : "none"} glass className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gh-primary/10">
+              {zone.is_online ? <Wifi className="size-3.5 text-gh-primary" /> : <WifiOff className="size-3.5 text-gh-warning" />}
+            </div>
+            <MetricTile label="Status" value={zone.is_online ? "Online" : "Offline"} color={zone.is_online ? "green" : "warning"} />
+          </div>
+        </GlowCard>
+        <GlowCard variant="cyan" glass className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gh-secondary/10">
+              <Thermometer className="size-3.5 text-gh-secondary" />
+            </div>
+            <MetricTile label="Sensors" value={sensors.length} color="cyan" />
+          </div>
+        </GlowCard>
+        <GlowCard variant="warning" glass className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gh-warning/10">
+              <Zap className="size-3.5 text-gh-warning" />
+            </div>
+            <MetricTile label="Actuators" value={actuators.length} color="warning" />
+          </div>
+        </GlowCard>
+        <GlowCard variant="green" glass className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gh-primary/10">
+              <Activity className="size-3.5 text-gh-primary" />
+            </div>
+            <MetricTile label="Interval" value={zone.transmission_interval} unit="s" color="green" />
+          </div>
+        </GlowCard>
+      </div>
+
       {/* Period Selector */}
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
           {PERIOD_VALUES.map((val) => (
             <button
               key={val}
               onClick={() => setPeriod(val)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 period === val
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
-              }`}
+              )}
             >
               {tp(`zoneDetail.periods.${val}`)}
             </button>
@@ -346,46 +409,52 @@ export default function ZoneDetail() {
               type="datetime-local"
               value={customFrom ? customFrom.slice(0, 16) : ""}
               onChange={(e) => setCustomFrom(e.target.value ? new Date(e.target.value).toISOString() : "")}
-              className="rounded-lg border border-border bg-card text-foreground px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="rounded-lg border border-input bg-background text-foreground px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <span className="text-sm text-muted-foreground/60">to</span>
+            <span className="text-sm text-muted-foreground/60">→</span>
             <input
               type="datetime-local"
               value={customTo ? customTo.slice(0, 16) : ""}
               onChange={(e) => setCustomTo(e.target.value ? new Date(e.target.value).toISOString() : "")}
-              className="rounded-lg border border-border bg-card text-foreground px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="rounded-lg border border-input bg-background text-foreground px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         )}
+        <label className="ml-auto flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={bigDataMode}
+            onChange={(e) => setBigDataMode(e.target.checked)}
+            className="h-4 w-4 rounded border-border accent-primary"
+          />
+          <span className="text-xs text-muted-foreground">{tp("history.bigDataMode")}</span>
+          {bigDataMode && displayChartData.length > 0 && (
+            <span className="text-xs text-muted-foreground/60">({displayChartData.length} pts)</span>
+          )}
+        </label>
       </div>
 
-      {/* Big Data mode toggle */}
-      <label className="flex cursor-pointer items-center gap-2" title={tp("history.bigDataModeHint")}>
-        <input
-          type="checkbox"
-          checked={bigDataMode}
-          onChange={(e) => setBigDataMode(e.target.checked)}
-          className="h-4 w-4 rounded border-border text-primary accent-primary focus:ring-2 focus:ring-ring"
-        />
-        <span className="text-sm text-foreground/80">{tp("history.bigDataMode")}</span>
-        {bigDataMode && displayChartData.length > 0 && (
-          <span className="text-xs text-muted-foreground">
-            ({tp("history.pointsDisplayed", { count: displayChartData.length })})
-          </span>
-        )}
-      </label>
-
-      {/* Combined Chart */}
+      {/* Combined Chart — all sensors on one axis */}
       {sensors.length > 0 && displayChartData.length > 0 ? (
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">{tp("zoneDetail.sensorHistory")}</h2>
-          <ResponsiveContainer width="100%" height={350}>
+        <GlowCard variant="cyan" glass className="p-4">
+          <h2 className="mb-4 text-base font-semibold text-foreground flex items-center gap-2">
+            <Activity className="size-4 text-gh-secondary" aria-hidden="true" />
+            {tp("zoneDetail.sensorHistory")}
+          </h2>
+          <ResponsiveContainer width="100%" height={300} aria-label="Combined sensor history">
             <LineChart data={displayChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+              <XAxis dataKey="time" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme === "dark" ? "#111720" : "#fff",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "0.5rem",
+                  fontSize: 12,
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               {chartLabels.map((label, i) => (
                 <Line
                   key={label}
@@ -395,15 +464,16 @@ export default function ZoneDetail() {
                   strokeWidth={2}
                   dot={false}
                   connectNulls
+                  isAnimationActive={false}
                 />
               ))}
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </GlowCard>
       ) : sensors.length > 0 ? (
-        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
+        <GlowCard variant="none" className="p-8 text-center text-sm text-muted-foreground/60">
           {tp("zoneDetail.noReadings")}
-        </div>
+        </GlowCard>
       ) : null}
 
       {/* Individual Sensor Charts */}
@@ -415,38 +485,46 @@ export default function ZoneDetail() {
             const sensorChartData = displayChartData
               .filter((d) => (d as Record<string, unknown>)[sensorLabel] !== undefined)
               .map((d) => ({ time: d.time, value: (d as Record<string, unknown>)[sensorLabel] }));
+            const chartReadings = (readings[sensor.id] ?? []).map((r) => ({
+              received_at: r.received_at,
+              value: r.value,
+            }));
 
             return (
-              <div key={sensor.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div className="mb-2 flex items-center justify-between">
+              <GlowCard key={sensor.id} variant="none" glass className="p-4">
+                <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-foreground">{sensorLabel}</h3>
+                    <h3 className="text-sm font-semibold text-foreground">{sensorLabel}</h3>
                     {anomalies && anomalies.anomalies.length > 0 && (
                       <AnomalyBadge anomalies={anomalies.anomalies} sensorId={sensor.id} />
                     )}
                   </div>
-                  <span className="text-sm text-muted-foreground">{unit}</span>
+                  <span className="text-xs text-muted-foreground">{unit}</span>
                 </div>
-                {sensorChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={200}>
+                {chartReadings.length >= 2 ? (
+                  <SensorChart
+                    data={chartReadings}
+                    sensorType={sensor.sensor_type as Parameters<typeof SensorChart>[0]["sensorType"]}
+                    unit={unit}
+                    minThreshold={sensor.min_threshold ?? undefined}
+                    maxThreshold={sensor.max_threshold ?? undefined}
+                    height={160}
+                    aria-label={`${sensorLabel} chart`}
+                  />
+                ) : sensorChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={160}>
                     <LineChart data={sensorChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="time" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                        strokeWidth={2}
-                        dot={false}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                      <XAxis dataKey="time" tick={tickStyle} axisLine={false} tickLine={false} />
+                      <YAxis tick={tickStyle} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: theme === "dark" ? "#111720" : "#fff", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.5rem", fontSize: 11 }} />
+                      <Line type="monotone" dataKey="value" stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2} dot={false} isAnimationActive={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
                   <p className="py-8 text-center text-xs text-muted-foreground/60">No data</p>
                 )}
-              </div>
+              </GlowCard>
             );
           })}
         </div>
@@ -487,14 +565,15 @@ export default function ZoneDetail() {
       )}
 
       {/* Latest Readings Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm">
-        <div className="border-b border-border px-4 py-3">
-          <h2 className="text-lg font-semibold text-foreground">{tp("zoneDetail.latestReadings")}</h2>
+      <GlowCard variant="green" glass>
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+          <Thermometer className="size-4 text-gh-primary" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-foreground">{tp("zoneDetail.latestReadings")}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <tr className="border-b border-border/50 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3">{t("labels.sensor")}</th>
                 <th className="px-4 py-3">{t("labels.value")}</th>
                 <th className="px-4 py-3">{t("labels.thresholds")}</th>
@@ -563,16 +642,19 @@ export default function ZoneDetail() {
             </tbody>
           </table>
         </div>
-      </div>
+      </GlowCard>
 
       {/* Threshold Configuration */}
       {sensors.length > 0 && (
-        <div className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="border-b border-border px-4 py-3">
-            <h2 className="text-lg font-semibold text-foreground">{tp("zoneDetail.alertThresholds")}</h2>
-            <p className="text-xs text-muted-foreground">{tp("zoneDetail.alertThresholdsHint")}</p>
+        <GlowCard variant="warning" glass>
+          <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+            <Sliders className="size-4 text-gh-warning" aria-hidden="true" />
+            <div>
+              <h2 className="text-base font-semibold text-foreground">{tp("zoneDetail.alertThresholds")}</h2>
+              <p className="text-xs text-muted-foreground">{tp("zoneDetail.alertThresholdsHint")}</p>
+            </div>
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/50">
             {sensors.map((sensor) => {
               const label = SENSOR_TYPE_LABELS[sensor.sensor_type] ?? sensor.sensor_type;
               const unit = SENSOR_TYPE_UNITS[sensor.sensor_type] ?? sensor.unit;
@@ -594,7 +676,7 @@ export default function ZoneDetail() {
                           step="any"
                           value={thresholdForm.min}
                           onChange={(e) => setThresholdForm((f) => ({ ...f, min: e.target.value }))}
-                          className="w-24 rounded-md border border-border bg-card text-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-20 rounded-md border border-input bg-background text-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                           placeholder="--"
                         />
                       </div>
@@ -605,41 +687,28 @@ export default function ZoneDetail() {
                           step="any"
                           value={thresholdForm.max}
                           onChange={(e) => setThresholdForm((f) => ({ ...f, max: e.target.value }))}
-                          className="w-24 rounded-md border border-border bg-card text-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-20 rounded-md border border-input bg-background text-foreground px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                           placeholder="--"
                         />
                       </div>
-                      <button
-                        onClick={saveThresholds}
-                        disabled={savingThresholds}
-                        className="rounded-md bg-primary px-3 py-1 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                      >
-                        {savingThresholds ? "..." : t("actions.save")}
+                      <button onClick={saveThresholds} disabled={savingThresholds} className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                        <Check className="size-3" />{savingThresholds ? "…" : t("actions.save")}
                       </button>
-                      <button
-                        onClick={() => setEditingThresholds(null)}
-                        className="rounded-md border border-border px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors"
-                      >
-                        {t("actions.cancel")}
+                      <button onClick={() => setEditingThresholds(null)} className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors">
+                        <X className="size-3" />{t("actions.cancel")}
                       </button>
                     </>
                   ) : (
                     <>
                       <span className="text-sm text-muted-foreground">
                         {sensor.min_threshold !== null || sensor.max_threshold !== null ? (
-                          <>
-                            {sensor.min_threshold ?? "--"} — {sensor.max_threshold ?? "--"}
-                            {unit ? ` ${unit}` : ""}
-                          </>
+                          <>{sensor.min_threshold ?? "--"} — {sensor.max_threshold ?? "--"}{unit ? ` ${unit}` : ""}</>
                         ) : (
                           <span className="text-muted-foreground/60">{tp("zoneDetail.notConfigured")}</span>
                         )}
                       </span>
-                      <button
-                        onClick={() => startEditingThresholds(sensor)}
-                        className="rounded-md border border-border px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors"
-                      >
-                        {t("actions.edit")}
+                      <button onClick={() => startEditingThresholds(sensor)} className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors">
+                        <Pencil className="size-3" />{t("actions.edit")}
                       </button>
                     </>
                   )}
@@ -647,36 +716,34 @@ export default function ZoneDetail() {
               );
             })}
           </div>
-        </div>
+        </GlowCard>
       )}
 
       {/* Actuators */}
-      <div className="rounded-xl border border-border bg-card shadow-sm">
-        <div className="border-b border-border px-4 py-3">
-          <h2 className="text-lg font-semibold text-foreground">{tp("zoneDetail.actuators")}</h2>
+      <GlowCard variant={actuators.some((a) => a.state) ? "green" : "none"} glass>
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+          <Zap className="size-4 text-gh-primary" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-foreground">{tp("zoneDetail.actuators")}</h2>
         </div>
         {actuators.length > 0 ? (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/50">
             {actuators.map((actuator) => {
               const label = ACTUATOR_TYPE_LABELS[actuator.actuator_type] ?? actuator.actuator_type;
               return (
                 <div key={actuator.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <p className="font-medium text-foreground">{actuator.name}</p>
+                    <p className="text-sm font-medium text-foreground">{actuator.name}</p>
                     <p className="text-xs text-muted-foreground">{label}</p>
                   </div>
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      actuator.state
-                        ? "bg-success/10 text-success"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-1.5 w-1.5 rounded-full ${
-                        actuator.state ? "bg-success" : "bg-muted-foreground/30"
-                      }`}
-                    />
+                  <span className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                    actuator.state
+                      ? "bg-gh-primary/10 text-gh-primary"
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {actuator.state
+                      ? <Power className="size-3" />
+                      : <PowerOff className="size-3" />}
                     {actuator.state ? t("status.on") : t("status.off")}
                   </span>
                 </div>
@@ -688,7 +755,7 @@ export default function ZoneDetail() {
             {tp("zoneDetail.noActuators")}
           </p>
         )}
-      </div>
+      </GlowCard>
     </div>
   );
 }

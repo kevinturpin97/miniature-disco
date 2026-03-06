@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { Plus, Zap, ChevronDown, History } from "lucide-react";
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
 import { listActuators } from "@/api/actuators";
@@ -19,7 +20,11 @@ import {
 } from "@/api/automations";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { Spinner } from "@/components/ui/Spinner";
+import { GlowCard } from "@/components/ui/GlowCard";
+import { AutomationChip } from "@/components/ui/AutomationChip";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { cn } from "@/utils/cn";
 import { SENSOR_TYPE_LABELS, ACTUATOR_TYPE_LABELS, COMMAND_STATUS_LABELS } from "@/utils/constants";
 import { formatDate, formatRelativeTime } from "@/utils/formatters";
 import type {
@@ -279,198 +284,191 @@ export default function Automations() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="h-8 w-8" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48 rounded-xl" />
+        <Skeleton className="h-10 w-80 rounded-lg" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative gradient-blur-primary gradient-blur-secondary">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{tp("automations.title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{tp("automations.subtitle")}</p>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Zap className="size-6 text-gh-primary" aria-hidden="true" />
+            {tp("automations.title")}
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">{tp("automations.subtitle")}</p>
         </div>
         {selectedZoneId !== null && (
           <button
             onClick={openCreateModal}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/80"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
+            <Plus className="size-4" aria-hidden="true" />
             {tp("automations.addRule")}
           </button>
         )}
       </div>
 
       {/* Zone selector */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-foreground/80">
-          {t("labels.zone")}
-        </label>
-        <select
-          value={selectedZoneId ?? ""}
-          onChange={(e) => setSelectedZoneId(e.target.value ? Number(e.target.value) : null)}
-          className="w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground shadow-xs"
-        >
-          <option value="">{tp("automations.selectZone")}</option>
-          {greenhouses.map((gh) => (
-            <optgroup key={gh.id} label={gh.name}>
-              {gh.zones.map((zone) => (
-                <option key={zone.id} value={zone.id}>
-                  {zone.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </div>
+      <GlowCard variant="none" glass className="flex items-center gap-3 px-4 py-3">
+        <label className="text-sm font-medium text-foreground/80 shrink-0">{t("labels.zone")}:</label>
+        <div className="relative flex-1 max-w-xs">
+          <select
+            value={selectedZoneId ?? ""}
+            onChange={(e) => setSelectedZoneId(e.target.value ? Number(e.target.value) : null)}
+            className="w-full appearance-none rounded-lg border border-input bg-background/60 px-3 py-2 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="">{tp("automations.selectZone")}</option>
+            {greenhouses.map((gh) => (
+              <optgroup key={gh.id} label={gh.name}>
+                {gh.zones.map((zone) => (
+                  <option key={zone.id} value={zone.id}>{zone.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        </div>
+      </GlowCard>
 
       {/* No zone selected */}
       {selectedZoneId === null && (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-muted-foreground/40"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          <p className="mt-4 text-sm text-muted-foreground">{tp("automations.selectZone")}</p>
-        </div>
+        <EmptyState
+          icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          title={tp("automations.selectZone")}
+          description=""
+        />
       )}
 
       {/* Loading zone data */}
       {selectedZoneId !== null && loadingZone && (
-        <div className="flex h-48 items-center justify-center">
-          <Spinner className="h-8 w-8" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
         </div>
       )}
 
       {/* Rule cards */}
       {selectedZoneId !== null && !loadingZone && (
         <>
-          {rules.length === 0 ? (
-            <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
-              {tp("automations.noRules")}
+          {/* AutomationChips row — quick overview */}
+          {rules.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {rules.map((rule) => (
+                <AutomationChip
+                  key={rule.id}
+                  name={rule.name}
+                  active={rule.is_active}
+                  triggerCount={triggerCommands.filter((c) => c.automation_rule === rule.id).length}
+                  onClick={() => openEditModal(rule)}
+                />
+              ))}
             </div>
+          )}
+
+          {rules.length === 0 ? (
+            <EmptyState
+              icon="M13 10V3L4 14h7v7l9-11h-7z"
+              title={tp("automations.noRules")}
+              description=""
+              action={
+                <button onClick={openCreateModal} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                  {tp("automations.addRule")}
+                </button>
+              }
+            />
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {rules.map((rule) => {
                 const actuatorName = actuatorNameMap.get(rule.action_actuator) ?? `#${rule.action_actuator}`;
-
                 return (
-                  <div
+                  <GlowCard
                     key={rule.id}
-                    className={`rounded-xl border border-border bg-card p-5 shadow-xs ${!rule.is_active ? "opacity-60" : ""}`}
+                    variant={rule.is_active ? "green" : "none"}
+                    active={rule.is_active}
+                    glass
+                    className={cn("p-5", !rule.is_active && "opacity-60")}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between mb-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate font-semibold text-foreground">{rule.name}</h3>
                         {rule.description && (
-                          <p className="mt-1 text-xs text-muted-foreground">{rule.description}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{rule.description}</p>
                         )}
                       </div>
-                      <span
-                        className={`ml-2 inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          rule.is_active
-                            ? "bg-success/10 text-success"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {rule.is_active
-                          ? tp("automations.status.active")
-                          : tp("automations.status.inactive")}
+                      <span className={cn(
+                        "ml-2 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                        rule.is_active ? "bg-gh-primary/10 text-gh-primary" : "bg-muted text-muted-foreground"
+                      )}>
+                        {rule.is_active ? tp("automations.status.active") : tp("automations.status.inactive")}
                       </span>
                     </div>
 
-                    {/* Rule condition summary */}
-                    <div className="mt-3 rounded-lg bg-muted p-3 text-sm">
-                      <span className="font-medium text-foreground/80">IF </span>
-                      <span className="text-info">{SENSOR_TYPE_LABELS[rule.sensor_type] ?? rule.sensor_type}</span>
-                      <span className="text-muted-foreground"> {tp(`automations.conditions.${rule.condition}`)} </span>
-                      <span className="font-mono text-foreground">{rule.threshold_value}</span>
-                      <br />
-                      <span className="font-medium text-foreground/80">THEN </span>
-                      <span className="text-secondary">{tp(`automations.commandTypes.${rule.action_command_type}`)}</span>
-                      <span className="text-muted-foreground"> → </span>
-                      <span className="text-foreground">{actuatorName}</span>
-                      {rule.action_command_type === "SET" && rule.action_value !== null && (
-                        <span className="text-muted-foreground"> = {rule.action_value}</span>
-                      )}
+                    {/* Rule condition */}
+                    <div className="rounded-lg bg-black/10 dark:bg-white/5 p-3 text-xs font-mono space-y-0.5">
+                      <div>
+                        <span className="text-muted-foreground">IF </span>
+                        <span className="text-gh-secondary">{SENSOR_TYPE_LABELS[rule.sensor_type] ?? rule.sensor_type}</span>
+                        <span className="text-muted-foreground"> {tp(`automations.conditions.${rule.condition}`)} </span>
+                        <span className="text-foreground font-bold">{rule.threshold_value}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">THEN </span>
+                        <span className="text-gh-primary">{tp(`automations.commandTypes.${rule.action_command_type}`)}</span>
+                        <span className="text-muted-foreground"> → </span>
+                        <span className="text-foreground">{actuatorName}</span>
+                        {rule.action_command_type === "SET" && rule.action_value !== null && (
+                          <span className="text-muted-foreground"> = {rule.action_value}</span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Metadata row */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/60">
-                      <span>
-                        {rule.last_triggered
-                          ? `${tp("automations.status.lastTriggered")}: ${formatRelativeTime(rule.last_triggered)}`
-                          : tp("automations.status.neverTriggered")}
-                      </span>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/60">
+                      <span>{rule.last_triggered ? `${tp("automations.status.lastTriggered")}: ${formatRelativeTime(rule.last_triggered)}` : tp("automations.status.neverTriggered")}</span>
                       <span>Cooldown: {rule.cooldown_seconds}s</span>
                     </div>
 
-                    {/* Action buttons */}
                     <div className="mt-4 flex items-center gap-2">
                       <button
                         onClick={() => handleToggleActive(rule)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                          rule.is_active
-                            ? "bg-warning/10 text-warning hover:bg-warning/20"
-                            : "bg-success/10 text-success hover:bg-success/20"
-                        }`}
+                        className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                          rule.is_active ? "bg-gh-warning/10 text-gh-warning hover:bg-gh-warning/20" : "bg-gh-primary/10 text-gh-primary hover:bg-gh-primary/20"
+                        )}
                       >
-                        {rule.is_active
-                          ? tp("automations.status.inactive")
-                          : tp("automations.status.active")}
+                        {rule.is_active ? tp("automations.status.inactive") : tp("automations.status.active")}
                       </button>
-                      <button
-                        onClick={() => openEditModal(rule)}
-                        className="rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:bg-accent"
-                      >
+                      <button onClick={() => openEditModal(rule)} className="rounded-lg bg-muted/60 px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-accent transition-colors">
                         {t("actions.edit")}
                       </button>
-                      <button
-                        onClick={() => setDeleteTarget(rule)}
-                        className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
-                      >
+                      <button onClick={() => setDeleteTarget(rule)} className="rounded-lg bg-gh-danger/10 px-3 py-1.5 text-xs font-medium text-gh-danger hover:bg-gh-danger/20 transition-colors">
                         {t("actions.delete")}
                       </button>
                     </div>
-                  </div>
+                  </GlowCard>
                 );
               })}
             </div>
           )}
 
           {/* Trigger History */}
-          <div className="rounded-xl border border-border bg-card shadow-xs">
-            <div className="border-b border-border px-4 py-3">
-              <h2 className="text-lg font-semibold text-foreground">
-                {tp("automations.triggerHistory")}
-              </h2>
+          <GlowCard variant="none" glass>
+            <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+              <History className="size-4 text-muted-foreground" aria-hidden="true" />
+              <h2 className="text-base font-semibold text-foreground">{tp("automations.triggerHistory")}</h2>
             </div>
             {triggerCommands.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">
-                {tp("automations.noTriggers")}
-              </p>
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">{tp("automations.noTriggers")}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <tr className="border-b border-border/50 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       <th className="px-4 py-3">{t("labels.actuator")}</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Status</th>
@@ -478,28 +476,25 @@ export default function Automations() {
                       <th className="px-4 py-3">Created</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/40">
                     {triggerCommands.slice(0, 20).map((cmd) => {
                       const actuatorName = actuatorNameMap.get(cmd.actuator) ?? `#${cmd.actuator}`;
                       const linkedRule = rules.find((r) => r.id === cmd.automation_rule);
-
                       return (
-                        <tr key={cmd.id} className="hover:bg-accent">
-                          <td className="px-4 py-3 font-medium text-foreground">
-                            {actuatorName}
+                        <tr key={cmd.id} className="hover:bg-accent/40 transition-colors">
+                          <td className="px-4 py-3 font-medium text-foreground">{actuatorName}</td>
+                          <td className="px-4 py-3">
+                            <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", cmd.command_type === "ON" ? "bg-gh-primary/10 text-gh-primary" : "bg-muted text-muted-foreground")}>
+                              {cmd.command_type}
+                            </span>
                           </td>
-                          <td className="px-4 py-3 text-foreground/80">{cmd.command_type}</td>
                           <td className="px-4 py-3">
                             <span className="inline-flex rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground/80">
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {linkedRule?.name ?? `#${cmd.automation_rule}`}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {formatDate(cmd.created_at)}
-                          </td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{linkedRule?.name ?? `#${cmd.automation_rule}`}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(cmd.created_at)}</td>
                         </tr>
                       );
                     })}
@@ -507,7 +502,7 @@ export default function Automations() {
                 </table>
               </div>
             )}
-          </div>
+          </GlowCard>
         </>
       )}
 

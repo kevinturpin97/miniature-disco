@@ -23,14 +23,20 @@ vi.mock("@/api/zones", () => ({
 vi.mock("@/api/sensors", () => ({
   listSensors: vi.fn(),
 }));
+vi.mock("@/api/alerts", () => ({
+  listAlerts: vi.fn(),
+  acknowledgeAlert: vi.fn(),
+}));
 
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
 import { listSensors } from "@/api/sensors";
+import { listAlerts } from "@/api/alerts";
 
 const mockedListGreenhouses = vi.mocked(listGreenhouses);
 const mockedListZones = vi.mocked(listZones);
 const mockedListSensors = vi.mocked(listSensors);
+const mockedListAlerts = vi.mocked(listAlerts);
 
 function renderDashboard() {
   return render(
@@ -43,14 +49,16 @@ function renderDashboard() {
 describe("Dashboard page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: alerts returns empty list
+    mockedListAlerts.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   });
 
-  it("shows loading spinner initially", () => {
+  it("shows skeleton loaders initially", () => {
     // Never resolve to keep loading state
     mockedListGreenhouses.mockReturnValue(new Promise(() => {}));
     renderDashboard();
-    // The Spinner component renders a DaisyUI loading span
-    expect(document.querySelector("svg.animate-spin")).toBeInTheDocument();
+    // Sprint 30: loading state uses Skeleton components (animate-pulse divs)
+    expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("shows empty state when no greenhouses", async () => {
@@ -134,10 +142,12 @@ describe("Dashboard page", () => {
       expect(screen.getByText("My Greenhouse")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Rooftop")).toBeInTheDocument();
+    // Location is rendered as "· Rooftop" in Sprint 30 layout
+    expect(screen.getByText("· Rooftop")).toBeInTheDocument();
     expect(screen.getByText("Zone Alpha")).toBeInTheDocument();
     expect(screen.getByText("Temperature")).toBeInTheDocument();
-    expect(screen.getByText("Online")).toBeInTheDocument();
+    // ZoneStatusBadge renders "Online" — multiple may exist (zone badge + global metric label)
+    expect(screen.getAllByText("Online").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows empty state on API failure (errors handled via toast)", async () => {

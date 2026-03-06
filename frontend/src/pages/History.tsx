@@ -17,10 +17,15 @@ import {
   Legend,
 } from "recharts";
 import { format, subHours, subDays } from "date-fns";
+import { BarChart2 } from "lucide-react";
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
 import { listSensors, getSensorReadings } from "@/api/sensors";
-import { Spinner } from "@/components/ui/Spinner";
+import { GlowCard } from "@/components/ui/GlowCard";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { cn } from "@/utils/cn";
+import { useThemeStore } from "@/stores/themeStore";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS } from "@/utils/constants";
 import { lttbDownsample, BIG_DATA_THRESHOLD, BIG_DATA_TARGET_POINTS } from "@/utils/downsample";
 import type { Greenhouse, Zone, SensorType, SensorReading } from "@/types";
@@ -41,7 +46,7 @@ interface ChartDataPoint {
 
 /* ---------- constants ---------- */
 
-const CHART_COLORS = ["#16a34a", "#2563eb", "#d97706", "#dc2626", "#7c3aed", "#0891b2"];
+const CHART_COLORS = ["#00ff9c", "#00d9ff", "#ffb300", "#ff4d4f", "#a78bfa", "#2dbf7f"];
 
 const ALL_SENSOR_TYPES: SensorType[] = ["TEMP", "HUM_AIR", "HUM_SOIL", "PH", "LIGHT", "CO2"];
 
@@ -54,6 +59,7 @@ const PERIODS: Period[] = ["1h", "24h", "7d", "30d"];
 export default function History() {
   const { t } = useTranslation();
   const { t: tp } = useTranslation("pages");
+  const theme = useThemeStore((s) => s.theme);
 
   /* ---- data state ---- */
   const [greenhouses, setGreenhouses] = useState<GreenhouseWithZones[]>([]);
@@ -224,49 +230,53 @@ export default function History() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="h-8 w-8" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48 rounded-xl" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+          <Skeleton className="lg:col-span-2 h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+        </div>
+        <Skeleton className="h-80 rounded-xl" />
       </div>
     );
   }
 
   const unit = SENSOR_TYPE_UNITS[sensorType] ?? "";
+  const gridStroke = theme === "dark" ? "rgba(255,255,255,0.06)" : "#e5e7eb";
+  const tickStyle = { fontSize: 11, fill: theme === "dark" ? "#6b7280" : "#9ca3af" };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative gradient-blur-primary gradient-blur-secondary">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{tp("history.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{tp("history.subtitle")}</p>
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <BarChart2 className="size-6 text-gh-secondary" aria-hidden="true" />
+          {tp("history.title")}
+        </h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">{tp("history.subtitle")}</p>
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         {/* Zone multi-select */}
-        <div className="lg:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-foreground/80">
-            {tp("history.selectZones")}
-          </label>
-          <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-card p-3">
+        <GlowCard variant="none" glass className="lg:col-span-2 p-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tp("history.selectZones")}</p>
+          <div className="max-h-48 overflow-y-auto space-y-3">
             {greenhouses.map((gh) => (
-              <div key={gh.id} className="mb-3 last:mb-0">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
-                  {gh.name}
-                </p>
+              <div key={gh.id}>
+                <p className="mb-1 text-xs font-medium text-muted-foreground/60">{gh.name}</p>
                 {gh.zones.length === 0 ? (
-                  <p className="text-xs text-muted-foreground/60">--</p>
+                  <p className="text-xs text-muted-foreground/40">--</p>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {gh.zones.map((zone) => (
-                      <label
-                        key={zone.id}
-                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm text-foreground/80 hover:bg-accent"
-                      >
+                      <label key={zone.id} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm text-foreground/80 hover:bg-accent/50 transition-colors">
                         <input
                           type="checkbox"
                           checked={selectedZoneIds.has(zone.id)}
                           onChange={() => toggleZone(zone.id)}
-                          className="h-4 w-4 rounded border-border text-primary accent-primary focus:ring-2 focus:ring-ring"
+                          className="h-3.5 w-3.5 rounded border-border accent-primary"
                         />
                         {zone.name}
                       </label>
@@ -276,117 +286,76 @@ export default function History() {
               </div>
             ))}
           </div>
-        </div>
+        </GlowCard>
 
-        {/* Sensor type selector */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-foreground/80">
-            {tp("history.sensorType")}
-          </label>
+        {/* Sensor type */}
+        <GlowCard variant="none" glass className="p-4 flex flex-col gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tp("history.sensorType")}</p>
           <select
             value={sensorType}
             onChange={(e) => setSensorType(e.target.value as SensorType)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-lg border border-input bg-background/60 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {ALL_SENSOR_TYPES.map((st) => (
-              <option key={st} value={st}>
-                {SENSOR_TYPE_LABELS[st] ?? st}
-              </option>
+              <option key={st} value={st}>{SENSOR_TYPE_LABELS[st] ?? st}</option>
             ))}
           </select>
-        </div>
+        </GlowCard>
 
-        {/* Period selector */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-foreground/80">
-            {tp("history.period")}
-          </label>
-          <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
+        {/* Period + Big Data toggle */}
+        <GlowCard variant="none" glass className="p-4 flex flex-col gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{tp("history.period")}</p>
+          <div className="flex gap-1 rounded-lg bg-muted/50 p-1">
             {PERIODS.map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`flex-1 rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
-                  period === p
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                }`}
+                className={cn("flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
+                  period === p ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-accent"
+                )}
               >
                 {tp(`history.periods.${p}`)}
               </button>
             ))}
           </div>
-
-          {/* Big Data mode toggle */}
-          <label className="mt-3 flex cursor-pointer items-center gap-2" title={tp("history.bigDataModeHint")}>
-            <input
-              type="checkbox"
-              checked={bigDataMode}
-              onChange={(e) => setBigDataMode(e.target.checked)}
-              className="h-4 w-4 rounded border-border text-primary accent-primary focus:ring-2 focus:ring-ring"
-            />
-            <span className="text-sm text-foreground/80">{tp("history.bigDataMode")}</span>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input type="checkbox" checked={bigDataMode} onChange={(e) => setBigDataMode(e.target.checked)} className="h-3.5 w-3.5 rounded border-border accent-primary" />
+            <span className="text-xs text-muted-foreground">{tp("history.bigDataMode")}</span>
+            {bigDataMode && chartData.length > 0 && <span className="text-xs text-muted-foreground/60">({chartData.length} pts)</span>}
           </label>
-          {bigDataMode && chartData.length > 0 && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {tp("history.pointsDisplayed", { count: chartData.length })}
-            </p>
-          )}
-        </div>
+        </GlowCard>
       </div>
 
       {/* Chart or empty state */}
       {selectedZoneIds.size === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-muted-foreground/30"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-            />
-          </svg>
-          <p className="mt-4 text-sm text-muted-foreground">{tp("history.noZonesSelected")}</p>
-        </div>
+        <EmptyState
+          icon="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+          title={tp("history.noZonesSelected")}
+          description=""
+        />
       ) : loadingReadings ? (
-        <div className="flex h-64 items-center justify-center">
-          <Spinner className="h-8 w-8" />
-        </div>
+        <Skeleton className="h-80 rounded-xl" />
       ) : chartData.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-muted-foreground/30"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-            />
-          </svg>
-          <p className="mt-4 text-sm text-muted-foreground">{tp("history.noData")}</p>
-        </div>
+        <EmptyState
+          icon="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+          title={tp("history.noData")}
+          description=""
+        />
       ) : (
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">
+        <GlowCard variant="cyan" glass className="p-4">
+          <h2 className="mb-4 text-base font-semibold text-foreground flex items-center gap-2">
+            <BarChart2 className="size-4 text-gh-secondary" aria-hidden="true" />
             {SENSOR_TYPE_LABELS[sensorType] ?? sensorType}
             {unit ? ` (${unit})` : ""}
+            {selectedZoneIds.size > 0 && <span className="text-xs text-muted-foreground font-normal">— {selectedZoneIds.size} zone{selectedZoneIds.size > 1 ? "s" : ""}</span>}
           </h2>
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={360} aria-label={`${sensorType} history chart`}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+              <XAxis dataKey="time" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: theme === "dark" ? "#111720" : "#fff", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.5rem", fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               {selectedZoneNames.map((name, i) => (
                 <Line
                   key={name}
@@ -396,11 +365,12 @@ export default function History() {
                   strokeWidth={2}
                   dot={false}
                   connectNulls
+                  isAnimationActive={false}
                 />
               ))}
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </GlowCard>
       )}
     </div>
   );

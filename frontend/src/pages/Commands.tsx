@@ -6,13 +6,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Zap, History, ChevronDown } from "lucide-react";
 import { listGreenhouses } from "@/api/greenhouses";
 import { listZones } from "@/api/zones";
 import { listActuators } from "@/api/actuators";
 import { createCommand, listCommands } from "@/api/commands";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuthStore } from "@/stores/authStore";
-import { Spinner } from "@/components/ui/Spinner";
+import { GlowCard } from "@/components/ui/GlowCard";
+import { CommandButton } from "@/components/ui/CommandButton";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { cn } from "@/utils/cn";
 import { ACTUATOR_TYPE_LABELS, COMMAND_STATUS_LABELS } from "@/utils/constants";
 import { formatDate } from "@/utils/formatters";
 import type { Greenhouse, Zone, Actuator, Command, CommandStatus } from "@/types";
@@ -26,10 +31,10 @@ interface GreenhouseWithZones extends Greenhouse {
 /* ---------- constants ---------- */
 
 const STATUS_STYLES: Record<CommandStatus, { bg: string; text: string }> = {
-  PENDING: { bg: "bg-warning/10", text: "text-warning" },
+  PENDING: { bg: "bg-gh-warning/10", text: "text-gh-warning" },
   SENT: { bg: "bg-info/10", text: "text-info" },
-  ACK: { bg: "bg-success/10", text: "text-success" },
-  FAILED: { bg: "bg-destructive/10", text: "text-destructive" },
+  ACK: { bg: "bg-gh-primary/10", text: "text-gh-primary" },
+  FAILED: { bg: "bg-gh-danger/10", text: "text-gh-danger" },
   TIMEOUT: { bg: "bg-muted", text: "text-muted-foreground" },
 };
 
@@ -201,8 +206,12 @@ export default function Commands() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="h-8 w-8" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48 rounded-xl" />
+        <Skeleton className="h-10 w-80 rounded-lg" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
+        </div>
       </div>
     );
   }
@@ -210,184 +219,139 @@ export default function Commands() {
   const nameMap = actuatorNameMap();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative gradient-blur-primary gradient-blur-secondary">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{tp("commands.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{tp("commands.subtitle")}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Zap className="size-6 text-gh-warning" aria-hidden="true" />
+            {tp("commands.title")}
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">{tp("commands.subtitle")}</p>
+        </div>
       </div>
 
       {/* Zone selector */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-foreground/80">
-          {t("labels.zone")}
-        </label>
-        <select
-          value={selectedZoneId ?? ""}
-          onChange={handleZoneChange}
-          className="w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground shadow-xs"
-        >
-          <option value="">{tp("commands.selectZone")}</option>
-          {greenhouses.map((gh) => (
-            <optgroup key={gh.id} label={gh.name}>
-              {gh.zones.map((zone) => (
-                <option key={zone.id} value={zone.id}>
-                  {zone.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </div>
-
-      {/* No zone selected state */}
-      {selectedZoneId === null && (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-muted-foreground/40"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+      <GlowCard variant="none" glass className="flex items-center gap-3 px-4 py-3">
+        <label className="text-sm font-medium text-foreground/80 shrink-0">{t("labels.zone")}:</label>
+        <div className="relative flex-1 max-w-xs">
+          <select
+            value={selectedZoneId ?? ""}
+            onChange={handleZoneChange}
+            className="w-full appearance-none rounded-lg border border-input bg-background/60 px-3 py-2 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-            />
-          </svg>
-          <p className="mt-4 text-sm text-muted-foreground">{tp("commands.selectZone")}</p>
+            <option value="">{tp("commands.selectZone")}</option>
+            {greenhouses.map((gh) => (
+              <optgroup key={gh.id} label={gh.name}>
+                {gh.zones.map((zone) => (
+                  <option key={zone.id} value={zone.id}>{zone.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         </div>
+      </GlowCard>
+
+      {/* No zone selected */}
+      {selectedZoneId === null && (
+        <EmptyState
+          icon="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+          title={tp("commands.selectZone")}
+          description=""
+        />
       )}
 
       {/* Loading zone data */}
       {selectedZoneId !== null && loadingZone && (
-        <div className="flex h-48 items-center justify-center">
-          <Spinner className="h-8 w-8" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
         </div>
       )}
 
       {/* Actuator controls */}
       {selectedZoneId !== null && !loadingZone && (
         <>
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">
+          <section aria-label="Actuator controls">
+            <h2 className="mb-4 text-base font-semibold text-foreground flex items-center gap-2">
+              <Zap className="size-4 text-gh-warning" aria-hidden="true" />
               {tp("commands.actuatorControls")}
             </h2>
             {actuators.length === 0 ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
+              <GlowCard variant="none" className="p-8 text-center text-sm text-muted-foreground/60">
                 {tp("commands.noActuators")}
-              </div>
+              </GlowCard>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {actuators.map((actuator) => {
                   const typeLabel = ACTUATOR_TYPE_LABELS[actuator.actuator_type] ?? actuator.actuator_type;
-                  const isSending = sendingActuatorId === actuator.id;
-
                   return (
-                    <div
+                    <GlowCard
                       key={actuator.id}
-                      className="rounded-xl border border-border bg-card p-5 shadow-xs"
+                      variant={actuator.state ? "green" : "none"}
+                      active={actuator.state}
+                      glass
+                      className="p-5"
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-foreground">{actuator.name}</h3>
-                          <p className="text-xs text-muted-foreground">{typeLabel}</p>
-                        </div>
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            actuator.state
-                              ? "bg-success/10 text-success"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-1.5 w-1.5 rounded-full ${
-                              actuator.state ? "bg-success" : "bg-muted-foreground/40"
-                            }`}
-                          />
-                          {actuator.state ? t("status.on") : t("status.off")}
-                        </span>
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-foreground">{actuator.name}</h3>
+                        <p className="text-xs text-muted-foreground">{typeLabel}</p>
                       </div>
-
-                      <div className="mt-4 flex gap-2">
-                        <button
-                          onClick={() => handleSendCommand(actuator.id, "ON")}
-                          disabled={isSending}
-                          className="flex-1 rounded-lg bg-success px-3 py-2 text-sm font-medium text-success-foreground shadow-xs transition-colors hover:bg-success/80 disabled:opacity-50"
-                        >
-                          {isSending ? tp("commands.sendingCommand") : t("status.on")}
-                        </button>
-                        <button
-                          onClick={() => handleSendCommand(actuator.id, "OFF")}
-                          disabled={isSending}
-                          className="flex-1 rounded-lg bg-muted px-3 py-2 text-sm font-medium text-foreground/80 shadow-xs transition-colors hover:bg-accent disabled:opacity-50"
-                        >
-                          {isSending ? tp("commands.sendingCommand") : t("status.off")}
-                        </button>
-                      </div>
-                    </div>
+                      <CommandButton
+                        isOn={actuator.state}
+                        name={actuator.name}
+                        onToggle={async () => {
+                          await handleSendCommand(actuator.id, actuator.state ? "OFF" : "ON");
+                        }}
+                        disabled={sendingActuatorId !== null && sendingActuatorId !== actuator.id}
+                      />
+                    </GlowCard>
                   );
                 })}
               </div>
             )}
-          </div>
+          </section>
 
           {/* Command history */}
-          <div className="rounded-xl border border-border bg-card shadow-xs">
-            <div className="border-b border-border px-4 py-3">
-              <h2 className="text-lg font-semibold text-foreground">
-                {tp("commands.commandHistory")}
-              </h2>
+          <GlowCard variant="none" glass aria-label="Command history">
+            <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+              <History className="size-4 text-muted-foreground" aria-hidden="true" />
+              <h2 className="text-base font-semibold text-foreground">{tp("commands.commandHistory")}</h2>
             </div>
             {commands.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">
-                {tp("commands.noCommands")}
-              </p>
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground/60">{tp("commands.noCommands")}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <tr className="border-b border-border/50 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       <th className="px-4 py-3">{t("labels.actuator")}</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Status</th>
                       <th className="px-4 py-3">Created</th>
-                      <th className="px-4 py-3">Sent At</th>
-                      <th className="px-4 py-3">Acknowledged At</th>
+                      <th className="px-4 py-3">Ack At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/40">
                     {commands.map((cmd) => {
                       const statusStyle = STATUS_STYLES[cmd.status] ?? STATUS_STYLES.PENDING;
                       const actuatorName = nameMap.get(cmd.actuator) ?? `#${cmd.actuator}`;
-
                       return (
-                        <tr key={cmd.id} className="hover:bg-accent">
-                          <td className="px-4 py-3 font-medium text-foreground">
-                            {actuatorName}
-                          </td>
-                          <td className="px-4 py-3 text-foreground/80">{cmd.command_type}</td>
+                        <tr key={cmd.id} className="hover:bg-accent/40 transition-colors">
+                          <td className="px-4 py-3 font-medium text-foreground">{actuatorName}</td>
                           <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}
-                              title={cmd.error_message || undefined}
-                            >
+                            <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", cmd.command_type === "ON" ? "bg-gh-primary/10 text-gh-primary" : "bg-muted text-muted-foreground")}>
+                              {cmd.command_type}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", statusStyle.bg, statusStyle.text)}>
                               {COMMAND_STATUS_LABELS[cmd.status] ?? cmd.status}
                             </span>
-                            {cmd.error_message && (
-                              <p className="mt-1 text-xs text-destructive">{cmd.error_message}</p>
-                            )}
+                            {cmd.error_message && <p className="mt-1 text-xs text-gh-danger">{cmd.error_message}</p>}
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {formatDate(cmd.created_at)}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {cmd.sent_at ? formatDate(cmd.sent_at) : "--"}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {cmd.acknowledged_at ? formatDate(cmd.acknowledged_at) : "--"}
-                          </td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(cmd.created_at)}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{cmd.acknowledged_at ? formatDate(cmd.acknowledged_at) : "--"}</td>
                         </tr>
                       );
                     })}
@@ -395,7 +359,7 @@ export default function Commands() {
                 </table>
               </div>
             )}
-          </div>
+          </GlowCard>
         </>
       )}
     </div>
