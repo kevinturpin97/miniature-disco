@@ -78,13 +78,162 @@ User → Greenhouse → Zone → Sensor/Actuator/AutomationRule/Alert
 
 All API access is filtered through this chain — users can only see their own data.
 
+## Deployment Modes
+
+The platform supports two deployment modes controlled via environment variables.
+
+### Edge Mode (`EDGE_MODE=True`)
+
+Deployed on a Raspberry Pi 4 at the physical site. Full local stack with LoRa bridge.
+
+```
+Sensors (pH, T°, H%, etc.)
+    │
+    ▼
+LoRa Relay Nodes (ATmega328P + RFM95W) × N zones
+    │  LoRa 868MHz
+    ▼
+Raspberry Pi 4 (Edge Node)
+    ├── lora-bridge (Python) ──► Mosquitto (MQTT)
+    ├── backend (Django 5) ◄──► PostgreSQL + Redis
+    ├── celery (workers + beat)
+    │       ↕ HTTPS + HMAC
+    └── sync_to_cloud task ──► Cloud VPS
+```
+
+**Active features in Edge mode:**
+- LoRa Bridge management (serial port, MQTT)
+- Local MQTT monitoring
+- Store-and-forward sync with exponential retry
+- All IoT features (sensors, actuators, automations, alerts)
+
+**Hidden in Edge mode:**
+- CRM dashboard (`/crm`)
+- Tenant management
+- Multi-site operator view
+
+### Cloud Mode (`EDGE_MODE=False`, `CLOUD_MODE=True`)
+
+Deployed on a VPS. Receives synced data from multiple edge sites. No LoRa bridge.
+
+```
+Edge Site A (Raspberry Pi)
+    │  HTTPS + HMAC batches
+Edge Site B (Raspberry Pi) ──► Cloud VPS (Django Cloud)
+    │                               ├── /api/edge/sync/ (ingestion)
+Edge Site C (Raspberry Pi)         ├── /api/crm/ (operator dashboard)
+                                    ├── PostgreSQL + Redis
+                                    └── Nginx (HTTPS + Let's Encrypt)
+```
+
+**Active features in Cloud mode:**
+- CRM dashboard with all client tenants
+- Multi-site Leaflet map
+- Impersonation tool (30-minute operator tokens)
+- Global analytics and metrics
+- SyncBatch processing and deduplication
+- Client plan management
+
+**Hidden in Cloud mode:**
+- LoRa Bridge settings
+- Local MQTT configuration
+
+### Feature Gate System
+
+```typescript
+// Frontend: useAppMode() hook
+const { isEdgeMode, isCloudMode, features } = useAppMode();
+
+// Conditional rendering
+<FeatureGate feature="crm">
+  <CRMDashboard />
+</FeatureGate>
+
+<FeatureGate feature="loraBridge">
+  <LoRaBridgeSettings />
+</FeatureGate>
+```
+
+Available feature flags:
+| Flag | Edge | Cloud |
+|------|------|-------|
+| `loraBridge` | ✅ | ❌ |
+| `mqtt` | ✅ | ❌ |
+| `crm` | ❌ | ✅ |
+| `sync` | ✅ | ✅ |
+| `multiTenant` | ✅ | ✅ |
+| `billing` | ✅ | ✅ |
+
+---
+
+## Edge Sync Protocol
+
+### Authentication
+
+Every request from an edge device to the cloud uses HMAC-SHA256:
+
+```
+X-Device-ID: <edge device UUID>
+X-Timestamp: <unix timestamp>
+X-Signature: HMAC-SHA256(secret_key, f"{device_id}:{timestamp}:{body_hash}")
+```
+
+Requests older than 5 minutes are rejected to prevent replay attacks.
+
+### Sync Payload (gzip compressed)
+
+```json
+{
+  "device_id": "550e8400-...",
+  "batch_id": "uuid",
+  "readings": [...],
+  "commands": [...],
+  "alerts": [...],
+  "audit_events": [...]
+}
+```
+
+### Conflict Resolution
+
+- **Readings:** Edge wins — cloud never overwrites sensor data received from edge
+- **Configs:** Cloud wins — automation rules, schedules, thresholds pushed from cloud override edge
+- **Commands:** Bidirectional — cloud-initiated commands queued as PENDING on edge
+
+---
+
+## Multi-Tenancy
+
+```
+Organization (slug, plan: FREE/PRO/ENTERPRISE)
+    │
+    ├── Membership (user, role: OWNER/ADMIN/OPERATOR/VIEWER)
+    ├── Greenhouse (1..N based on plan quota)
+    │       └── Zone → Sensor/Actuator/AutomationRule/Alert
+    ├── NotificationChannel (EMAIL/WEBHOOK/TELEGRAM/PUSH)
+    ├── APIKey (scoped: read/write/admin)
+    ├── Subscription (Stripe)
+    └── CloudTenant (cloud-side: edge_devices, storage_mb)
+```
+
+Plan quotas (enforced via Django middleware):
+| Plan | Greenhouses | Zones | Members | API calls/day |
+|------|------------|-------|---------|---------------|
+| FREE | 3 | 10 | 3 | 1,000 |
+| PRO | 20 | 100 | 20 | 50,000 |
+| ENTERPRISE | Unlimited | Unlimited | Unlimited | Unlimited |
+
+---
+
 ## Security
 
-- JWT authentication (access + refresh tokens)
-- Token rotation with blacklisting
-- Rate limiting (DRF throttle classes)
-- Nginx rate limiting on auth endpoints
+- JWT authentication (access + refresh tokens, token blacklisting)
+- API Key authentication (X-API-Key header, long-lived, scoped)
+- HMAC-SHA256 edge-to-cloud authentication (replay-protected)
+- Rate limiting: DRF throttle classes per-user + per-IP, Nginx rate limiting on auth endpoints
 - CORS restricted to configured origins
 - CSRF protection enabled
-- Security headers (HSTS, X-Frame-Options, X-Content-Type-Options)
+- Security headers: HSTS (max-age=31536000, includeSubDomains), X-Frame-Options DENY, X-Content-Type-Options nosniff, Content-Security-Policy
 - Input validation at every layer (Zod frontend, DRF serializers, Django model validators)
+- Audit log: AuditEvent model (user, action, resource, timestamp, IP)
+- Sentry error tracking (backend + frontend, source maps)
+- Prometheus metrics: readings/min, commands/min, sync batch sizes

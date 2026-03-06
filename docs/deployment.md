@@ -180,3 +180,96 @@ docker compose exec postgres pg_dump -U greenhouse greenhouse > backup_$(date +%
 ```bash
 cat backup.sql | docker compose exec -T postgres psql -U greenhouse greenhouse
 ```
+
+---
+
+## Secrets Rotation
+
+Rotate secrets on a quarterly basis (or immediately after a suspected breach).
+
+### 1. Django SECRET_KEY
+
+**Impact:** Invalidates all existing JWT tokens and sessions. All users will be logged out.
+
+```bash
+# Generate a new key
+python -c "import secrets; print(secrets.token_hex(50))"
+
+# Update in .env
+SECRET_KEY=<new-key>
+
+# Restart backend
+docker compose restart backend celery-worker celery-beat
+```
+
+### 2. JWT Signing Key (if using SIMPLE_JWT SIGNING_KEY separate from SECRET_KEY)
+
+```bash
+# Generate
+python -c "import secrets; print(secrets.token_hex(50))"
+
+# Update .env: JWT_SIGNING_KEY=<new-key>
+# Restart backend — all active tokens are invalidated
+docker compose restart backend
+```
+
+### 3. Edge HMAC Key (EDGE_HMAC_KEY)
+
+**Impact:** All edge devices will fail authentication until their key is updated.
+
+Rotation procedure:
+1. Generate a new key: `python -c "import secrets; print(secrets.token_hex(32))"`
+2. Update the cloud `.env`: `EDGE_HMAC_KEY=<new-key>`
+3. Re-run `onboard_client.sh` for each edge device to receive the new key
+4. Update each Raspberry Pi `.env`: `EDGE_HMAC_KEY=<new-key>`
+5. Restart cloud backend, then each Raspberry Pi backend
+
+### 4. PostgreSQL Password
+
+```bash
+# 1. Generate new password
+NEW_PASS=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+
+# 2. Update in the running database
+docker compose exec postgres psql -U greenhouse -c "ALTER USER greenhouse PASSWORD '$NEW_PASS';"
+
+# 3. Update .env: POSTGRES_PASSWORD=<new-pass>
+
+# 4. Restart services that use the DB
+docker compose restart backend celery-worker celery-beat
+```
+
+### 5. Redis Password
+
+```bash
+# 1. Set in .env: REDIS_PASSWORD=<new-pass>
+# 2. Update mosquitto auth if applicable
+# 3. Restart all services: docker compose restart
+```
+
+### 6. Stripe API Keys
+
+1. Log in to Stripe Dashboard → Developers → API Keys
+2. Create a new Restricted Key with the same permissions
+3. Update `.env`: `STRIPE_SECRET_KEY=<new-key>` and `STRIPE_WEBHOOK_SECRET=<new-secret>`
+4. Update the webhook endpoint secret in Stripe Dashboard
+5. Restart backend: `docker compose restart backend celery-worker`
+6. Revoke the old key in Stripe Dashboard
+
+### 7. Sentry DSN
+
+Sentry DSNs don't need rotation unless the project is deleted. If compromised:
+1. Create a new Sentry project
+2. Update `.env`: `SENTRY_DSN=<new-dsn>`
+3. Restart backend + frontend build
+
+### Rotation Schedule
+
+| Secret | Rotation Frequency | Priority |
+|--------|-------------------|----------|
+| `SECRET_KEY` | Quarterly | High |
+| `EDGE_HMAC_KEY` | Quarterly | High |
+| `POSTGRES_PASSWORD` | Semi-annually | High |
+| `STRIPE_SECRET_KEY` | On-demand | Critical |
+| `JWT_SIGNING_KEY` | On compromise only | Critical |
+| `REDIS_PASSWORD` | Annually | Medium |

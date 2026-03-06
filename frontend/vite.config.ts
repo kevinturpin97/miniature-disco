@@ -71,6 +71,26 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Heavy mapping library — loaded only on Sites/CRM pages
+          leaflet: ["leaflet", "react-leaflet", "@react-leaflet/core"],
+          // Chart library — loaded only on ZoneDetail/Analytics/History pages
+          recharts: ["recharts"],
+          // i18n — separate chunk cached independently
+          i18n: ["i18next", "react-i18next", "i18next-browser-languagedetector"],
+          // Animation library
+          motion: ["framer-motion"],
+          // React ecosystem
+          react: ["react", "react-dom", "react-router-dom"],
+          // State + validation
+          state: ["zustand", "zod"],
+        },
+      },
+    },
+    // Warn on chunks > 500kB
+    chunkSizeWarningLimit: 500,
   },
   server: {
     port: 5173,

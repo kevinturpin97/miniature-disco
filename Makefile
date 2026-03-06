@@ -96,8 +96,31 @@ ps: ## Show running containers
 	docker compose ps
 
 # Data
-seed: ## Create demo seed data
+seed: ## Create demo seed data (basic)
 	docker compose exec backend python manage.py seed_data
+
+seed-demo: ## Create enriched demo seed (3 clients, 5 greenhouses, 20 zones, 6 months data)
+	docker compose exec backend python manage.py seed_demo
+
+seed-demo-quick: ## Create enriched demo seed without historical readings
+	docker compose exec backend python manage.py seed_demo --no-readings
+
+demo: ## Full demo: start services, seed 6 months of data, open browser
+	@echo "Starting Greenhouse SaaS demo..."
+	docker compose up -d --build
+	@echo "Waiting for services to be ready..."
+	@sleep 15
+	docker compose exec backend python manage.py migrate --noinput
+	docker compose exec backend python manage.py seed_demo
+	docker compose exec backend python manage.py simulate_data --backfill 168
+	@echo ""
+	@echo "Demo ready!"
+	@echo "  Frontend:  http://localhost"
+	@echo "  API Docs:  http://localhost:8000/api/docs/"
+	@echo "  Admin:     http://localhost:8000/admin/"
+	@echo ""
+	@echo "Demo account: demo@greenhouse-saas.com / demo1234 (read-only)"
+	@command -v open >/dev/null 2>&1 && open http://localhost || true
 
 simulate: ## Simulate sensor data (Ctrl+C to stop)
 	docker compose exec backend python manage.py simulate_data --backfill 24

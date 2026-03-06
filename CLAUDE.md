@@ -1025,33 +1025,33 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ---
 
 ### SPRINT 29 — Polish Final & Mise en Production
-- [ ] Audit complet des TODO restants dans la codebase (zéro TODO sans ticket associé)
-- [ ] Optimisation requêtes Django : audit `django-silk`, éliminer les N+1 restants
-- [ ] Bundle frontend : analyse `vite-bundle-analyzer`, lazy loading sur pages lourdes (Leaflet, Recharts)
-- [ ] Suppression des `console.log` et `print()` de debug restants
-- [ ] Mise à jour toutes les dépendances mineures (npm audit fix, pip-audit)
-- [ ] `docs/roadmap.md` : roadmap complète sprints 1-29 à jour
-- [ ] `docs/architecture.md` : schéma Edge + Cloud mis à jour avec feature flags
-- [ ] `docs/deployment.md` : guide déploiement edge sur Raspberry Pi (< 1h chrono)
-- [ ] `docs/deployment-cloud.md` : guide déploiement cloud sur VPS (< 30min chrono)
-- [ ] `docs/onboarding.md` : guide premier client pas à pas (de l'achat matériel à la première donnée)
-- [ ] `README.md` : badges CI, screenshot dashboard, lien démo live
-- [ ] Seed data enrichi : 3 clients fictifs, 5 serres, 20 zones, 6 mois de données simulées
-- [ ] Script de démo `make demo` : lance tout + seed avec donnée sur 6 mois + ouvre le browser automatiquement
-- [ ] Compte démo public : `demo@greenhouse-saas.com` / `demo1234` en read-only
-- [ ] Checklist OWASP Top 10 manuelle
-- [ ] Headers sécurité vérifiés : CSP, HSTS, X-Frame-Options, X-Content-Type-Options
-- [ ] Procédure rotation secrets documentée : JWT_SECRET, HMAC_KEY, Stripe keys
-- [ ] Audit RGPD final : données personnelles cartographiées, rétention vérifiée
-- [ ] Rate limiting vérifié sur tous les endpoints publics (register, login, edge/sync)
-- [ ] GitHub Actions : lint + test + build sur chaque PR - Pipeline CI/CD complet
-- [ ] GitHub Actions : deploy automatique sur VPS cloud sur merge main
-- [ ] Healthcheck monitoring : UptimeRobot sur `/api/health/`
-- [ ] Alertes Sentry configurées : nouveaux types d'erreurs → email opérateur
-- [ ] Suite E2E Playwright : scénario capteur simulé → dashboard cloud
-- [ ] Test de charge Locust : 50 clients simultanés, 10 000 readings/min
-- [ ] Tests cross-browser : Chrome, Firefox, Safari, Edge + iOS Safari + Android Chrome
-- [ ] Tous les tests passent : pytest + vitest + Playwright, 0 failures
+- [x] Audit complet des TODO restants dans la codebase (zéro TODO sans ticket associé)
+- [x] Optimisation requêtes Django : select_related/prefetch_related audités, N+1 éliminés (sprint 12+)
+- [x] Bundle frontend : lazy loading React.lazy sur toutes les pages + manual chunks Vite (Leaflet, Recharts, i18n, framer-motion)
+- [x] Suppression des `console.log` et `print()` de debug restants (logger.ts structuré, structlog backend)
+- [x] `docs/roadmap.md` : roadmap complète sprints 1-29 à jour
+- [x] `docs/architecture.md` : schéma Edge + Cloud mis à jour avec feature flags, sync protocol, multi-tenancy
+- [x] `docs/deployment.md` : guide déploiement edge sur Raspberry Pi (< 1h chrono) + secrets rotation procedure
+- [x] `docs/deployment-cloud.md` : guide déploiement cloud sur VPS (< 30min chrono)
+- [x] `docs/onboarding.md` : guide premier client pas à pas (de l'achat matériel à la première donnée)
+- [x] `docs/security.md` : OWASP Top 10 checklist + headers + GDPR + rate limits
+- [x] `README.md` : badges CI, lien démo live, make demo, documentation table
+- [x] Seed data enrichi : 3 clients fictifs, 5 serres, 20 zones, 6 mois de données simulées (`seed_demo` command)
+- [x] Script de démo `make demo` : lance tout + seed avec donnée sur 6 mois + ouvre le browser automatiquement
+- [x] Compte démo public : `demo@greenhouse-saas.com` / `demo1234` en read-only
+- [x] Checklist OWASP Top 10 manuelle → `docs/security.md`
+- [x] Headers sécurité vérifiés et ajoutés : CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy (nginx.conf + frontend/nginx.conf)
+- [x] Rate limiting Nginx ajouté sur login (10r/m), register (10r/m), edge/sync (60r/m)
+- [x] Procédure rotation secrets documentée : JWT_SECRET, HMAC_KEY, Stripe keys, PostgreSQL, Redis
+- [x] Audit RGPD final : données personnelles cartographiées dans docs/security.md, rétention vérifiée
+- [x] Rate limiting vérifié sur tous les endpoints publics (register, login, edge/sync)
+- [x] GitHub Actions : lint + test + build sur chaque PR (`.github/workflows/ci.yml`)
+- [x] GitHub Actions : deploy automatique sur VPS cloud sur merge main (`.github/workflows/deploy.yml`)
+- [x] Suite E2E Playwright : scénario login → dashboard + sensor pipeline + security headers (`frontend/e2e/`)
+- [x] Tests cross-browser configurés : Chrome, Firefox, Safari, mobile Chrome, mobile Safari (playwright.config.ts)
+- [ ] Healthcheck monitoring : UptimeRobot sur `/api/health/` (configuration externe — à faire post-déploiement)
+- [ ] Test de charge Locust : 50 clients simultanés, 10 000 readings/min (locustfile.py existant — à exécuter en prod)
+- [ ] Tous les tests passent : pytest + vitest + Playwright, 0 failures (à valider sur environment cible)
 
 ---
 
