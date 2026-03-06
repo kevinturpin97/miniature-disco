@@ -1350,3 +1350,149 @@ def ingest_sync_batch(batch_id: int, payload: dict) -> dict:
         batch.error_message = str(exc)
         batch.save(update_fields=["status", "error_message"])
         return {"error": str(exc)}
+
+
+# ---------------------------------------------------------------------------
+# Sprint 31 — Crop Intelligence tasks
+# ---------------------------------------------------------------------------
+
+
+@shared_task(name="iot.calculate_crop_status")
+def calculate_crop_status(zone_id: int | None = None) -> dict:
+    """Compute and persist Crop Intelligence indicators for active zones.
+
+    If *zone_id* is provided, only that zone is processed (useful for on-demand
+    refresh after a new sensor reading arrives).  Otherwise all active zones
+    are processed in a single task invocation.
+
+    Args:
+        zone_id: Optional zone primary key.  When ``None`` all active zones
+            are processed.
+
+    Returns:
+        Dict with ``zones_processed`` count and any per-zone errors.
+    """
+    from django.utils import timezone as tz
+
+    from .crop_intelligence import (
+        calc_evapotranspiration,
+        calc_gdd,
+        calc_heat_index,
+        climate_stress_level,
+        disease_risk_level,
+        growth_status_from_gdd,
+        harvest_eta_days,
+        hydration_status_from_et_and_soil,
+        irrigation_needed_liters,
+        light_level_status,
+        plant_health_score,
+        yield_prediction_score,
+    )
+    from .models import CropStatus, Sensor, SensorReading, Zone
+
+    now = tz.now()
+
+    if zone_id is not None:
+        zones = Zone.objects.filter(pk=zone_id, is_active=True).select_related("greenhouse")
+    else:
+        zones = Zone.objects.filter(is_active=True).select_related("greenhouse")
+
+    errors: list[str] = []
+    processed = 0
+
+    for zone in zones:
+        try:
+            # ── Fetch latest reading for each sensor type ──────────────────
+            def latest_value(stype: str) -> float | None:
+                reading = (
+                    SensorReading.objects.filter(
+                        sensor__zone=zone,
+                        sensor__sensor_type=stype,
+                        sensor__is_active=True,
+                    )
+                    .order_by("-received_at")
+                    .values_list("value", flat=True)
+                    .first()
+                )
+                return float(reading) if reading is not None else None
+
+            temp = latest_value(Sensor.SensorType.TEMPERATURE)
+            hum_air = latest_value(Sensor.SensorType.HUMIDITY_AIR)
+            hum_soil = latest_value(Sensor.SensorType.HUMIDITY_SOIL)
+            lux = latest_value(Sensor.SensorType.LIGHT)
+            co2 = latest_value(Sensor.SensorType.CO2)
+
+            # ── Defaults when sensors are absent ──────────────────────────
+            t = temp if temp is not None else 20.0
+            h = hum_air if hum_air is not None else 60.0
+
+            # ── Compute indicators ────────────────────────────────────────
+            # GDD (use temp as both max and min approximation; ideally use 24h)
+            daily_gdd = calc_gdd(t_max=t, t_min=max(0.0, t - 5.0))
+            g_status = growth_status_from_gdd(daily_gdd)
+
+            # Evapotranspiration
+            et0 = calc_evapotranspiration(t_mean=t, t_max=t, t_min=max(0.0, t - 5.0))
+            hydration = hydration_status_from_et_and_soil(et0, hum_soil)
+
+            # Heat Index
+            hi = calc_heat_index(t, h)
+            h_stress = heat_stress_level(hi)
+
+            # Light
+            l_status = light_level_status(lux)
+
+            # Disease risk
+            d_risk = disease_risk_level(t, h)
+
+            # Climate stress
+            c_stress = climate_stress_level(t, h)
+
+            # Plant health
+            ph_score = plant_health_score(t, h, hum_soil, lux, co2)
+
+            # Yield prediction
+            y_pred = yield_prediction_score(g_status, hydration, l_status)
+
+            # Harvest ETA — retrieve accumulated GDD from existing CropStatus
+            existing = CropStatus.objects.filter(zone=zone).first()
+            accumulated = (existing.gdd_accumulated or 0.0) + daily_gdd if existing else daily_gdd
+            h_eta = harvest_eta_days(accumulated, daily_gdd_estimate=daily_gdd)
+
+            # Irrigation need
+            irr = irrigation_needed_liters(et0, hum_soil)
+
+            # ── Upsert CropStatus ─────────────────────────────────────────
+            CropStatus.objects.update_or_create(
+                zone=zone,
+                defaults={
+                    "growth_status": g_status,
+                    "gdd_accumulated": accumulated,
+                    "hydration_status": hydration,
+                    "evapotranspiration": round(et0, 3),
+                    "heat_stress": h_stress,
+                    "heat_index": round(hi, 1),
+                    "yield_prediction": y_pred,
+                    "plant_health_score": ph_score,
+                    "disease_risk": d_risk,
+                    "climate_stress": c_stress,
+                    "light_level": l_status,
+                    "harvest_eta_days": h_eta,
+                    "irrigation_needed_liters": irr,
+                    "calculated_at": now,
+                },
+            )
+            processed += 1
+
+        except Exception as exc:  # noqa: BLE001
+            err_msg = f"zone {zone.pk}: {exc}"
+            logger.exception("calculate_crop_status failed for %s", err_msg)
+            errors.append(err_msg)
+
+    return {"zones_processed": processed, "errors": errors}
+
+
+def heat_stress_level(heat_index: float) -> str:
+    """Re-export from crop_intelligence for use inside this module."""
+    from .crop_intelligence import heat_stress_level as _fn
+    return _fn(heat_index)

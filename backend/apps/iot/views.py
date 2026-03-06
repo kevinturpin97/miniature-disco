@@ -2583,3 +2583,115 @@ class EdgeDeviceViewSet(viewsets.ViewSet):
             for b in batches
         ]
         return Response(data)
+
+
+# ---------------------------------------------------------------------------
+# Sprint 31 — Crop Intelligence views
+# ---------------------------------------------------------------------------
+
+
+def _check_zone_permission(request: "Request", zone: "Zone") -> None:
+    """Raise PermissionDenied if user has no access to the zone's greenhouse.
+
+    Args:
+        request: Authenticated DRF request.
+        zone: Zone instance to check ownership against.
+    """
+    from rest_framework.exceptions import PermissionDenied
+
+    from apps.api.models import Membership
+
+    greenhouse = zone.greenhouse
+    if greenhouse.organization_id is not None:
+        has_access = Membership.objects.filter(
+            organization_id=greenhouse.organization_id,
+            user=request.user,
+            is_active=True,
+        ).exists()
+        if not has_access and greenhouse.owner_id != request.user.pk:
+            raise PermissionDenied("You do not have access to this zone.")
+    elif greenhouse.owner_id != request.user.pk:
+        raise PermissionDenied("You do not have access to this zone.")
+
+
+class ZoneCropStatusView(viewsets.ViewSet):
+    """Retrieve computed Crop Intelligence indicators for a zone.
+
+    Endpoints:
+        GET  /api/zones/{pk}/crop-status/  — return latest CropStatus or 404.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request: Request, pk: int = None) -> Response:
+        """Return the latest computed crop status for the zone.
+
+        Returns:
+            Serialised CropStatus or 404 if not yet computed.
+        """
+        from .models import CropStatus
+        from .serializers import CropStatusSerializer
+
+        zone = get_object_or_404(Zone, pk=pk)
+        _check_zone_permission(request, zone)
+        crop_status = CropStatus.objects.filter(zone=zone).first()
+        if crop_status is None:
+            return Response(
+                {"detail": "Crop status not yet computed for this zone."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(CropStatusSerializer(crop_status).data)
+
+
+class ZoneCropIndicatorPreferenceView(viewsets.ViewSet):
+    """Manage per-user crop indicator display preferences.
+
+    Endpoints:
+        GET   /api/zones/{pk}/crop-indicator-preferences/  — list preferences.
+        PATCH /api/zones/{pk}/crop-indicator-preferences/  — bulk upsert.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request, pk: int = None) -> Response:
+        """Return all indicator preferences for the authenticated user.
+
+        Missing preference rows are returned as ``enabled=True`` (default).
+        """
+        from .models import CropIndicatorPreference
+        from .serializers import CropIndicatorPreferenceSerializer
+
+        zone = get_object_or_404(Zone, pk=pk)
+        _check_zone_permission(request, zone)
+        prefs = CropIndicatorPreference.objects.filter(user=request.user)
+        existing = {p.indicator: p.enabled for p in prefs}
+
+        data = [
+            {"indicator": ind, "enabled": existing.get(ind, True)}
+            for ind, _ in CropIndicatorPreference.Indicator.choices
+        ]
+        return Response(data)
+
+    def partial_update(self, request: Request, pk: int = None) -> Response:
+        """Bulk-upsert indicator preferences.
+
+        Accepts ``{"preferences": [{"indicator": "GROWTH", "enabled": false}, ...]}``.
+        """
+        from .models import CropIndicatorPreference
+        from .serializers import CropIndicatorPreferenceBulkSerializer
+
+        zone = get_object_or_404(Zone, pk=pk)
+        _check_zone_permission(request, zone)
+        ser = CropIndicatorPreferenceBulkSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+
+        updated: list[dict] = []
+        for item in ser.validated_data["preferences"]:
+            obj, _ = CropIndicatorPreference.objects.update_or_create(
+                user=request.user,
+                indicator=item["indicator"],
+                defaults={"enabled": item["enabled"]},
+            )
+            updated.append({"indicator": obj.indicator, "enabled": obj.enabled})
+
+        return Response({"preferences": updated})

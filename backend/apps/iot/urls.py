@@ -7,6 +7,7 @@ from .views import (
     AlertViewSet,
     AutomationRuleViewSet,
     CommandViewSet,
+    EdgeDeviceViewSet,
     GreenhouseViewSet,
     NotificationChannelViewSet,
     NotificationLogViewSet,
@@ -16,19 +17,20 @@ from .views import (
     ScenarioViewSet,
     ScheduleViewSet,
     SensorViewSet,
+    SyncStatusView,
     TemplateCategoryViewSet,
     TemplateViewSet,
     VapidPublicKeyView,
     ZoneAIReportView,
     ZoneAnalyticsView,
     ZoneAnomaliesView,
+    ZoneCropIndicatorPreferenceView,
+    ZoneCropStatusView,
     ZonePredictionsView,
     ZonePublishTemplateView,
     ZoneReportPDFView,
     ZoneSuggestionsView,
     ZoneViewSet,
-    EdgeDeviceViewSet,
-    SyncStatusView,
 )
 
 greenhouse_list = GreenhouseViewSet.as_view({"get": "list", "post": "create"})
@@ -114,6 +116,12 @@ zone_anomalies = ZoneAnomaliesView.as_view({"get": "retrieve"})
 zone_suggestions = ZoneSuggestionsView.as_view({"get": "list"})
 zone_suggestions_apply = ZoneSuggestionsView.as_view({"post": "apply"})
 zone_ai_report = ZoneAIReportView.as_view({"get": "retrieve"})
+
+# Sprint 31 — Crop Intelligence
+zone_crop_status = ZoneCropStatusView.as_view({"get": "retrieve"})
+zone_crop_indicator_preferences = ZoneCropIndicatorPreferenceView.as_view(
+    {"get": "list", "patch": "partial_update"}
+)
 
 # Data Pipeline (Sprint 23)
 from .views import DataPipelineView, RetentionPolicyView
@@ -249,6 +257,13 @@ urlpatterns = [
     path("zones/<int:pk>/globalgap/export/", globalgap_export, name="globalgap-export"),
     path("auth/gdpr/export/", gdpr_export, name="gdpr-export"),
     path("auth/gdpr/erasure/", gdpr_erasure, name="gdpr-erasure"),
+    # Sprint 31 — Crop Intelligence
+    path("zones/<int:pk>/crop-status/", zone_crop_status, name="zone-crop-status"),
+    path(
+        "zones/<int:pk>/crop-indicator-preferences/",
+        zone_crop_indicator_preferences,
+        name="zone-crop-indicator-preferences",
+    ),
     # Sprint 27 — Edge Sync Agent
     path("sync/status/", SyncStatusView.as_view({"get": "list"}), name="sync-status"),
     path(

@@ -148,5 +148,21 @@
     "threshold": "Threshold",
     "crop": "Crop Cycle",
     "automation": "Automation"
+  },
+  "crop": {
+    "title": "Crop Intelligence",
+    "cardAriaLabel": "Crop Intelligence indicators",
+    "fetchError": "Failed to load crop status",
+    "notComputed": "Crop status will be available after the first 15-minute calculation cycle.",
+    "growth": "Growth",
+    "hydration": "Hydration",
+    "heatStress": "Heat Stress",
+    "yield": "Yield",
+    "plantHealth": "Plant Health",
+    "diseaseRisk": "Disease Risk",
+    "climateStress": "Climate Stress",
+    "light": "Light",
+    "harvestEta": "Harvest ETA",
+    "irrigation": "Irrigation"
   }
 }

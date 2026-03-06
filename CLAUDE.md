@@ -1090,6 +1090,37 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 
 ---
 
+### SPRINT 31 — Crop Intelligence & Plant Health Engine
+- [ ] Modèle `CropStatus` : `zone` (OneToOne), `growth_status`, `hydration_status`, `heat_stress`, `yield_prediction`, `plant_health_score`, `calculated_at`
+- [ ] Modèle `CropIndicatorPreference` : `user`, `indicator`, `enabled` — chaque utilisateur choisit ses indicateurs affichés
+- [ ] Celery task `calculate_crop_status` : calcul toutes les 15 minutes par zone active
+- [ ] Indicateur Croissance : calcul Growing Degree Days (GDD) basé sur température moyenne + lumière + stade de culture → `lente / normale / rapide`
+- [ ] Indicateur Hydratation : calcul evapotranspiration basé sur humidité sol + humidité air + température → `sèche / correcte / optimale / excès`
+- [ ] Indicateur Stress thermique : calcul Heat Index basé sur température + humidité → `nul / léger / élevé / critique`
+- [ ] Indicateur Rendement estimé : `yield_prediction = growth_score × hydration_score × light_score` → résultat en % positif ou négatif
+- [ ] Indicateur Vigueur de la plante : `plant_health_score = temp_score + water_score + light_score + co2_score` → résultat en %
+- [ ] Indicateur Risque maladie : basé sur humidité + température + condensation (modèle Downy Mildew) → `faible / modéré / élevé`
+- [ ] Indicateur Stress climatique : basé sur vent + température + humidité → `faible / modéré / fort`
+- [ ] Indicateur Lumière disponible : basé sur capteur lux/PAR → `insuffisante / correcte / optimale`
+- [ ] Indicateur Temps avant récolte : basé sur progression GDD → `Harvest ETA : X jours`
+- [ ] Indicateur Besoin irrigation : basé sur evapotranspiration → `Irrigation recommandée : X L/plante`
+- [ ] Endpoint `GET /api/zones/{id}/crop-status/` : retourne `growth`, `hydration`, `heat_stress`, `yield_prediction`, `plant_health`, `disease_risk`, `harvest_eta_days`, `irrigation_needed`
+- [ ] Endpoint `PATCH /api/zones/{id}/crop-indicator-preferences/` : sauvegarde les préférences d'indicateurs par utilisateur
+- [ ] Widget `<CropIntelligenceCard />` : affiche les indicateurs activés avec emoji, label et valeur
+- [ ] Widget : glow vert si tous les indicateurs OK, orange si alerte légère, rouge si indicateur critique
+- [ ] Widget : animations Framer Motion selon sévérité (pulse vert, orange, rouge)
+- [ ] Page préférences indicateurs : checkboxes par indicateur (Croissance, Hydratation, Stress thermique, Rendement, Santé, Risque maladie, Irrigation, etc.)
+- [ ] Intégration widget `<CropIntelligenceCard />` dans ZoneDetail et Dashboard
+- [ ] Calcul Celery uniquement côté worker, pas dans l'UI — stockage 1 résultat / 15min, compatible Raspberry Pi
+- [ ] Test `test_growth_calculation` : fixtures GDD connues, assertion sur `growth_status`
+- [ ] Test `test_heat_stress` : fixtures température + humidité, assertion sur niveau de stress
+- [ ] Test `test_irrigation_need` : fixtures evapotranspiration, assertion sur `irrigation_needed`
+- [ ] Test `test_yield_prediction` : fixtures multi-scores, assertion sur `yield_prediction` en %
+- [ ] Test `test_disease_risk` : fixtures humidité + température élevées, assertion sur `disease_risk = élevé`
+- [ ] Test endpoint `GET /api/zones/{id}/crop-status/` : vérifier structure JSON retournée
+
+---
+
 ## CONVENTIONS DE CODE
 
 ### Python (Backend + Bridge)

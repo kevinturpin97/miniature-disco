@@ -148,5 +148,21 @@
     "threshold": "Seuil",
     "crop": "Cycle de culture",
     "automation": "Automatisation"
+  },
+  "crop": {
+    "title": "Intelligence de culture",
+    "cardAriaLabel": "Indicateurs d'intelligence de culture",
+    "fetchError": "Impossible de charger le statut de culture",
+    "notComputed": "Le statut de culture sera disponible après le premier cycle de calcul (15 min).",
+    "growth": "Croissance",
+    "hydration": "Hydratation",
+    "heatStress": "Stress thermique",
+    "yield": "Rendement",
+    "plantHealth": "Santé plante",
+    "diseaseRisk": "Risque maladie",
+    "climateStress": "Stress climatique",
+    "light": "Lumière",
+    "harvestEta": "Récolte dans",
+    "irrigation": "Irrigation"
   }
 }

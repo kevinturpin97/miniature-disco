@@ -11,6 +11,8 @@ from .models import (
     Alert,
     AutomationRule,
     Command,
+    CropIndicatorPreference,
+    CropStatus,
     Greenhouse,
     NotificationChannel,
     NotificationLog,
@@ -1144,3 +1146,76 @@ class TraceabilityReportRequestSerializer(serializers.Serializer):
                 {"period_end": "End date must be after start date."}
             )
         return attrs
+
+
+# ---------------------------------------------------------------------------
+# Sprint 31 — Crop Intelligence
+# ---------------------------------------------------------------------------
+
+
+class CropStatusSerializer(serializers.ModelSerializer):
+    """Read-only serializer for CropStatus.
+
+    Fields:
+        zone, growth_status, gdd_accumulated, hydration_status,
+        evapotranspiration, heat_stress, heat_index, yield_prediction,
+        plant_health_score, disease_risk, climate_stress, light_level,
+        harvest_eta_days, irrigation_needed_liters, calculated_at.
+    """
+
+    class Meta:
+        model = CropStatus
+        fields = (
+            "zone",
+            "growth_status",
+            "gdd_accumulated",
+            "hydration_status",
+            "evapotranspiration",
+            "heat_stress",
+            "heat_index",
+            "yield_prediction",
+            "plant_health_score",
+            "disease_risk",
+            "climate_stress",
+            "light_level",
+            "harvest_eta_days",
+            "irrigation_needed_liters",
+            "calculated_at",
+        )
+        read_only_fields = fields
+
+
+class CropIndicatorPreferenceSerializer(serializers.ModelSerializer):
+    """Serializer for CropIndicatorPreference.
+
+    Allows users to PATCH their indicator visibility preferences.
+
+    Fields:
+        indicator, enabled.
+    """
+
+    class Meta:
+        model = CropIndicatorPreference
+        fields = ("indicator", "enabled")
+
+
+class CropIndicatorPreferenceBulkSerializer(serializers.Serializer):
+    """Bulk PATCH serializer for crop indicator preferences.
+
+    Accepts a list of ``{indicator, enabled}`` objects and upserts them.
+
+    Fields:
+        preferences: list of CropIndicatorPreferenceSerializer.
+    """
+
+    preferences = CropIndicatorPreferenceSerializer(many=True)
+
+    def validate_preferences(self, value: list) -> list:
+        """Ensure no duplicate indicator entries."""
+        seen: set[str] = set()
+        for item in value:
+            ind = item["indicator"]
+            if ind in seen:
+                raise serializers.ValidationError(f"Duplicate indicator: {ind}")
+            seen.add(ind)
+        return value

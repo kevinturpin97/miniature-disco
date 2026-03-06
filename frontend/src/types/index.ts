@@ -918,3 +918,48 @@ export interface GlobalGAPExport {
   interventions: Record<string, unknown>[];
   observations: Record<string, unknown>[];
 }
+
+// ---------------------------------------------------------------------------
+// Sprint 31 — Crop Intelligence
+// ---------------------------------------------------------------------------
+
+export type GrowthStatus = "SLOW" | "NORMAL" | "FAST" | "UNKNOWN";
+export type HydrationStatus = "DRY" | "CORRECT" | "OPTIMAL" | "EXCESS" | "UNKNOWN";
+export type StressLevel = "NONE" | "LIGHT" | "HIGH" | "CRITICAL" | "UNKNOWN";
+export type RiskLevel = "LOW" | "MODERATE" | "HIGH" | "UNKNOWN";
+export type LightLevel = "INSUFFICIENT" | "CORRECT" | "OPTIMAL" | "UNKNOWN";
+
+export interface CropStatus {
+  zone: number;
+  growth_status: GrowthStatus;
+  gdd_accumulated: number | null;
+  hydration_status: HydrationStatus;
+  evapotranspiration: number | null;
+  heat_stress: StressLevel;
+  heat_index: number | null;
+  yield_prediction: number | null;
+  plant_health_score: number | null;
+  disease_risk: RiskLevel;
+  climate_stress: StressLevel;
+  light_level: LightLevel;
+  harvest_eta_days: number | null;
+  irrigation_needed_liters: number | null;
+  calculated_at: string | null;
+}
+
+export type CropIndicator =
+  | "GROWTH"
+  | "HYDRATION"
+  | "HEAT_STRESS"
+  | "YIELD"
+  | "PLANT_HEALTH"
+  | "DISEASE_RISK"
+  | "CLIMATE_STRESS"
+  | "LIGHT"
+  | "HARVEST_ETA"
+  | "IRRIGATION";
+
+export interface CropIndicatorPreference {
+  indicator: CropIndicator;
+  enabled: boolean;
+}

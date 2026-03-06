@@ -91,4 +91,9 @@ app.conf.beat_schedule = {
         "task": "iot.retry_failed_syncs",
         "schedule": 60.0,  # Every 60 seconds to pick up due retries
     },
+    # Sprint 31 — Crop Intelligence
+    "calculate-crop-status": {
+        "task": "iot.calculate_crop_status",
+        "schedule": 900.0,  # Every 15 minutes
+    },
 }

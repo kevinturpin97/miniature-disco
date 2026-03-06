@@ -3,7 +3,7 @@
  */
 
 import client from "./client";
-import type { PaginatedResponse, Zone } from "@/types";
+import type { CropIndicatorPreference, CropStatus, PaginatedResponse, Zone } from "@/types";
 
 export async function listZones(
   greenhouseId: number,
@@ -50,5 +50,32 @@ export async function exportZoneCsv(
     params,
     responseType: "blob",
   });
+  return data;
+}
+
+// Sprint 31 — Crop Intelligence
+
+export async function getZoneCropStatus(zoneId: number): Promise<CropStatus> {
+  const { data } = await client.get<CropStatus>(`/zones/${zoneId}/crop-status/`);
+  return data;
+}
+
+export async function getCropIndicatorPreferences(
+  zoneId: number,
+): Promise<CropIndicatorPreference[]> {
+  const { data } = await client.get<CropIndicatorPreference[]>(
+    `/zones/${zoneId}/crop-indicator-preferences/`,
+  );
+  return data;
+}
+
+export async function updateCropIndicatorPreferences(
+  zoneId: number,
+  preferences: CropIndicatorPreference[],
+): Promise<{ preferences: CropIndicatorPreference[] }> {
+  const { data } = await client.patch<{ preferences: CropIndicatorPreference[] }>(
+    `/zones/${zoneId}/crop-indicator-preferences/`,
+    { preferences },
+  );
   return data;
 }

@@ -48,6 +48,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { AnomalyBadge } from "@/components/ui/AnomalyBadge";
 import { SmartSuggestionCard } from "@/components/ui/SmartSuggestionCard";
 import { PredictionChart } from "@/components/charts/PredictionChart";
+import { CropIntelligenceCard } from "@/components/ui/CropIntelligenceCard";
 import { SENSOR_TYPE_LABELS, SENSOR_TYPE_UNITS, ACTUATOR_TYPE_LABELS } from "@/utils/constants";
 import { formatDate, formatRelativeTime, formatSensorValue } from "@/utils/formatters";
 import { lttbDownsample, BIG_DATA_THRESHOLD, BIG_DATA_TARGET_POINTS } from "@/utils/downsample";
@@ -528,6 +529,11 @@ export default function ZoneDetail() {
             );
           })}
         </div>
+      )}
+
+      {/* Crop Intelligence */}
+      {numericZoneId && (
+        <CropIntelligenceCard zoneId={numericZoneId} />
       )}
 
       {/* AI Smart Suggestions */}
