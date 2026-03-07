@@ -1,8 +1,13 @@
 """MQTT worker for ingesting sensor data from the LoRa bridge.
 
-Subscribes to ``greenhouse/relay/+/sensors`` and creates
+Subscribes to ``greenhouse/+/relay/+/sensors`` and creates
 :class:`~apps.iot.models.SensorReading` records for each message.
 Also updates :attr:`Zone.last_seen` on every reception.
+
+Topic format: ``greenhouse/{gateway_id}/relay/{relay_id}/sensors``
+The ``gateway_id`` is the :attr:`EdgeDevice.device_id` UUID and scopes
+relay IDs per installation, enabling multi-tenant deployments where
+different clients may use the same relay_id (1–255).
 """
 
 from __future__ import annotations
@@ -10,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import signal
+import uuid
 import time
 from typing import Any
 
@@ -23,9 +29,9 @@ from .models import Actuator, Alert, Command, Sensor, SensorReading, Zone
 
 logger = logging.getLogger(__name__)
 
-# MQTT topic patterns
-TOPIC_SENSORS = "greenhouse/relay/+/sensors"
-TOPIC_COMMAND_ACK = "greenhouse/relay/+/ack"
+# MQTT topic patterns — wildcard covers any gateway_id and relay_id
+TOPIC_SENSORS = "greenhouse/+/relay/+/sensors"
+TOPIC_COMMAND_ACK = "greenhouse/+/relay/+/ack"
 
 
 class MqttWorker:
@@ -132,16 +138,20 @@ class MqttWorker:
 
         if "/sensors" in msg.topic:
             try:
+                # Topic: greenhouse/{gateway_id}/relay/{relay_id}/sensors
+                parts = msg.topic.split("/")
+                gateway_id = parts[1]
                 relay_id = payload["relay_id"]
                 readings = payload["readings"]
-            except KeyError as exc:
-                logger.error("Missing key in sensor payload on %s: %s", msg.topic, exc)
+            except (KeyError, IndexError) as exc:
+                logger.error("Missing key/index in sensor payload on %s: %s", msg.topic, exc)
                 return
-            self._process_readings(relay_id, readings)
+            self._process_readings(gateway_id, relay_id, readings)
         elif "/ack" in msg.topic:
             try:
+                # Topic: greenhouse/{gateway_id}/relay/{relay_id}/ack
                 parts = msg.topic.split("/")
-                relay_id = int(parts[2])  # greenhouse/relay/{relay_id}/ack
+                relay_id = int(parts[3])
             except (IndexError, ValueError) as exc:
                 logger.error("Invalid ACK topic %s: %s", msg.topic, exc)
                 return
@@ -153,22 +163,46 @@ class MqttWorker:
 
     def _process_readings(
         self,
+        gateway_id: str,
         relay_id: int,
         readings: list[dict],
     ) -> None:
         """Persist sensor readings and update zone last_seen.
 
         Args:
-            relay_id: The LoRa relay node identifier.
+            gateway_id: EdgeDevice.device_id UUID string — scopes relay_id to
+                the correct tenant so different clients can reuse the same IDs.
+            relay_id: The LoRa relay node identifier (1–255, local to gateway).
             readings: List of dicts with ``sensor_type`` and ``value`` keys.
         """
+        # Validate UUID format before hitting the database
+        try:
+            uuid.UUID(str(gateway_id))
+        except ValueError:
+            logger.warning("Invalid gateway_id format: %s — skipping", gateway_id)
+            return
+
         now = timezone.now()
 
-        # Look up the zone by relay_id
+        # Look up the zone scoped by gateway → organization → greenhouse
         try:
-            zone = Zone.objects.select_related("greenhouse").get(relay_id=relay_id)
+            zone = Zone.objects.select_related("greenhouse").get(
+                relay_id=relay_id,
+                greenhouse__organization__edge_devices__device_id=gateway_id,
+            )
         except Zone.DoesNotExist:
-            logger.warning("No zone found for relay_id=%s — skipping", relay_id)
+            logger.warning(
+                "No zone found for gateway=%s relay_id=%s — skipping",
+                gateway_id,
+                relay_id,
+            )
+            return
+        except Zone.MultipleObjectsReturned:
+            logger.warning(
+                "Multiple zones match gateway=%s relay_id=%s — skipping (check relay_id uniqueness)",
+                gateway_id,
+                relay_id,
+            )
             return
 
         # Update last_seen

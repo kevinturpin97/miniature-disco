@@ -9,6 +9,7 @@ Orchestrates the serial reader, MQTT client, and protocol codec:
 
 from __future__ import annotations
 
+import logging
 import signal
 import sys
 import time
@@ -39,7 +40,7 @@ def configure_logging() -> None:
             structlog.dev.ConsoleRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
-            structlog.get_level_from_name(config.LOG_LEVEL)
+            logging.getLevelName(config.LOG_LEVEL)
         ),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),

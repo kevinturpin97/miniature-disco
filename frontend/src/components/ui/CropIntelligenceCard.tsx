@@ -10,14 +10,16 @@
  * The component fetches its own data and handles loading / error states.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { SlidersHorizontal, X } from "lucide-react";
 import { GlowCard, type GlowVariant } from "./GlowCard";
 import { cn } from "@/utils/cn";
 import {
   getZoneCropStatus,
   getCropIndicatorPreferences,
+  updateCropIndicatorPreferences,
 } from "@/api/zones";
 import type {
   CropStatus,
@@ -219,6 +221,10 @@ export function CropIntelligenceCard({ zoneId, className }: CropIntelligenceCard
     error: null,
     notComputed: false,
   });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [draftPrefs, setDraftPrefs] = useState<CropIndicatorPreference[]>([]);
+  const [saving, setSaving] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -249,6 +255,38 @@ export function CropIntelligenceCard({ zoneId, className }: CropIntelligenceCard
     return () => { cancelled = true; };
   }, [zoneId, t]);
 
+  // Sync draft when preferences are loaded
+  useEffect(() => {
+    if (state.preferences.length > 0) setDraftPrefs(state.preferences);
+    else setDraftPrefs(ALL_INDICATORS.map((i) => ({ indicator: i.key, enabled: true })));
+  }, [state.preferences]);
+
+  function openSettings() {
+    setDraftPrefs(
+      state.preferences.length > 0
+        ? [...state.preferences]
+        : ALL_INDICATORS.map((i) => ({ indicator: i.key, enabled: true })),
+    );
+    setSettingsOpen(true);
+  }
+
+  async function savePreferences() {
+    setSaving(true);
+    try {
+      const result = await updateCropIndicatorPreferences(zoneId, draftPrefs);
+      setState((s) => ({ ...s, preferences: result.preferences }));
+      setSettingsOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleDraft(indicator: CropIndicator) {
+    setDraftPrefs((prev) =>
+      prev.map((p) => p.indicator === indicator ? { ...p, enabled: !p.enabled } : p),
+    );
+  }
+
   const { cropStatus, preferences, loading, error, notComputed } = state;
 
   // Determine which indicators are enabled (default: all)
@@ -274,12 +312,68 @@ export function CropIntelligenceCard({ zoneId, className }: CropIntelligenceCard
         <h3 className="font-semibold text-sm flex items-center gap-1.5">
           🧠 {t("crop.title", "Crop Intelligence")}
         </h3>
-        {cropStatus?.calculated_at && (
-          <span className="text-xs text-base-content/40">
-            {new Date(cropStatus.calculated_at).toLocaleTimeString()}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {cropStatus?.calculated_at && (
+            <span className="text-xs text-base-content/40">
+              {new Date(cropStatus.calculated_at).toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={() => settingsOpen ? setSettingsOpen(false) : openSettings()}
+            className="rounded-md p-1 text-base-content/40 hover:text-base-content/70 hover:bg-base-content/10 transition-colors"
+            aria-label={t("crop.settingsLabel", "Configure indicators")}
+          >
+            {settingsOpen ? <X className="size-3.5" aria-hidden="true" /> : <SlidersHorizontal className="size-3.5" aria-hidden="true" />}
+          </button>
+        </div>
       </div>
+
+      {/* Preferences panel */}
+      <AnimatePresence>
+        {settingsOpen && (
+          <motion.div
+            ref={settingsRef}
+            key="settings"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border border-base-content/10 rounded-lg p-3 space-y-2 bg-base-200/40">
+              <p className="text-xs font-medium text-base-content/60 mb-1">
+                {t("crop.settingsTitle", "Visible indicators")}
+              </p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                {ALL_INDICATORS.map((ind) => {
+                  const pref = draftPrefs.find((p) => p.indicator === ind.key);
+                  const enabled = pref ? pref.enabled : true;
+                  return (
+                    <label key={ind.key} className="flex items-center gap-2 cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-xs checkbox-success"
+                        checked={enabled}
+                        onChange={() => toggleDraft(ind.key)}
+                      />
+                      <span className="truncate">{ind.emoji} {t(ind.labelKey)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <div className="flex justify-end pt-1">
+                <button
+                  onClick={() => void savePreferences()}
+                  disabled={saving}
+                  className="btn btn-xs btn-success"
+                >
+                  {saving ? t("actions.saving", "Saving…") : t("actions.save", "Save")}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Body */}
       <AnimatePresence mode="wait">

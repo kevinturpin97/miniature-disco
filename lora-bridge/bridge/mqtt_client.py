@@ -104,7 +104,7 @@ class MqttClient:
         Returns:
             True if the message was queued for delivery.
         """
-        topic = config.MQTT_TOPIC_SENSORS.format(relay_id=relay_id)
+        topic = config.MQTT_TOPIC_SENSORS.format(gateway_id=config.GATEWAY_ID, relay_id=relay_id)
         payload = json.dumps({"relay_id": relay_id, "readings": readings})
 
         result = self._client.publish(topic, payload, qos=1)
@@ -133,7 +133,7 @@ class MqttClient:
         Returns:
             True if the message was queued for delivery.
         """
-        topic = config.MQTT_TOPIC_ACK.format(relay_id=relay_id)
+        topic = config.MQTT_TOPIC_ACK.format(gateway_id=config.GATEWAY_ID, relay_id=relay_id)
         payload = json.dumps({
             "command_id": command_id,
             "status": "ACK" if success else "FAILED",
@@ -184,12 +184,13 @@ class MqttClient:
         properties: mqtt.Properties | None = None,
     ) -> None:
         """Called when the client connects to the broker."""
-        if rc == mqtt.ReasonCode(mqtt.CONNACK_ACCEPTED):
+        if not rc.is_failure:
             self._connected = True
             logger.info("mqtt_connected")
             # Subscribe to command topics
-            client.subscribe(config.MQTT_TOPIC_COMMANDS, qos=1)
-            logger.info("mqtt_subscribed", topic=config.MQTT_TOPIC_COMMANDS)
+            commands_topic = config.MQTT_TOPIC_COMMANDS.format(gateway_id=config.GATEWAY_ID)
+            client.subscribe(commands_topic, qos=1)
+            logger.info("mqtt_subscribed", topic=commands_topic)
         else:
             logger.error("mqtt_connect_refused", rc=str(rc))
 
@@ -203,7 +204,7 @@ class MqttClient:
     ) -> None:
         """Called when the client disconnects from the broker."""
         self._connected = False
-        if rc != mqtt.ReasonCode(mqtt.CONNACK_ACCEPTED):
+        if rc.is_failure:
             logger.warning("mqtt_unexpected_disconnect", rc=str(rc))
 
     def _on_message(

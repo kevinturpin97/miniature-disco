@@ -13,6 +13,7 @@ from apps.iot.mqtt_worker import MqttWorker
 from conftest import (
     ActuatorFactory,
     CommandFactory,
+    EdgeDeviceFactory,
     GreenhouseFactory,
     SensorFactory,
     ZoneFactory,
@@ -27,10 +28,18 @@ def worker() -> MqttWorker:
     return w
 
 
+GATEWAY_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+
+
 @pytest.fixture
-def zone_with_sensors(db) -> tuple[Zone, dict[str, Sensor]]:
-    """Create a zone with TEMP and HUM_AIR sensors."""
+def zone_with_sensors(db) -> tuple[Zone, dict[str, Sensor], str]:
+    """Create a zone with TEMP and HUM_AIR sensors plus a registered EdgeDevice.
+
+    Returns:
+        Tuple of (zone, sensors_dict, gateway_id_str).
+    """
     greenhouse = GreenhouseFactory()
+    EdgeDeviceFactory(organization=greenhouse.organization, device_id=GATEWAY_ID)
     zone = ZoneFactory(greenhouse=greenhouse, relay_id=42)
     temp_sensor = SensorFactory(
         zone=zone,
@@ -42,7 +51,7 @@ def zone_with_sensors(db) -> tuple[Zone, dict[str, Sensor]]:
         sensor_type=Sensor.SensorType.HUMIDITY_AIR,
         unit="%",
     )
-    return zone, {"TEMP": temp_sensor, "HUM_AIR": hum_sensor}
+    return zone, {"TEMP": temp_sensor, "HUM_AIR": hum_sensor}, GATEWAY_ID
 
 
 # ── _process_readings tests ──────────────────────────────────────
@@ -54,13 +63,13 @@ class TestProcessReadings:
 
     def test_creates_sensor_readings(self, worker, zone_with_sensors):
         """Valid readings create SensorReading records."""
-        zone, sensors = zone_with_sensors
+        zone, sensors, gateway_id = zone_with_sensors
         readings = [
             {"sensor_type": "TEMP", "value": 23.45},
             {"sensor_type": "HUM_AIR", "value": 67.5},
         ]
 
-        worker._process_readings(relay_id=42, readings=readings)
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=readings)
 
         assert SensorReading.objects.count() == 2
         temp_reading = SensorReading.objects.get(sensor=sensors["TEMP"])
@@ -70,34 +79,34 @@ class TestProcessReadings:
 
     def test_updates_zone_last_seen(self, worker, zone_with_sensors):
         """Processing readings updates Zone.last_seen."""
-        zone, _ = zone_with_sensors
+        zone, _, gateway_id = zone_with_sensors
         assert zone.last_seen is None
 
-        worker._process_readings(relay_id=42, readings=[{"sensor_type": "TEMP", "value": 20.0}])
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=[{"sensor_type": "TEMP", "value": 20.0}])
 
         zone.refresh_from_db()
         assert zone.last_seen is not None
 
     def test_unknown_relay_id_skipped(self, worker, db):
         """Unknown relay_id produces no readings."""
-        worker._process_readings(relay_id=999, readings=[{"sensor_type": "TEMP", "value": 20.0}])
+        worker._process_readings(gateway_id=GATEWAY_ID, relay_id=999, readings=[{"sensor_type": "TEMP", "value": 20.0}])
         assert SensorReading.objects.count() == 0
 
     def test_unknown_sensor_type_skipped(self, worker, zone_with_sensors):
         """Unknown sensor_type is skipped without error."""
-        zone, _ = zone_with_sensors
-        worker._process_readings(relay_id=42, readings=[{"sensor_type": "CO2", "value": 400.0}])
+        zone, _, gateway_id = zone_with_sensors
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=[{"sensor_type": "CO2", "value": 400.0}])
         assert SensorReading.objects.count() == 0
 
     def test_incomplete_reading_entry_skipped(self, worker, zone_with_sensors):
         """Entries missing sensor_type or value are skipped."""
-        zone, _ = zone_with_sensors
+        zone, _, gateway_id = zone_with_sensors
         readings = [
             {"sensor_type": "TEMP"},  # missing value
             {"value": 23.0},  # missing sensor_type
             {},  # both missing
         ]
-        worker._process_readings(relay_id=42, readings=readings)
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=readings)
         assert SensorReading.objects.count() == 0
 
 
@@ -110,11 +119,11 @@ class TestThresholdAlerts:
 
     def test_high_threshold_alert(self, worker, zone_with_sensors):
         """Value above max_threshold creates a HIGH alert."""
-        zone, sensors = zone_with_sensors
+        zone, sensors, gateway_id = zone_with_sensors
         sensors["TEMP"].max_threshold = 30.0
         sensors["TEMP"].save()
 
-        worker._process_readings(relay_id=42, readings=[{"sensor_type": "TEMP", "value": 35.0}])
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=[{"sensor_type": "TEMP", "value": 35.0}])
 
         assert Alert.objects.count() == 1
         alert = Alert.objects.first()
@@ -125,11 +134,11 @@ class TestThresholdAlerts:
 
     def test_low_threshold_alert(self, worker, zone_with_sensors):
         """Value below min_threshold creates a LOW alert."""
-        zone, sensors = zone_with_sensors
+        zone, sensors, gateway_id = zone_with_sensors
         sensors["TEMP"].min_threshold = 10.0
         sensors["TEMP"].save()
 
-        worker._process_readings(relay_id=42, readings=[{"sensor_type": "TEMP", "value": 5.0}])
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=[{"sensor_type": "TEMP", "value": 5.0}])
 
         assert Alert.objects.count() == 1
         alert = Alert.objects.first()
@@ -138,18 +147,19 @@ class TestThresholdAlerts:
 
     def test_no_alert_within_thresholds(self, worker, zone_with_sensors):
         """Value within thresholds creates no alert."""
-        zone, sensors = zone_with_sensors
+        zone, sensors, gateway_id = zone_with_sensors
         sensors["TEMP"].min_threshold = 10.0
         sensors["TEMP"].max_threshold = 30.0
         sensors["TEMP"].save()
 
-        worker._process_readings(relay_id=42, readings=[{"sensor_type": "TEMP", "value": 20.0}])
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=[{"sensor_type": "TEMP", "value": 20.0}])
 
         assert Alert.objects.count() == 0
 
     def test_no_thresholds_no_alert(self, worker, zone_with_sensors):
         """No thresholds configured means no alerts."""
-        worker._process_readings(relay_id=42, readings=[{"sensor_type": "TEMP", "value": 99.0}])
+        _, _, gateway_id = zone_with_sensors
+        worker._process_readings(gateway_id=gateway_id, relay_id=42, readings=[{"sensor_type": "TEMP", "value": 99.0}])
         assert Alert.objects.count() == 0
 
 
@@ -162,9 +172,9 @@ class TestOnMessage:
 
     def test_valid_json_payload(self, worker, zone_with_sensors):
         """Valid JSON payload triggers _process_readings."""
-        zone, _ = zone_with_sensors
+        zone, _, gateway_id = zone_with_sensors
         msg = MagicMock()
-        msg.topic = "greenhouse/relay/42/sensors"
+        msg.topic = f"greenhouse/{gateway_id}/relay/42/sensors"
         msg.payload = json.dumps({
             "relay_id": 42,
             "readings": [{"sensor_type": "TEMP", "value": 22.0}],
@@ -177,7 +187,7 @@ class TestOnMessage:
     def test_invalid_json_payload(self, worker, db):
         """Invalid JSON does not crash the worker."""
         msg = MagicMock()
-        msg.topic = "greenhouse/relay/1/sensors"
+        msg.topic = f"greenhouse/{GATEWAY_ID}/relay/1/sensors"
         msg.payload = b"not json"
 
         worker._on_message(client=MagicMock(), userdata=None, msg=msg)
@@ -187,8 +197,22 @@ class TestOnMessage:
     def test_missing_key_payload(self, worker, db):
         """Payload missing 'readings' key is handled gracefully."""
         msg = MagicMock()
-        msg.topic = "greenhouse/relay/1/sensors"
+        msg.topic = f"greenhouse/{GATEWAY_ID}/relay/1/sensors"
         msg.payload = json.dumps({"relay_id": 1}).encode()
+
+        worker._on_message(client=MagicMock(), userdata=None, msg=msg)
+
+        assert SensorReading.objects.count() == 0
+
+    def test_wrong_gateway_id_skipped(self, worker, zone_with_sensors):
+        """Readings from an unknown gateway_id are silently skipped."""
+        zone, _, _ = zone_with_sensors
+        msg = MagicMock()
+        msg.topic = "greenhouse/unknown-gateway/relay/42/sensors"
+        msg.payload = json.dumps({
+            "relay_id": 42,
+            "readings": [{"sensor_type": "TEMP", "value": 22.0}],
+        }).encode()
 
         worker._on_message(client=MagicMock(), userdata=None, msg=msg)
 

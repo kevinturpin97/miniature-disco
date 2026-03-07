@@ -46,6 +46,7 @@ import { GlowCard } from "@/components/ui/GlowCard";
 import { MetricTile } from "@/components/ui/MetricTile";
 import { LiveIndicator } from "@/components/ui/LiveIndicator";
 import { ZoneStatusBadge } from "@/components/ui/ZoneStatusBadge";
+import { CropIntelligenceCard } from "@/components/ui/CropIntelligenceCard";
 import { Spinner } from "@/components/ui/Spinner";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -600,6 +601,10 @@ function ZoneCard({ zone, onEdit, onDelete }: ZoneCardProps) {
           <p className="text-xs text-muted-foreground/60">{tp("dashboard.noSensors")}</p>
         )}
       </Link>
+      <CropIntelligenceCard
+        zoneId={zone.id}
+        className="rounded-none border-t border-base-300/20"
+      />
     </GlowCard>
   );
 }

@@ -19,11 +19,24 @@ MQTT_KEEPALIVE: int = config("MQTT_KEEPALIVE", default=60, cast=int)
 MQTT_CLIENT_ID: str = config("MQTT_CLIENT_ID", default="lora-bridge")
 MQTT_RECONNECT_DELAY: float = config("MQTT_RECONNECT_DELAY", default=5.0, cast=float)
 
-# MQTT topics
-MQTT_TOPIC_SENSORS: str = config("MQTT_TOPIC_SENSORS", default="greenhouse/relay/{relay_id}/sensors")
-MQTT_TOPIC_COMMANDS: str = config("MQTT_TOPIC_COMMANDS", default="greenhouse/commands/+")
+# Gateway identity — set to the EdgeDevice.device_id UUID registered in Django.
+# Scopes MQTT topics per installation so multiple clients can share the same
+# broker without relay_id collisions across tenants.
+GATEWAY_ID: str = config("GATEWAY_ID", default="default-gateway")
+
+# MQTT topics (gateway_id and relay_id are formatted in at publish time)
+MQTT_TOPIC_SENSORS: str = config(
+    "MQTT_TOPIC_SENSORS",
+    default="greenhouse/{gateway_id}/relay/{relay_id}/sensors",
+)
+MQTT_TOPIC_COMMANDS: str = config(
+    "MQTT_TOPIC_COMMANDS",
+    default="greenhouse/{gateway_id}/commands/+",
+)
+MQTT_TOPIC_ACK: str = config(
+    "MQTT_TOPIC_ACK",
+    default="greenhouse/{gateway_id}/relay/{relay_id}/ack",
+)
 
 # Logging
 LOG_LEVEL: str = config("LOG_LEVEL", default="INFO")
-
-MQTT_TOPIC_ACK: str = config("MQTT_TOPIC_ACK", default="greenhouse/relay/{relay_id}/ack")

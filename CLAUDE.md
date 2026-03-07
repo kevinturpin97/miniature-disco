@@ -298,7 +298,7 @@ class Greenhouse(models.Model):
 class Zone(models.Model):
     greenhouse = models.ForeignKey(Greenhouse, on_delete=models.CASCADE, related_name='zones')
     name = models.CharField(max_length=100)
-    relay_id = models.PositiveIntegerField(unique=True, validators=[MinValueValidator(1), MaxValueValidator(255)])
+    relay_id = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(255)], help_text="LoRa relay node ID (1–255). Unique per greenhouse (local LoRa network).")
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     last_seen = models.DateTimeField(null=True, blank=True)
@@ -308,6 +308,7 @@ class Zone(models.Model):
 
     class Meta:
         ordering = ['name']
+        unique_together = [['greenhouse', 'relay_id']]
 
     def __str__(self):
         return f"{self.greenhouse.name} - {self.name}"
@@ -1091,33 +1092,59 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 ---
 
 ### SPRINT 31 — Crop Intelligence & Plant Health Engine
-- [ ] Modèle `CropStatus` : `zone` (OneToOne), `growth_status`, `hydration_status`, `heat_stress`, `yield_prediction`, `plant_health_score`, `calculated_at`
-- [ ] Modèle `CropIndicatorPreference` : `user`, `indicator`, `enabled` — chaque utilisateur choisit ses indicateurs affichés
-- [ ] Celery task `calculate_crop_status` : calcul toutes les 15 minutes par zone active
-- [ ] Indicateur Croissance : calcul Growing Degree Days (GDD) basé sur température moyenne + lumière + stade de culture → `lente / normale / rapide`
-- [ ] Indicateur Hydratation : calcul evapotranspiration basé sur humidité sol + humidité air + température → `sèche / correcte / optimale / excès`
-- [ ] Indicateur Stress thermique : calcul Heat Index basé sur température + humidité → `nul / léger / élevé / critique`
-- [ ] Indicateur Rendement estimé : `yield_prediction = growth_score × hydration_score × light_score` → résultat en % positif ou négatif
-- [ ] Indicateur Vigueur de la plante : `plant_health_score = temp_score + water_score + light_score + co2_score` → résultat en %
-- [ ] Indicateur Risque maladie : basé sur humidité + température + condensation (modèle Downy Mildew) → `faible / modéré / élevé`
-- [ ] Indicateur Stress climatique : basé sur vent + température + humidité → `faible / modéré / fort`
-- [ ] Indicateur Lumière disponible : basé sur capteur lux/PAR → `insuffisante / correcte / optimale`
-- [ ] Indicateur Temps avant récolte : basé sur progression GDD → `Harvest ETA : X jours`
-- [ ] Indicateur Besoin irrigation : basé sur evapotranspiration → `Irrigation recommandée : X L/plante`
-- [ ] Endpoint `GET /api/zones/{id}/crop-status/` : retourne `growth`, `hydration`, `heat_stress`, `yield_prediction`, `plant_health`, `disease_risk`, `harvest_eta_days`, `irrigation_needed`
-- [ ] Endpoint `PATCH /api/zones/{id}/crop-indicator-preferences/` : sauvegarde les préférences d'indicateurs par utilisateur
-- [ ] Widget `<CropIntelligenceCard />` : affiche les indicateurs activés avec emoji, label et valeur
-- [ ] Widget : glow vert si tous les indicateurs OK, orange si alerte légère, rouge si indicateur critique
-- [ ] Widget : animations Framer Motion selon sévérité (pulse vert, orange, rouge)
-- [ ] Page préférences indicateurs : checkboxes par indicateur (Croissance, Hydratation, Stress thermique, Rendement, Santé, Risque maladie, Irrigation, etc.)
-- [ ] Intégration widget `<CropIntelligenceCard />` dans ZoneDetail et Dashboard
-- [ ] Calcul Celery uniquement côté worker, pas dans l'UI — stockage 1 résultat / 15min, compatible Raspberry Pi
-- [ ] Test `test_growth_calculation` : fixtures GDD connues, assertion sur `growth_status`
-- [ ] Test `test_heat_stress` : fixtures température + humidité, assertion sur niveau de stress
-- [ ] Test `test_irrigation_need` : fixtures evapotranspiration, assertion sur `irrigation_needed`
-- [ ] Test `test_yield_prediction` : fixtures multi-scores, assertion sur `yield_prediction` en %
-- [ ] Test `test_disease_risk` : fixtures humidité + température élevées, assertion sur `disease_risk = élevé`
-- [ ] Test endpoint `GET /api/zones/{id}/crop-status/` : vérifier structure JSON retournée
+- [x] Modèle `CropStatus` : `zone` (OneToOne), `growth_status`, `hydration_status`, `heat_stress`, `yield_prediction`, `plant_health_score`, `calculated_at`
+- [x] Modèle `CropIndicatorPreference` : `user`, `indicator`, `enabled` — chaque utilisateur choisit ses indicateurs affichés
+- [x] Celery task `calculate_crop_status` : calcul toutes les 15 minutes par zone active
+- [x] Indicateur Croissance : calcul Growing Degree Days (GDD) basé sur température moyenne + lumière + stade de culture → `lente / normale / rapide`
+- [x] Indicateur Hydratation : calcul evapotranspiration basé sur humidité sol + humidité air + température → `sèche / correcte / optimale / excès`
+- [x] Indicateur Stress thermique : calcul Heat Index basé sur température + humidité → `nul / léger / élevé / critique`
+- [x] Indicateur Rendement estimé : `yield_prediction = growth_score × hydration_score × light_score` → résultat en % positif ou négatif
+- [x] Indicateur Vigueur de la plante : `plant_health_score = temp_score + water_score + light_score + co2_score` → résultat en %
+- [x] Indicateur Risque maladie : basé sur humidité + température + condensation (modèle Downy Mildew) → `faible / modéré / élevé`
+- [x] Indicateur Stress climatique : basé sur vent + température + humidité → `faible / modéré / fort`
+- [x] Indicateur Lumière disponible : basé sur capteur lux/PAR → `insuffisante / correcte / optimale`
+- [x] Indicateur Temps avant récolte : basé sur progression GDD → `Harvest ETA : X jours`
+- [x] Indicateur Besoin irrigation : basé sur evapotranspiration → `Irrigation recommandée : X L/plante`
+- [x] Endpoint `GET /api/zones/{id}/crop-status/` : retourne `growth`, `hydration`, `heat_stress`, `yield_prediction`, `plant_health`, `disease_risk`, `harvest_eta_days`, `irrigation_needed`
+- [x] Endpoint `PATCH /api/zones/{id}/crop-indicator-preferences/` : sauvegarde les préférences d'indicateurs par utilisateur
+- [x] Widget `<CropIntelligenceCard />` : affiche les indicateurs activés avec emoji, label et valeur
+- [x] Widget : glow vert si tous les indicateurs OK, orange si alerte légère, rouge si indicateur critique
+- [x] Widget : animations Framer Motion selon sévérité (pulse vert, orange, rouge)
+- [x] Page préférences indicateurs : checkboxes par indicateur (Croissance, Hydratation, Stress thermique, Rendement, Santé, Risque maladie, Irrigation, etc.)
+- [x] Intégration widget `<CropIntelligenceCard />` dans ZoneDetail et Dashboard
+- [x] Calcul Celery uniquement côté worker, pas dans l'UI — stockage 1 résultat / 15min, compatible Raspberry Pi
+- [x] Test `test_growth_calculation` : fixtures GDD connues, assertion sur `growth_status`
+- [x] Test `test_heat_stress` : fixtures température + humidité, assertion sur niveau de stress
+- [x] Test `test_irrigation_need` : fixtures evapotranspiration, assertion sur `irrigation_needed`
+- [x] Test `test_yield_prediction` : fixtures multi-scores, assertion sur `yield_prediction` en %
+- [x] Test `test_disease_risk` : fixtures humidité + température élevées, assertion sur `disease_risk = élevé`
+- [x] Test endpoint `GET /api/zones/{id}/crop-status/` : vérifier structure JSON retournée
+
+---
+
+### SPRINT 32 — Multi-Tenant relay_id & MQTT Gateway Scoping
+**Objectif : corriger la contrainte d'unicité du relay_id pour permettre à chaque client d'utiliser les mêmes identifiants LoRa locaux (1–255) sans collision entre tenants**
+
+- [x] Supprimer `unique=True` global sur `Zone.relay_id` — remplacé par `unique_together = [["greenhouse", "relay_id"]]`
+- [x] Ajouter `help_text` sur `Zone.relay_id` : "LoRa relay node ID (1–255). Unique per greenhouse (local LoRa network)."
+- [x] Migration `0019_zone_relay_id_unique_per_greenhouse` : `AlterField` + `AlterUniqueTogether`
+- [x] Ajouter `GATEWAY_ID` dans `lora-bridge/bridge/config.py` (UUID = `EdgeDevice.device_id` enregistré dans Django)
+- [x] Mettre à jour les topics MQTT dans `config.py` : `greenhouse/{gateway_id}/relay/{relay_id}/sensors`, `greenhouse/{gateway_id}/relay/{relay_id}/ack`, `greenhouse/{gateway_id}/commands/+`
+- [x] `mqtt_client.py` : formater `gateway_id=config.GATEWAY_ID` dans `publish_sensor_data`, `publish_command_ack`, `_on_connect`
+- [x] `mqtt_worker.py` : `TOPIC_SENSORS = "greenhouse/+/relay/+/sensors"`, `TOPIC_COMMAND_ACK = "greenhouse/+/relay/+/ack"`
+- [x] `mqtt_worker.py` : extraire `gateway_id = parts[1]` depuis le topic ; relay_id ACK à `parts[3]`
+- [x] `mqtt_worker.py` : signature `_process_readings(self, gateway_id: str, relay_id: int, readings: list[dict])`
+- [x] `mqtt_worker.py` : validation UUID avant requête DB (`uuid.UUID(str(gateway_id))`) — rejette les gateway_id malformés sans erreur Django
+- [x] `mqtt_worker.py` : lookup Zone scopé par tenant : `Zone.objects.get(relay_id=relay_id, greenhouse__organization__edge_devices__device_id=gateway_id)`
+- [x] `mqtt_worker.py` : gestion `Zone.MultipleObjectsReturned` (log + skip)
+- [x] `conftest.py` : ajout `EdgeDeviceFactory` (organization, name, secret_key 64 chars, firmware_version, is_active)
+- [x] `test_mqtt_worker.py` : fixture `zone_with_sensors` retourne `(zone, sensors, gateway_id)` + crée un `EdgeDevice`
+- [x] `test_mqtt_worker.py` : mise à jour de tous les appels `_process_readings` avec `gateway_id`
+- [x] `test_mqtt_worker.py` : topics `_on_message` au format `greenhouse/{gateway_id}/relay/42/sensors`
+- [x] `test_mqtt_worker.py` : ajout `test_wrong_gateway_id_skipped` — gateway inconnu ne crée aucun reading
+- [x] `test_models.py` : `test_relay_id_unique_within_greenhouse` + `test_relay_id_shared_across_greenhouses` (deux serres, même relay_id=1 — pas d'erreur)
+- [x] `.env.example` : ajout `GATEWAY_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+- [x] 771 tests backend passent, 35 tests lora-bridge passent, Docker build OK
 
 ---
 

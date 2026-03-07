@@ -11,6 +11,7 @@ from apps.iot.models import (
     Actuator,
     AutomationRule,
     Command,
+    EdgeDevice,
     Greenhouse,
     Sensor,
     SensorReading,
@@ -171,6 +172,19 @@ class CommandFactory(factory.django.DjangoModelFactory):
     actuator = factory.SubFactory(ActuatorFactory)
     command_type = Command.CommandType.ON
     status = Command.CommandStatus.PENDING
+
+
+class EdgeDeviceFactory(factory.django.DjangoModelFactory):
+    """Factory for creating EdgeDevice instances."""
+
+    class Meta:
+        model = EdgeDevice
+
+    organization = factory.SubFactory(OrganizationFactory)
+    name = factory.Sequence(lambda n: f"Edge Device {n}")
+    secret_key = factory.Sequence(lambda n: f"{n:064d}")
+    firmware_version = "1.0.0"
+    is_active = True
 
 
 class AutomationRuleFactory(factory.django.DjangoModelFactory):

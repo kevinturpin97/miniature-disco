@@ -221,6 +221,38 @@ GitHub Actions CI/CD (lint + test + build on PR, auto-deploy to cloud VPS on mai
 
 ---
 
+## Sprint 30 — Design System & UI/UX Foundation
+**Status: Complete**
+
+Dark/light mode design tokens (CSS variables + Tailwind extend.colors), DaisyUI custom themes "greenhouse-dark" and "greenhouse-light", glassmorphism effects (backdrop-blur, bg-opacity, border-white/10), neon glow borders (box-shadow on active cards), gradient blur backgrounds, reusable UI components (GlowCard, MetricTile, LiveIndicator, ZoneStatusBadge, AutomationChip, CommandButton, SensorChart), Framer Motion micro-animations (sensor connected pulse, automation ripple, alert acknowledge confetti, command pending progress), Dashboard 4-block layout (Global Overview with live gauges, zone cards with real-time status, live reading feed, alerts), prefers-reduced-motion support, GPU-only CSS animations, IntersectionObserver lazy-load for charts, design system documented in docs/design-system.md, 295 Vitest component tests.
+
+---
+
+## Sprint 31 — Crop Intelligence & Plant Health Engine
+**Status: Complete**
+
+CropStatus model (OneToOne per zone: growth_status, hydration_status, heat_stress, yield_prediction, plant_health_score, calculated_at), CropIndicatorPreference model (user × indicator × enabled), calculate_crop_status Celery task (every 15min per active zone), Growing Degree Days growth indicator, evapotranspiration hydration indicator, Heat Index stress indicator, yield prediction (growth × hydration × light scores), plant vigor health score, Downy Mildew disease risk model, climate stress indicator, light availability indicator, harvest ETA (GDD-based), irrigation need (ET-based), /api/zones/{id}/crop-status/ endpoint, /api/zones/{id}/crop-indicator-preferences/ PATCH endpoint, CropIntelligenceCard widget (glow green/orange/red + Framer Motion animations), indicator preference page (per-user checkboxes), widget integrated in ZoneDetail + Dashboard, Celery-only calculation (compatible Raspberry Pi), 6 passing test classes (growth, heat_stress, irrigation, yield_prediction, disease_risk, endpoint structure).
+
+---
+
+## Sprint 32 — Multi-Tenant relay_id & MQTT Gateway Scoping
+**Status: Complete**
+
+**Problem fixed:** `relay_id` was globally unique across all tenants, preventing two different clients from both having a relay node with ID=1 — which is the correct semantic for a local LoRa network (IDs 1–255 are addresses on a private radio network).
+
+**Solution:** relay_id is now unique per greenhouse (`unique_together`), and MQTT topics are namespaced per installation using the `GATEWAY_ID` (the `EdgeDevice.device_id` UUID registered in Django).
+
+- Zone model: removed `unique=True`, added `unique_together = [["greenhouse", "relay_id"]]`
+- Migration `0019_zone_relay_id_unique_per_greenhouse`
+- LoRa bridge: `GATEWAY_ID` env var in `config.py`, all MQTT topics updated (`greenhouse/{gateway_id}/relay/{relay_id}/sensors`, `greenhouse/{gateway_id}/relay/{relay_id}/ack`, `greenhouse/{gateway_id}/commands/+`)
+- Django MQTT worker: wildcard topics (`greenhouse/+/relay/+/sensors`), gateway_id extracted from topic, UUID validation before DB query, zone lookup scoped via `greenhouse__organization__edge_devices__device_id`
+- `Zone.MultipleObjectsReturned` handled gracefully
+- `EdgeDeviceFactory` added to `conftest.py`
+- Tests updated: all `_process_readings` calls use `gateway_id`, `test_wrong_gateway_id_skipped` added, `test_relay_id_shared_across_greenhouses` validates multi-tenant correctness
+- Result: 771 backend tests pass, 35 lora-bridge tests pass, Docker build OK
+
+---
+
 ## Planned Future Features
 
 - **Mobile Native App** (React Native / Expo) — offline-capable, BLE sensor pairing

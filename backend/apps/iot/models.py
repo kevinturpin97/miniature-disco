@@ -57,8 +57,8 @@ class Zone(models.Model):
     )
     name = models.CharField(max_length=100)
     relay_id = models.PositiveIntegerField(
-        unique=True,
         validators=[MinValueValidator(1), MaxValueValidator(255)],
+        help_text="LoRa relay node ID (1–255). Unique per greenhouse (local LoRa network).",
     )
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -72,6 +72,7 @@ class Zone(models.Model):
 
     class Meta:
         ordering = ["name"]
+        unique_together = [["greenhouse", "relay_id"]]
 
     def __str__(self) -> str:
         return f"{self.greenhouse.name} - {self.name}"

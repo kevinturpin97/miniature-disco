@@ -37,10 +37,19 @@ class TestZoneModel:
         with pytest.raises(ValidationError):
             zone.full_clean()
 
-    def test_relay_id_unique(self, greenhouse):
+    def test_relay_id_unique_within_greenhouse(self, greenhouse):
+        """Same relay_id in the same greenhouse raises IntegrityError."""
         ZoneFactory(greenhouse=greenhouse, relay_id=10)
         with pytest.raises(IntegrityError):
             ZoneFactory(greenhouse=greenhouse, relay_id=10)
+
+    def test_relay_id_shared_across_greenhouses(self, db):
+        """Same relay_id in different greenhouses is allowed (local LoRa address space)."""
+        gh1 = GreenhouseFactory()
+        gh2 = GreenhouseFactory()
+        ZoneFactory(greenhouse=gh1, relay_id=1)
+        zone2 = ZoneFactory(greenhouse=gh2, relay_id=1)  # must not raise
+        assert zone2.pk is not None
 
     def test_str_representation(self, zone):
         expected = f"{zone.greenhouse.name} - {zone.name}"
