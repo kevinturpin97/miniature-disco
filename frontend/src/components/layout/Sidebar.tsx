@@ -56,6 +56,7 @@ const NAV_ITEM_ICONS: Record<string, string> = {
   developer: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
   crm: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
   sync: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+  fleet: "M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18",
 };
 
 interface SidebarProps {
@@ -227,6 +228,9 @@ export function Sidebar({ onClose, compact = false, onToggleCompact }: SidebarPr
           : []),
         ...(features.cloudSync
           ? [{ to: "/sync", labelKey: "nav.sync", icon: NAV_ITEM_ICONS.sync }]
+          : []),
+        ...(features.fleet
+          ? [{ to: "/fleet", labelKey: "nav.fleet", icon: NAV_ITEM_ICONS.fleet }]
           : []),
       ],
     },

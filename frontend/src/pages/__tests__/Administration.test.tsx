@@ -28,6 +28,7 @@ const cloudFeatures = {
   billing: true,
   crm: true,
   cloudSync: true,
+  fleet: true,
 };
 
 const edgeFeatures = {
@@ -37,6 +38,7 @@ const edgeFeatures = {
   billing: false,
   crm: false,
   cloudSync: false,
+  fleet: false,
 };
 
 const fakeOrg = {

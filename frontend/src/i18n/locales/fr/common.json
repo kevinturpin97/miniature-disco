@@ -19,6 +19,7 @@
     "administration": "Administration",
     "crm": "CRM",
     "sync": "Sync",
+    "fleet": "Flotte",
     "mqtt": "MQTT",
     "collapse": "Réduire",
     "expand": "Agrandir",

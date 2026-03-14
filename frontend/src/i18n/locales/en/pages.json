@@ -628,6 +628,10 @@
       "myDevices": {
         "title": "My Devices",
         "desc": "Registered Raspberry Pi edge devices and sync history."
+      },
+      "fleet": {
+        "title": "Fleet Management",
+        "desc": "OTA firmware updates and edge device monitoring."
       }
     }
   },
@@ -663,5 +667,141 @@
     "errorGh": "Failed to create greenhouse.",
     "errorZone": "Failed to create zone.",
     "successMessage": "All set! Welcome to Greenhouse SaaS."
+  },
+  "fleet": {
+    "title": "Fleet Management",
+    "subtitle": "{{count}} device across {{orgs}} organization",
+    "subtitle_plural": "{{count}} devices across {{orgs}} organizations",
+    "subtitleLoading": "Loading fleet status...",
+    "newRelease": "New Release",
+    "search": "Search device...",
+    "neverSeen": "Never seen",
+    "update": "Update",
+    "actions": "Device actions",
+    "noResults": "No devices match your filters.",
+    "loadError": "Failed to load fleet data.",
+    "noRelease": "No stable release available.",
+    "updateStarted": "OTA update started for {{name}}.",
+    "updateError": "Failed to trigger OTA update.",
+    "filter": {
+      "all": "All",
+      "online": "Online",
+      "outdated": "Outdated",
+      "offline": "Offline",
+      "updating": "Updating"
+    },
+    "stats": {
+      "online": "Online devices",
+      "outdated": "Outdated firmware",
+      "offline": "Offline > 1h",
+      "updating": "OTA jobs active"
+    },
+    "empty": {
+      "title": "No devices registered yet",
+      "subtitle": "Register your first Raspberry Pi to start managing your fleet."
+    },
+    "firmware": {
+      "newRelease": "New Firmware Release",
+      "version": "Version",
+      "channel": "Channel",
+      "binaryUrl": "Binary URL",
+      "checksum": "SHA256 Checksum",
+      "fileSize": "File Size",
+      "releaseNotes": "Release Notes",
+      "publish": "Publish Release",
+      "published": "Firmware release published.",
+      "publishError": "Failed to publish firmware release."
+    },
+    "validation": {
+      "versionFormat": "Must be SemVer (e.g., 3.2.2)",
+      "urlInvalid": "Must be a valid URL",
+      "checksumInvalid": "Must be a valid SHA256 hash (64 hex chars)",
+      "fileSizePositive": "File size must be a positive integer"
+    },
+    "menu": {
+      "viewDetails": "View details",
+      "forceUpdate": "Force update"
+    }
+  },
+  "fleetDetail": {
+    "backToFleet": "Fleet",
+    "registered": "Registered {{date}}",
+    "loadError": "Failed to load device details.",
+    "deviceNotFound": "Device not found.",
+    "status": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "metrics": "Metrics",
+      "otaHistory": "OTA History",
+      "logs": "Logs"
+    },
+    "systemHealth": {
+      "title": "System Health",
+      "uptime": "Uptime",
+      "latency": "Latency",
+      "noMetrics": "No metrics available yet."
+    },
+    "firmware": {
+      "title": "Firmware",
+      "current": "Current",
+      "latest": "Latest",
+      "upToDate": "Up to date",
+      "channel": "Channel",
+      "forceUpdate": "Force Update",
+      "rollback": "Rollback",
+      "noRelease": "No release available",
+      "updateStarted": "OTA update started.",
+      "updateError": "Failed to trigger update.",
+      "rollbackStarted": "Rollback initiated.",
+      "rollbackError": "Failed to initiate rollback."
+    },
+    "resources": {
+      "title": "Resource Usage — Last 24h",
+      "noData": "No metrics recorded yet.",
+      "periods": {
+        "1h": "1h",
+        "24h": "24h"
+      }
+    },
+    "metrics": {
+      "time": "Time",
+      "latency": "Latency",
+      "uptime": "Uptime",
+      "noData": "No metrics recorded in the last 24h."
+    },
+    "otaHistory": {
+      "empty": "No firmware updates recorded yet.",
+      "duration": "Duration",
+      "status": {
+        "pending": "Pending",
+        "downloading": "Downloading",
+        "installing": "Installing",
+        "success": "Success",
+        "failed": "Failed",
+        "rolled_back": "Rolled back"
+      }
+    },
+    "ota": {
+      "preparing": "Preparing...",
+      "downloading": "Downloading firmware...",
+      "installing": "Installing — do not power off",
+      "success": "Update completed successfully",
+      "failed": "Update failed",
+      "rolledBack": "Rolled back to v{{version}}",
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "updatingTo": "Updating to v{{version}}",
+      "updatedTo": "Updated to v{{version}}",
+      "updateFailed": "Update failed",
+      "stepPrepare": "Prepare",
+      "stepDownload": "Download ({{pct}}%)",
+      "stepInstall": "Install"
+    },
+    "logs": {
+      "comingSoon": "Live device logs coming soon."
+    }
   }
 }

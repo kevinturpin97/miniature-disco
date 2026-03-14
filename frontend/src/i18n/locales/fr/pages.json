@@ -628,6 +628,10 @@
       "myDevices": {
         "title": "Mes Appareils",
         "desc": "Appareils Raspberry Pi enregistrés et historique de synchronisation."
+      },
+      "fleet": {
+        "title": "Gestion de flotte",
+        "desc": "Mises à jour OTA et surveillance des appareils edge."
       }
     }
   },
@@ -663,5 +667,141 @@
     "errorGh": "Échec de la création de la serre.",
     "errorZone": "Échec de la création de la zone.",
     "successMessage": "C'est parti ! Bienvenue sur Greenhouse SaaS."
+  },
+  "fleet": {
+    "title": "Gestion de flotte",
+    "subtitle": "{{count}} appareil sur {{orgs}} organisation",
+    "subtitle_plural": "{{count}} appareils sur {{orgs}} organisations",
+    "subtitleLoading": "Chargement du statut de la flotte...",
+    "newRelease": "Nouvelle version",
+    "search": "Rechercher un appareil...",
+    "neverSeen": "Jamais vu",
+    "update": "Mettre à jour",
+    "actions": "Actions appareil",
+    "noResults": "Aucun appareil ne correspond à vos filtres.",
+    "loadError": "Impossible de charger les données de la flotte.",
+    "noRelease": "Aucune version stable disponible.",
+    "updateStarted": "Mise à jour OTA démarrée pour {{name}}.",
+    "updateError": "Impossible de déclencher la mise à jour OTA.",
+    "filter": {
+      "all": "Tous",
+      "online": "En ligne",
+      "outdated": "Obsolètes",
+      "offline": "Hors ligne",
+      "updating": "En cours"
+    },
+    "stats": {
+      "online": "Appareils en ligne",
+      "outdated": "Firmware obsolète",
+      "offline": "Hors ligne > 1h",
+      "updating": "Jobs OTA actifs"
+    },
+    "empty": {
+      "title": "Aucun appareil enregistré",
+      "subtitle": "Enregistrez votre premier Raspberry Pi pour gérer votre flotte."
+    },
+    "firmware": {
+      "newRelease": "Nouvelle version firmware",
+      "version": "Version",
+      "channel": "Canal",
+      "binaryUrl": "URL du binaire",
+      "checksum": "Checksum SHA256",
+      "fileSize": "Taille du fichier",
+      "releaseNotes": "Notes de version",
+      "publish": "Publier la version",
+      "published": "Version firmware publiée.",
+      "publishError": "Impossible de publier la version firmware."
+    },
+    "validation": {
+      "versionFormat": "Doit être SemVer (ex: 3.2.2)",
+      "urlInvalid": "Doit être une URL valide",
+      "checksumInvalid": "Doit être un hash SHA256 valide (64 caractères hex)",
+      "fileSizePositive": "La taille doit être un entier positif"
+    },
+    "menu": {
+      "viewDetails": "Voir le détail",
+      "forceUpdate": "Forcer la mise à jour"
+    }
+  },
+  "fleetDetail": {
+    "backToFleet": "Flotte",
+    "registered": "Enregistré le {{date}}",
+    "loadError": "Impossible de charger les détails de l'appareil.",
+    "deviceNotFound": "Appareil introuvable.",
+    "status": {
+      "online": "En ligne",
+      "offline": "Hors ligne"
+    },
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "metrics": "Métriques",
+      "otaHistory": "Historique OTA",
+      "logs": "Logs"
+    },
+    "systemHealth": {
+      "title": "Santé système",
+      "uptime": "Disponibilité",
+      "latency": "Latence",
+      "noMetrics": "Aucune métrique disponible."
+    },
+    "firmware": {
+      "title": "Firmware",
+      "current": "Actuel",
+      "latest": "Dernier",
+      "upToDate": "À jour",
+      "channel": "Canal",
+      "forceUpdate": "Forcer la mise à jour",
+      "rollback": "Restaurer",
+      "noRelease": "Aucune version disponible",
+      "updateStarted": "Mise à jour OTA déclenchée.",
+      "updateError": "Impossible de déclencher la mise à jour.",
+      "rollbackStarted": "Restauration initiée.",
+      "rollbackError": "Impossible d'initier la restauration."
+    },
+    "resources": {
+      "title": "Utilisation des ressources — 24h",
+      "noData": "Aucune métrique enregistrée.",
+      "periods": {
+        "1h": "1h",
+        "24h": "24h"
+      }
+    },
+    "metrics": {
+      "time": "Heure",
+      "latency": "Latence",
+      "uptime": "Disponibilité",
+      "noData": "Aucune métrique enregistrée ces dernières 24h."
+    },
+    "otaHistory": {
+      "empty": "Aucune mise à jour firmware enregistrée.",
+      "duration": "Durée",
+      "status": {
+        "pending": "En attente",
+        "downloading": "Téléchargement",
+        "installing": "Installation",
+        "success": "Succès",
+        "failed": "Échec",
+        "rolled_back": "Restauré"
+      }
+    },
+    "ota": {
+      "preparing": "Préparation...",
+      "downloading": "Téléchargement du firmware...",
+      "installing": "Installation — ne pas éteindre",
+      "success": "Mise à jour terminée avec succès",
+      "failed": "Échec de la mise à jour",
+      "rolledBack": "Restauré vers v{{version}}",
+      "cancel": "Annuler",
+      "retry": "Réessayer",
+      "updatingTo": "Mise à jour vers v{{version}}",
+      "updatedTo": "Mis à jour vers v{{version}}",
+      "updateFailed": "Échec de la mise à jour",
+      "stepPrepare": "Préparer",
+      "stepDownload": "Télécharger ({{pct}}%)",
+      "stepInstall": "Installer"
+    },
+    "logs": {
+      "comingSoon": "Logs en temps réel bientôt disponibles."
+    }
   }
 }

@@ -13,6 +13,7 @@ export interface AppFeatures {
   crm: boolean;
   cloudSync: boolean;
   billing: boolean;
+  fleet: boolean;
   multiTenant: boolean;
 }
 
@@ -33,6 +34,7 @@ export function useAppMode(): AppMode {
     crm: isCloudMode,
     cloudSync: isCloudMode,
     billing: isCloudMode,
+    fleet: isCloudMode,
     multiTenant: true, // available in both modes
   };
 

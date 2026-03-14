@@ -35,6 +35,8 @@ const Sync = lazy(() => import("@/pages/Sync"));
 const CRM = lazy(() => import("@/pages/CRM"));
 const CRMDetail = lazy(() => import("@/pages/CRMDetail"));
 const MyDevices = lazy(() => import("@/pages/MyDevices"));
+const Fleet = lazy(() => import("@/pages/Fleet"));
+const FleetDeviceDetail = lazy(() => import("@/pages/FleetDeviceDetail"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function PageFallback() {
@@ -162,6 +164,8 @@ function App() {
               <Route path="crm" element={<CRM />} />
               <Route path="crm/:id" element={<CRMDetail />} />
               <Route path="my-devices" element={<MyDevices />} />
+              <Route path="fleet" element={<Fleet />} />
+              <Route path="fleet/:deviceId" element={<FleetDeviceDetail />} />
             </Route>
 
             {/* 404 */}

@@ -73,6 +73,14 @@ const SYNC_CARD: AdminCard = {
   colorClass: "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400",
 };
 
+const FLEET_CARD: AdminCard = {
+  to: "/fleet",
+  titleKey: "admin.cards.fleet.title",
+  descKey: "admin.cards.fleet.desc",
+  icon: "M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18",
+  colorClass: "bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400",
+};
+
 const MY_DEVICES_CARD: AdminCard = {
   to: "/my-devices",
   titleKey: "admin.cards.myDevices.title",
@@ -179,6 +187,7 @@ export default function Administration() {
     ...(features.crm ? [CRM_CARD] : []),
     ...(features.cloudSync ? [SYNC_CARD] : []),
     ...(features.cloudSync ? [MY_DEVICES_CARD] : []),
+    ...(features.fleet ? [FLEET_CARD] : []),
   ];
 
   return (
