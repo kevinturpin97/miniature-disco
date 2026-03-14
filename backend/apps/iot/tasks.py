@@ -1496,3 +1496,66 @@ def heat_stress_level(heat_index: float) -> str:
     """Re-export from crop_intelligence for use inside this module."""
     from .crop_intelligence import heat_stress_level as _fn
     return _fn(heat_index)
+
+
+# ---------------------------------------------------------------------------
+# Sprint 33 — OTA Firmware & Fleet Management
+# ---------------------------------------------------------------------------
+
+
+@shared_task(name="iot.check_ota_timeout")
+def check_ota_timeout() -> dict:
+    """Mark OTA jobs stuck in DOWNLOADING or INSTALLING for >30 minutes as FAILED.
+
+    Returns:
+        dict with ``timed_out`` count.
+    """
+    from .models import DeviceOTAJob
+
+    cutoff = timezone.now() - timedelta(minutes=30)
+    stuck_jobs = DeviceOTAJob.objects.filter(
+        status__in=[DeviceOTAJob.Status.DOWNLOADING, DeviceOTAJob.Status.INSTALLING],
+        started_at__lte=cutoff,
+    )
+    timed_out = 0
+    for job in stuck_jobs:
+        job.status = DeviceOTAJob.Status.FAILED
+        job.error_message = "OTA job timed out after 30 minutes"
+        job.completed_at = timezone.now()
+        job.save(update_fields=["status", "error_message", "completed_at"])
+        logger.warning("OTA job %d timed out for device %s", job.pk, job.edge_device.name)
+        timed_out += 1
+
+    return {"timed_out": timed_out}
+
+
+@shared_task(name="iot.collect_device_metrics")
+def collect_device_metrics(device_id: str, payload: dict) -> dict:
+    """Store a device metrics report received via MQTT.
+
+    Args:
+        device_id: UUID string of the edge device.
+        payload: Dict with cpu_percent, memory_percent, disk_percent, etc.
+
+    Returns:
+        dict with ``status`` and ``device_metrics_id``.
+    """
+    from .models import DeviceMetrics, EdgeDevice
+
+    try:
+        device = EdgeDevice.objects.get(device_id=device_id, is_active=True)
+    except EdgeDevice.DoesNotExist:
+        logger.warning("collect_device_metrics: unknown device %s", device_id)
+        return {"status": "error", "reason": "device_not_found"}
+
+    metrics = DeviceMetrics.objects.create(
+        edge_device=device,
+        cpu_percent=payload.get("cpu_percent", 0),
+        memory_percent=payload.get("memory_percent", 0),
+        disk_percent=payload.get("disk_percent", 0),
+        cpu_temperature=payload.get("cpu_temperature"),
+        uptime_seconds=payload.get("uptime_seconds"),
+        network_latency_ms=payload.get("network_latency_ms"),
+        recorded_at=timezone.now(),
+    )
+    return {"status": "ok", "device_metrics_id": metrics.pk}

@@ -96,4 +96,9 @@ app.conf.beat_schedule = {
         "task": "iot.calculate_crop_status",
         "schedule": 900.0,  # Every 15 minutes
     },
+    # Sprint 33 — OTA Firmware & Fleet Management
+    "check-ota-timeout": {
+        "task": "iot.check_ota_timeout",
+        "schedule": 60.0,  # Every 60 seconds
+    },
 }

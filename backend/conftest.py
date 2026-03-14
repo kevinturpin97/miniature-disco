@@ -11,7 +11,10 @@ from apps.iot.models import (
     Actuator,
     AutomationRule,
     Command,
+    DeviceMetrics,
+    DeviceOTAJob,
     EdgeDevice,
+    FirmwareRelease,
     Greenhouse,
     Sensor,
     SensorReading,
@@ -202,6 +205,49 @@ class AutomationRuleFactory(factory.django.DjangoModelFactory):
     action_command_type = Command.CommandType.ON
     cooldown_seconds = 300
     is_active = True
+
+
+class FirmwareReleaseFactory(factory.django.DjangoModelFactory):
+    """Factory for creating FirmwareRelease instances."""
+
+    class Meta:
+        model = FirmwareRelease
+
+    version = factory.Sequence(lambda n: f"1.0.{n}")
+    channel = FirmwareRelease.Channel.STABLE
+    release_notes = "Test release"
+    binary_url = "https://releases.example.com/firmware.bin"
+    checksum_sha256 = "a" * 64
+    file_size_bytes = 1048576
+    is_active = True
+
+
+class DeviceOTAJobFactory(factory.django.DjangoModelFactory):
+    """Factory for creating DeviceOTAJob instances."""
+
+    class Meta:
+        model = DeviceOTAJob
+
+    edge_device = factory.SubFactory(EdgeDeviceFactory)
+    firmware_release = factory.SubFactory(FirmwareReleaseFactory)
+    status = DeviceOTAJob.Status.PENDING
+    previous_version = "1.0.0"
+
+
+class DeviceMetricsFactory(factory.django.DjangoModelFactory):
+    """Factory for creating DeviceMetrics instances."""
+
+    class Meta:
+        model = DeviceMetrics
+
+    edge_device = factory.SubFactory(EdgeDeviceFactory)
+    cpu_percent = 45.0
+    memory_percent = 62.0
+    disk_percent = 34.0
+    cpu_temperature = 52.0
+    uptime_seconds = 86400
+    network_latency_ms = 34.0
+    recorded_at = factory.LazyFunction(lambda: __import__("django.utils.timezone", fromlist=["now"]).now())
 
 
 # ---------------------------------------------------------------------------

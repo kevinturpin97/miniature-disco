@@ -8,6 +8,9 @@ from .views import (
     AutomationRuleViewSet,
     CommandViewSet,
     EdgeDeviceViewSet,
+    FirmwareReleaseViewSet,
+    FleetDeviceViewSet,
+    FleetOverviewView,
     GreenhouseViewSet,
     NotificationChannelViewSet,
     NotificationLogViewSet,
@@ -280,5 +283,41 @@ urlpatterns = [
         "edge-devices/<str:device_id>/sync-history/",
         EdgeDeviceViewSet.as_view({"get": "sync_history"}),
         name="edge-device-sync-history",
+    ),
+    # Sprint 33 — Fleet Management
+    path(
+        "fleet/overview/",
+        FleetOverviewView.as_view({"get": "list"}),
+        name="fleet-overview",
+    ),
+    path(
+        "fleet/devices/",
+        FleetDeviceViewSet.as_view({"get": "list"}),
+        name="fleet-device-list",
+    ),
+    path(
+        "fleet/devices/<str:device_id>/",
+        FleetDeviceViewSet.as_view({"get": "retrieve"}),
+        name="fleet-device-detail",
+    ),
+    path(
+        "fleet/devices/<str:device_id>/update/",
+        FleetDeviceViewSet.as_view({"post": "trigger_update"}),
+        name="fleet-device-update",
+    ),
+    path(
+        "fleet/devices/<str:device_id>/rollback/",
+        FleetDeviceViewSet.as_view({"post": "rollback"}),
+        name="fleet-device-rollback",
+    ),
+    path(
+        "fleet/firmware/",
+        FirmwareReleaseViewSet.as_view({"get": "list", "post": "create"}),
+        name="fleet-firmware-list",
+    ),
+    path(
+        "fleet/firmware/<int:pk>/",
+        FirmwareReleaseViewSet.as_view({"get": "retrieve"}),
+        name="fleet-firmware-detail",
     ),
 ]

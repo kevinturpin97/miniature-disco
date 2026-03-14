@@ -30,7 +30,10 @@ from .models import (
     AutomationRule,
     Command,
     DataArchiveLog,
+    DeviceMetrics,
+    DeviceOTAJob,
     EdgeDevice,
+    FirmwareRelease,
     Greenhouse,
     NotificationChannel,
     NotificationLog,
@@ -54,6 +57,11 @@ from .serializers import (
     AutomationRuleSerializer,
     CommandSerializer,
     DataArchiveLogSerializer,
+    DeviceMetricsSerializer,
+    DeviceOTAJobSerializer,
+    FirmwareReleaseSerializer,
+    FleetDeviceSerializer,
+    FleetOverviewSerializer,
     GreenhouseSerializer,
     NotificationChannelSerializer,
     NotificationLogSerializer,
@@ -2694,3 +2702,222 @@ class ZoneCropIndicatorPreferenceView(viewsets.ViewSet):
             updated.append({"indicator": obj.indicator, "enabled": obj.enabled})
 
         return Response({"preferences": updated})
+
+
+# ---------------------------------------------------------------------------
+# Sprint 33 — OTA Firmware & Fleet Management
+# ---------------------------------------------------------------------------
+
+
+class FirmwareReleaseViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    """CRUD for firmware releases.
+
+    Endpoints:
+        GET    /api/fleet/firmware/       - List releases (filterable by channel).
+        POST   /api/fleet/firmware/       - Publish a new release.
+        GET    /api/fleet/firmware/{id}/  - Retrieve a release.
+    """
+
+    serializer_class = FirmwareReleaseSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["channel", "is_active"]
+    ordering_fields = ["created_at", "version"]
+
+    def get_queryset(self):
+        """Return all active firmware releases."""
+        return FirmwareRelease.objects.all()
+
+
+class FleetDeviceViewSet(viewsets.ViewSet):
+    """Fleet management endpoints for edge devices.
+
+    Endpoints:
+        GET    /api/fleet/devices/              - List devices with metrics & OTA status.
+        GET    /api/fleet/devices/{device_id}/  - Device detail with history.
+        POST   /api/fleet/devices/{device_id}/update/   - Trigger an OTA job.
+        POST   /api/fleet/devices/{device_id}/rollback/ - Rollback firmware.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request) -> Response:
+        """List all edge devices across user's organizations with latest metrics."""
+        org_ids = _user_org_ids(request.user)
+        devices = (
+            EdgeDevice.objects.filter(organization_id__in=org_ids, is_active=True)
+            .select_related("organization")
+            .prefetch_related("metrics", "ota_jobs")
+        )
+        serializer = FleetDeviceSerializer(devices, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request: Request, device_id: str = None) -> Response:
+        """Retrieve a single device with full details."""
+        org_ids = _user_org_ids(request.user)
+        device = get_object_or_404(
+            EdgeDevice,
+            device_id=device_id,
+            organization_id__in=org_ids,
+        )
+        data = FleetDeviceSerializer(device).data
+        # Include OTA history
+        ota_jobs = device.ota_jobs.select_related("firmware_release").order_by("-created_at")[:20]
+        data["ota_history"] = DeviceOTAJobSerializer(ota_jobs, many=True).data
+        # Include 24h metrics
+        cutoff = django_tz.now() - timedelta(hours=24)
+        metrics_24h = device.metrics.filter(recorded_at__gte=cutoff).order_by("recorded_at")
+        data["metrics_24h"] = DeviceMetricsSerializer(metrics_24h, many=True).data
+        return Response(data)
+
+    @action(detail=True, methods=["post"], url_path="update")
+    def trigger_update(self, request: Request, device_id: str = None) -> Response:
+        """Trigger an OTA firmware update on the device.
+
+        Expects: ``{"firmware_release_id": <int>}``
+        """
+        org_ids = _user_org_ids(request.user)
+        device = get_object_or_404(
+            EdgeDevice,
+            device_id=device_id,
+            organization_id__in=org_ids,
+        )
+        firmware_id = request.data.get("firmware_release_id")
+        if not firmware_id:
+            return Response(
+                {"detail": "firmware_release_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        firmware = get_object_or_404(FirmwareRelease, pk=firmware_id, is_active=True)
+
+        # Check no active OTA job exists
+        active_statuses = [
+            DeviceOTAJob.Status.PENDING,
+            DeviceOTAJob.Status.DOWNLOADING,
+            DeviceOTAJob.Status.INSTALLING,
+        ]
+        if device.ota_jobs.filter(status__in=active_statuses).exists():
+            return Response(
+                {"detail": "Device already has an active OTA job."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        job = DeviceOTAJob.objects.create(
+            edge_device=device,
+            firmware_release=firmware,
+            previous_version=device.firmware_version or "",
+        )
+        return Response(DeviceOTAJobSerializer(job).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="rollback")
+    def rollback(self, request: Request, device_id: str = None) -> Response:
+        """Rollback to the previous firmware version.
+
+        Finds the last successful OTA job and creates a new job targeting
+        the version prior to that update.
+        """
+        org_ids = _user_org_ids(request.user)
+        device = get_object_or_404(
+            EdgeDevice,
+            device_id=device_id,
+            organization_id__in=org_ids,
+        )
+
+        # Find last successful job with a previous_version
+        last_success = (
+            device.ota_jobs.filter(status=DeviceOTAJob.Status.SUCCESS)
+            .exclude(previous_version="")
+            .order_by("-completed_at")
+            .first()
+        )
+        if not last_success:
+            return Response(
+                {"detail": "No previous version available for rollback."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Find the firmware release matching the previous version
+        target_firmware = FirmwareRelease.objects.filter(
+            version=last_success.previous_version, is_active=True
+        ).first()
+        if not target_firmware:
+            return Response(
+                {"detail": f"Firmware release {last_success.previous_version} not found or inactive."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check no active OTA job
+        active_statuses = [
+            DeviceOTAJob.Status.PENDING,
+            DeviceOTAJob.Status.DOWNLOADING,
+            DeviceOTAJob.Status.INSTALLING,
+        ]
+        if device.ota_jobs.filter(status__in=active_statuses).exists():
+            return Response(
+                {"detail": "Device already has an active OTA job."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        job = DeviceOTAJob.objects.create(
+            edge_device=device,
+            firmware_release=target_firmware,
+            previous_version=device.firmware_version or "",
+        )
+        return Response(DeviceOTAJobSerializer(job).data, status=status.HTTP_201_CREATED)
+
+
+class FleetOverviewView(viewsets.ViewSet):
+    """Aggregated fleet statistics.
+
+    Endpoints:
+        GET /api/fleet/overview/ - Global fleet stats.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request: Request) -> Response:
+        """Return aggregated fleet statistics."""
+        org_ids = _user_org_ids(request.user)
+        devices = EdgeDevice.objects.filter(organization_id__in=org_ids, is_active=True)
+
+        total = devices.count()
+        one_hour_ago = django_tz.now() - timedelta(hours=1)
+
+        online = devices.filter(last_sync_at__gte=one_hour_ago).count()
+        offline = total - online
+
+        # Outdated: devices not on the latest stable firmware
+        latest_stable = (
+            FirmwareRelease.objects.filter(channel=FirmwareRelease.Channel.STABLE, is_active=True)
+            .order_by("-created_at")
+            .first()
+        )
+        outdated = 0
+        if latest_stable:
+            outdated = devices.exclude(firmware_version=latest_stable.version).count()
+
+        active_ota = DeviceOTAJob.objects.filter(
+            edge_device__organization_id__in=org_ids,
+            status__in=[
+                DeviceOTAJob.Status.PENDING,
+                DeviceOTAJob.Status.DOWNLOADING,
+                DeviceOTAJob.Status.INSTALLING,
+            ],
+        ).count()
+
+        orgs_count = devices.values("organization_id").distinct().count()
+
+        data = {
+            "total_devices": total,
+            "online_devices": online,
+            "offline_devices": offline,
+            "outdated_devices": outdated,
+            "active_ota_jobs": active_ota,
+            "organizations_count": orgs_count,
+        }
+        return Response(FleetOverviewSerializer(data).data)

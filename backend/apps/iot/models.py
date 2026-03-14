@@ -1630,3 +1630,143 @@ class CropIndicatorPreference(models.Model):
     def __str__(self) -> str:
         state = "ON" if self.enabled else "OFF"
         return f"{self.user} — {self.indicator} [{state}]"
+
+
+# ---------------------------------------------------------------------------
+# Sprint 33 — OTA Firmware & Fleet Management
+# ---------------------------------------------------------------------------
+
+
+class FirmwareRelease(models.Model):
+    """A published firmware binary that can be deployed to edge devices via OTA."""
+
+    class Channel(models.TextChoices):
+        STABLE = "STABLE", "Stable"
+        BETA = "BETA", "Beta"
+        NIGHTLY = "NIGHTLY", "Nightly"
+
+    version = models.CharField(
+        max_length=30,
+        unique=True,
+        help_text="Semantic version string (e.g., 3.2.1)",
+    )
+    channel = models.CharField(
+        max_length=10,
+        choices=Channel.choices,
+        default=Channel.STABLE,
+    )
+    release_notes = models.TextField(blank=True)
+    binary_url = models.URLField(max_length=500, help_text="URL to the firmware binary")
+    checksum_sha256 = models.CharField(
+        max_length=64,
+        help_text="SHA-256 hex digest of the binary",
+    )
+    file_size_bytes = models.PositiveIntegerField(help_text="Binary size in bytes")
+    min_hardware_version = models.CharField(
+        max_length=30,
+        blank=True,
+        help_text="Minimum hardware version required (optional)",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Firmware {self.version} ({self.channel})"
+
+
+class DeviceOTAJob(models.Model):
+    """Tracks the lifecycle of an over-the-air firmware update for one device."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        DOWNLOADING = "DOWNLOADING", "Downloading"
+        INSTALLING = "INSTALLING", "Installing"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+        ROLLED_BACK = "ROLLED_BACK", "Rolled Back"
+
+    edge_device = models.ForeignKey(
+        EdgeDevice,
+        on_delete=models.CASCADE,
+        related_name="ota_jobs",
+    )
+    firmware_release = models.ForeignKey(
+        FirmwareRelease,
+        on_delete=models.CASCADE,
+        related_name="ota_jobs",
+    )
+    status = models.CharField(
+        max_length=15,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    progress_percent = models.PositiveIntegerField(
+        default=0,
+        help_text="Download/install progress (0–100)",
+    )
+    previous_version = models.CharField(
+        max_length=30,
+        blank=True,
+        help_text="Firmware version before this update",
+    )
+    error_message = models.TextField(blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return (
+            f"OTA {self.edge_device.name}: "
+            f"{self.previous_version} → {self.firmware_release.version} "
+            f"[{self.status}]"
+        )
+
+
+class DeviceMetrics(models.Model):
+    """Point-in-time resource metrics reported by an edge device."""
+
+    edge_device = models.ForeignKey(
+        EdgeDevice,
+        on_delete=models.CASCADE,
+        related_name="metrics",
+    )
+    cpu_percent = models.FloatField(help_text="CPU usage 0–100")
+    memory_percent = models.FloatField(help_text="RAM usage 0–100")
+    disk_percent = models.FloatField(help_text="Disk usage 0–100")
+    cpu_temperature = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="CPU temperature in °C",
+    )
+    uptime_seconds = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Device uptime in seconds",
+    )
+    network_latency_ms = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Network latency to cloud in ms",
+    )
+    recorded_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        ordering = ["-recorded_at"]
+        indexes = [
+            models.Index(fields=["edge_device", "-recorded_at"]),
+        ]
+        verbose_name = "Device Metrics"
+        verbose_name_plural = "Device Metrics"
+
+    def __str__(self) -> str:
+        return (
+            f"{self.edge_device.name} @ {self.recorded_at}: "
+            f"CPU {self.cpu_percent}% MEM {self.memory_percent}% "
+            f"DISK {self.disk_percent}%"
+        )

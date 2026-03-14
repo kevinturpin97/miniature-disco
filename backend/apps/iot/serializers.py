@@ -13,6 +13,10 @@ from .models import (
     Command,
     CropIndicatorPreference,
     CropStatus,
+    DeviceMetrics,
+    DeviceOTAJob,
+    EdgeDevice,
+    FirmwareRelease,
     Greenhouse,
     NotificationChannel,
     NotificationLog,
@@ -1219,3 +1223,173 @@ class CropIndicatorPreferenceBulkSerializer(serializers.Serializer):
                 raise serializers.ValidationError(f"Duplicate indicator: {ind}")
             seen.add(ind)
         return value
+
+
+# ---------------------------------------------------------------------------
+# Sprint 33 — OTA Firmware & Fleet Management
+# ---------------------------------------------------------------------------
+
+
+class FirmwareReleaseSerializer(serializers.ModelSerializer):
+    """Serializer for FirmwareRelease model.
+
+    Fields:
+        id, version, channel, release_notes, binary_url, checksum_sha256,
+        file_size_bytes, min_hardware_version, is_active, created_at.
+    """
+
+    class Meta:
+        model = FirmwareRelease
+        fields = (
+            "id",
+            "version",
+            "channel",
+            "release_notes",
+            "binary_url",
+            "checksum_sha256",
+            "file_size_bytes",
+            "min_hardware_version",
+            "is_active",
+            "created_at",
+        )
+        read_only_fields = ("id", "created_at")
+
+    def validate_version(self, value: str) -> str:
+        """Validate that version follows SemVer format."""
+        import re
+
+        if not re.match(r"^\d+\.\d+\.\d+(-[\w.]+)?$", value):
+            raise serializers.ValidationError(
+                "Version must follow SemVer format (e.g., 3.2.1 or 3.2.1-beta.1)"
+            )
+        return value
+
+    def validate_checksum_sha256(self, value: str) -> str:
+        """Validate SHA-256 hex digest format."""
+        import re
+
+        value = value.lower()
+        if not re.match(r"^[a-f0-9]{64}$", value):
+            raise serializers.ValidationError("Must be a valid 64-character SHA-256 hex digest")
+        return value
+
+
+class DeviceOTAJobSerializer(serializers.ModelSerializer):
+    """Serializer for DeviceOTAJob model.
+
+    Fields:
+        id, edge_device, firmware_release, status, progress_percent,
+        previous_version, error_message, started_at, completed_at, created_at.
+    """
+
+    device_name = serializers.CharField(source="edge_device.name", read_only=True)
+    firmware_version = serializers.CharField(source="firmware_release.version", read_only=True)
+
+    class Meta:
+        model = DeviceOTAJob
+        fields = (
+            "id",
+            "edge_device",
+            "device_name",
+            "firmware_release",
+            "firmware_version",
+            "status",
+            "progress_percent",
+            "previous_version",
+            "error_message",
+            "started_at",
+            "completed_at",
+            "created_at",
+        )
+        read_only_fields = (
+            "id",
+            "status",
+            "progress_percent",
+            "previous_version",
+            "error_message",
+            "started_at",
+            "completed_at",
+            "created_at",
+        )
+
+
+class DeviceMetricsSerializer(serializers.ModelSerializer):
+    """Serializer for DeviceMetrics model.
+
+    Fields:
+        id, edge_device, cpu_percent, memory_percent, disk_percent,
+        cpu_temperature, uptime_seconds, network_latency_ms, recorded_at.
+    """
+
+    class Meta:
+        model = DeviceMetrics
+        fields = (
+            "id",
+            "edge_device",
+            "cpu_percent",
+            "memory_percent",
+            "disk_percent",
+            "cpu_temperature",
+            "uptime_seconds",
+            "network_latency_ms",
+            "recorded_at",
+        )
+        read_only_fields = ("id",)
+
+
+class FleetDeviceSerializer(serializers.ModelSerializer):
+    """Serializer for EdgeDevice used in fleet management views.
+
+    Includes latest metrics and OTA status as nested read-only fields.
+    """
+
+    organization_name = serializers.CharField(source="organization.name", read_only=True)
+    latest_metrics = serializers.SerializerMethodField()
+    active_ota_job = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EdgeDevice
+        fields = (
+            "id",
+            "device_id",
+            "name",
+            "organization",
+            "organization_name",
+            "firmware_version",
+            "last_sync_at",
+            "is_active",
+            "created_at",
+            "latest_metrics",
+            "active_ota_job",
+        )
+        read_only_fields = fields
+
+    def get_latest_metrics(self, obj: EdgeDevice) -> dict | None:
+        """Return the most recent DeviceMetrics for this device, or None."""
+        metrics = obj.metrics.order_by("-recorded_at").first()
+        if metrics is None:
+            return None
+        return DeviceMetricsSerializer(metrics).data
+
+    def get_active_ota_job(self, obj: EdgeDevice) -> dict | None:
+        """Return the currently active OTA job (PENDING/DOWNLOADING/INSTALLING)."""
+        active_statuses = [
+            DeviceOTAJob.Status.PENDING,
+            DeviceOTAJob.Status.DOWNLOADING,
+            DeviceOTAJob.Status.INSTALLING,
+        ]
+        job = obj.ota_jobs.filter(status__in=active_statuses).order_by("-created_at").first()
+        if job is None:
+            return None
+        return DeviceOTAJobSerializer(job).data
+
+
+class FleetOverviewSerializer(serializers.Serializer):
+    """Serializer for fleet overview statistics."""
+
+    total_devices = serializers.IntegerField()
+    online_devices = serializers.IntegerField()
+    offline_devices = serializers.IntegerField()
+    outdated_devices = serializers.IntegerField()
+    active_ota_jobs = serializers.IntegerField()
+    organizations_count = serializers.IntegerField()

@@ -11,7 +11,10 @@ from .models import (
     Command,
     CropCycle,
     CultureLog,
+    DeviceMetrics,
+    DeviceOTAJob,
     EdgeDevice,
+    FirmwareRelease,
     Greenhouse,
     MLModel,
     Note,
@@ -348,3 +351,31 @@ class SyncBatchAdmin(admin.ModelAdmin):
     list_filter = ("status", "edge_device")
     search_fields = ("edge_device__name",)
     readonly_fields = ("started_at", "completed_at", "edge_device", "records_count", "payload_size_kb")
+
+
+# --- Sprint 33 — OTA Firmware & Fleet Management ---
+
+
+@admin.register(FirmwareRelease)
+class FirmwareReleaseAdmin(admin.ModelAdmin):
+    list_display = ("version", "channel", "is_active", "file_size_bytes", "created_at")
+    list_filter = ("channel", "is_active")
+    search_fields = ("version", "release_notes")
+    readonly_fields = ("created_at",)
+
+
+@admin.register(DeviceOTAJob)
+class DeviceOTAJobAdmin(admin.ModelAdmin):
+    list_display = ("edge_device", "firmware_release", "status", "progress_percent", "previous_version", "created_at")
+    list_filter = ("status", "edge_device")
+    search_fields = ("edge_device__name", "firmware_release__version")
+    readonly_fields = ("created_at", "started_at", "completed_at")
+
+
+@admin.register(DeviceMetrics)
+class DeviceMetricsAdmin(admin.ModelAdmin):
+    list_display = ("edge_device", "cpu_percent", "memory_percent", "disk_percent", "cpu_temperature", "recorded_at")
+    list_filter = ("edge_device",)
+    search_fields = ("edge_device__name",)
+    readonly_fields = ("recorded_at",)
+    date_hierarchy = "recorded_at"

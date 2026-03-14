@@ -1148,6 +1148,721 @@ Exécute les sprints dans l'ordre. Chaque sprint doit être **complet et fonctio
 
 ---
 
+# MÉTHODOLOGIE : Écrire des Sprints UI/UX que les LLMs peuvent exécuter correctement
+
+## Le Problème
+
+Les LLMs génèrent du code backend structuré et fiable parce que le backend est **déterministe** : un endpoint retourne du JSON, un test passe ou échoue. En revanche, le frontend est **perceptuel** — "une belle card" est ambiguë, et le LLM remplit le vide avec du générique.
+
+## Les 7 Règles d'Or
+
+### Règle 1 — NE JAMAIS décrire un composant sans son ANATOMY (layout ASCII)
+
+❌ **Mauvais** : "Créer une card affichant le statut de la zone"
+
+✅ **Bon** :
+```
+┌─────────────────────────────────────────────┐
+│ ● Online    Zone Nord                  ⚙️   │  ← header: h-12, flex justify-between
+│─────────────────────────────────────────────│
+│                                             │
+│  🌡️ 24.3°C        💧 78%        ☀️ 840 lux  │  ← metrics row: grid grid-cols-3, gap-4
+│  ▾ -0.2°C/h       ▴ +2%/h       — stable   │  ← trends: text-xs, color-coded
+│                                             │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐      │
+│  │ ████░░░ │ │ ██████░ │ │ █████░░ │      │  ← sparklines: h-8, last 1h
+│  └─────────┘ └─────────┘ └─────────┘      │
+│                                             │
+│  💡 Grow Light ●ON    🚿 Irrigation ○OFF   │  ← actuators row: flex wrap, gap-2
+│─────────────────────────────────────────────│
+│  Dernière lecture : il y a 12s         →    │  ← footer: h-10, text-xs, muted
+└─────────────────────────────────────────────┘
+```
+
+### Règle 2 — PRESCRIRE les classes Tailwind, pas les décrire
+
+❌ **Mauvais** : "La card doit avoir un fond sombre semi-transparent avec un léger blur"
+
+✅ **Bon** :
+```
+Container : bg-base-200/60 backdrop-blur-md border border-white/5 rounded-2xl
+            shadow-lg shadow-black/20
+Hover     : hover:border-primary/30 hover:shadow-primary/10 hover:shadow-xl
+            transition-all duration-300 ease-out
+Active    : ring-2 ring-primary/50 border-primary/40
+```
+
+### Règle 3 — SPÉCIFIER chaque état visuellement (State Matrix)
+
+Chaque composant interactif doit avoir une matrice :
+
+| État | Background | Border | Texte | Icône | Animation |
+|------|-----------|--------|-------|-------|-----------|
+| Default | `bg-base-200/60` | `border-white/5` | `text-base-content` | `text-base-content/60` | — |
+| Hover | `bg-base-200/80` | `border-primary/30` | `text-base-content` | `text-primary` | `scale-[1.02]` 300ms ease-out |
+| Active/Selected | `bg-primary/10` | `border-primary/50` | `text-primary` | `text-primary` | `ring-2 ring-primary/30` |
+| Loading | `bg-base-200/40` | `border-white/5` | — | — | `animate-pulse` sur skeleton |
+| Error | `bg-error/5` | `border-error/30` | `text-error` | `text-error` | `shake` 300ms |
+| Disabled | `bg-base-200/30` | `border-white/3` | `text-base-content/30` | `text-base-content/20` | `cursor-not-allowed opacity-50` |
+| Empty | `bg-base-200/40` | `border-dashed border-white/10` | `text-base-content/40` | `text-base-content/20` | — |
+
+### Règle 4 — DESSINER les layouts responsives, pas juste dire "responsive"
+
+❌ **Mauvais** : "Responsive mobile-first"
+
+✅ **Bon** :
+```
+DESKTOP (≥1280px) :
+┌──────────┬───────────────────────────────────────┐
+│ Sidebar  │  ┌─────────┐ ┌─────────┐ ┌─────────┐│
+│ w-64     │  │ Card 1  │ │ Card 2  │ │ Card 3  ││
+│          │  └─────────┘ └─────────┘ └─────────┘│
+│          │  grid grid-cols-3 gap-6              │
+│          │                                       │
+│          │  ┌───────────────────────────────────┐│
+│          │  │ Chart — full width, h-80          ││
+│          │  └───────────────────────────────────┘│
+└──────────┴───────────────────────────────────────┘
+
+TABLET (768px–1279px) :
+┌──────────┬────────────────────────┐
+│ Sidebar  │  ┌────────┐ ┌────────┐│
+│ w-16     │  │ Card 1 │ │ Card 2 ││
+│ (icons)  │  └────────┘ └────────┘│
+│          │  ┌────────┐            │
+│          │  │ Card 3 │            │
+│          │  └────────┘            │
+│          │  grid grid-cols-2 gap-4│
+└──────────┴────────────────────────┘
+
+MOBILE (<768px) :
+┌─────────────────────┐
+│ ┌─────────────────┐ │
+│ │ Card 1 (full)   │ │
+│ └─────────────────┘ │
+│ ┌─────────────────┐ │
+│ │ Card 2 (full)   │ │
+│ └─────────────────┘ │
+│ grid grid-cols-1    │
+│ gap-3 px-4          │
+│                     │
+│ ┌─────────────────┐ │
+│ │ Chart h-60      │ │
+│ └─────────────────┘ │
+├─────────────────────┤
+│ 🏠  📊  ⚡  🔔  ⚙️   │ ← bottom nav h-16
+└─────────────────────┘
+```
+
+### Règle 5 — ANIMER avec des courbes et durées exactes, pas "smooth"
+
+❌ **Mauvais** : "Animation fluide au hover"
+
+✅ **Bon** :
+```
+ENTRÉE CARD (mount) :
+  - opacity: 0 → 1, y: 20px → 0
+  - duration: 500ms, ease: [0.25, 0.46, 0.45, 0.94] (easeOutQuad)
+  - stagger: 80ms entre chaque card (index × 80ms delay)
+
+HOVER CARD :
+  - transform: scale(1) → scale(1.02)
+  - border-color: transparent → primary/30
+  - box-shadow: 0 4px 6px rgba(0,0,0,0.1) → 0 20px 40px rgba(0,255,156,0.08)
+  - duration: 300ms, ease: ease-out
+  - RETOUR (mouse leave) : duration 200ms (plus rapide que l'entrée)
+
+CLICK FEEDBACK :
+  - transform: scale(1.02) → scale(0.98) → scale(1)
+  - duration: 150ms, ease: ease-in-out
+
+PAGE TRANSITION :
+  - exit: opacity 1→0, x: 0→-20px, duration 200ms
+  - enter: opacity 0→1, x: 20px→0, duration 300ms, delay 100ms
+```
+
+### Règle 6 — FOURNIR le dark ET light mode explicitement
+
+Ne jamais dire "supporte le dark mode". Spécifier les deux :
+
+```
+DARK MODE (default) :
+  Page bg      : #0b0f12 (bg-dark)
+  Card bg      : rgba(255,255,255,0.04) backdrop-blur-md
+  Card border  : rgba(255,255,255,0.05)
+  Text primary : #e2e8f0
+  Text muted   : rgba(226,232,240,0.5)
+  Accent glow  : 0 0 20px rgba(0,255,156,0.15)
+  Chart grid   : rgba(255,255,255,0.06)
+  Chart line   : #00ff9c (primary)
+
+LIGHT MODE :
+  Page bg      : #f6f8f9
+  Card bg      : rgba(255,255,255,0.8) backdrop-blur-sm
+  Card border  : rgba(0,0,0,0.06)
+  Text primary : #1a202c
+  Text muted   : rgba(26,32,44,0.5)
+  Accent glow  : 0 0 20px rgba(30,127,92,0.1)
+  Chart grid   : rgba(0,0,0,0.06)
+  Chart line   : #1e7f5c (primary-light)
+```
+
+### Règle 7 — ANTI-PATTERNS explicites (dire ce qu'il ne faut PAS faire)
+
+Ajouter en bas de chaque tâche composant :
+
+```
+⛔ ANTI-PATTERNS — NE PAS :
+  - Utiliser des bordures > 1px (sauf état actif ring-2)
+  - Mettre du padding > p-6 sur les cards (p-4 ou p-5 max)
+  - Utiliser des couleurs à pleine opacité pour les backgrounds (toujours /60 à /80)
+  - Centrer verticalement du texte dans un conteneur > 200px de haut
+  - Utiliser des ombres portées visibles en dark mode (shadow-black/20 max)
+  - Mettre des icônes > 24px dans les métriques inline
+  - Utiliser font-bold sur plus de 2 éléments par card
+  - Empiler plus de 3 niveaux de nesting dans une card
+  - Mettre un border-radius > rounded-2xl
+  - Utiliser des couleurs de texte non mappées aux tokens du design system
+```
+
+---
+
+## Application Concrète : SPRINT 33
+
+---
+
+# SPRINT 33 — OTA Firmware & Fleet Management (UI/UX-First)
+
+**Objectif : gérer le cycle de vie des devices (Raspberry Pi + relais LoRa) depuis l'interface cloud, avec une UX de niveau professionnel.**
+
+**Design System Reference : Sprint 30 tokens. DaisyUI themes `greenhouse-dark` / `greenhouse-light`.**
+
+---
+
+## 33.1 — Backend : Modèles & API
+
+- [ ] Modèle `FirmwareRelease` :
+  - `version` (SemVer string, unique), `channel` (STABLE/BETA/NIGHTLY), `release_notes` (TextField)
+  - `binary_url` (URLField), `checksum_sha256` (CharField 64), `file_size_bytes` (IntegerField)
+  - `min_hardware_version` (CharField, nullable), `created_at`, `is_active` (BooleanField)
+
+- [ ] Modèle `DeviceOTAJob` :
+  - `edge_device` (FK EdgeDevice), `firmware_release` (FK FirmwareRelease)
+  - `status` : PENDING → DOWNLOADING → INSTALLING → SUCCESS / FAILED / ROLLED_BACK
+  - `progress_percent` (IntegerField 0–100), `started_at`, `completed_at`
+  - `error_message` (TextField, nullable), `previous_version` (CharField)
+
+- [ ] Modèle `DeviceMetrics` :
+  - `edge_device` (FK), `cpu_percent`, `memory_percent`, `disk_percent`, `cpu_temperature`
+  - `uptime_seconds`, `network_latency_ms`, `recorded_at`
+
+- [ ] Endpoint `GET /api/fleet/devices/` : liste paginée avec dernier metrics + OTA status
+- [ ] Endpoint `GET /api/fleet/devices/{id}/` : détail device + historique OTA + métriques 24h
+- [ ] Endpoint `POST /api/fleet/devices/{id}/update/` : déclencher un OTA job
+- [ ] Endpoint `POST /api/fleet/devices/{id}/rollback/` : rollback au firmware précédent
+- [ ] Endpoint `GET /api/fleet/firmware/` : liste releases par channel
+- [ ] Endpoint `POST /api/fleet/firmware/` : publier une nouvelle release
+- [ ] Endpoint `GET /api/fleet/overview/` : stats globales (devices online, outdated, jobs en cours)
+- [ ] Celery task `check_ota_timeout` : jobs DOWNLOADING/INSTALLING > 30min → FAILED
+- [ ] Celery task `collect_device_metrics` : toutes les 5min via MQTT topic `device/{id}/metrics`
+- [ ] Tests : OTA lifecycle complet, rollback, timeout, permissions par rôle
+
+---
+
+## 33.2 — Page Fleet Overview (`/fleet`)
+
+**Accessible depuis : Administration > Fleet Management (Cloud mode only, `<FeatureGate feature="fleet">`)**
+
+### Layout Desktop (≥1280px)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│  Fleet Management                                     [+ New Release]   │
+│  12 devices across 4 organizations                    btn-primary       │
+│                                                       btn-sm h-9        │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐                  │
+│  │ 🟢 12    │ │ 🟡  3    │ │ 🔴  1    │ │ 📦  2    │                  │
+│  │ Online   │ │ Outdated │ │ Offline  │ │ Updating │                  │
+│  │ devices  │ │ firmware │ │ > 1h     │ │ OTA jobs │                  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘                  │
+│  ▲ MetricTile, grid grid-cols-4 gap-4, max-w-3xl                      │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │ Filter: [All ▾] [Online ▾] [Channel ▾]    🔍 Search device...  │   │
+│  │ flex items-center gap-3 h-12 bg-base-200/40 rounded-xl px-4    │   │
+│  ├─────────────────────────────────────────────────────────────────┤   │
+│  │                                                                 │   │
+│  │  ┌───────────────────────────────────────────────────────────┐ │   │
+│  │  │ ● Raspberry-Pi-001     GreenFarm Bio    v3.2.1   🟢 Online│ │   │
+│  │  │   CPU 23%  MEM 41%  DISK 67%  Temp 48°C    il y a 2min   │ │   │
+│  │  │   ████████░░ ██████████████░░ ██████████████████░░        │ │   │
+│  │  └───────────────────────────────────────────────────────────┘ │   │
+│  │  gap-3 entre chaque device row                                 │   │
+│  │  ┌───────────────────────────────────────────────────────────┐ │   │
+│  │  │ ● Raspberry-Pi-002     AquaPonics Ltd   v3.1.0   🟡 Outd.│ │   │
+│  │  │   CPU 45%  MEM 62%  DISK 34%  Temp 52°C    il y a 5min   │ │   │
+│  │  │   [Update to v3.2.1]  btn-primary btn-xs                  │ │   │
+│  │  └───────────────────────────────────────────────────────────┘ │   │
+│  │                                                                 │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Layout Mobile (<768px)
+
+```
+┌─────────────────────────┐
+│ Fleet Management        │
+│ 12 devices • 4 orgs     │
+│                         │
+│ ┌─────────┐ ┌─────────┐│
+│ │ 🟢 12   │ │ 🟡  3   ││
+│ │ Online  │ │ Outdated││
+│ └─────────┘ └─────────┘│
+│ ┌─────────┐ ┌─────────┐│
+│ │ 🔴  1   │ │ 📦  2   ││
+│ │ Offline │ │ Updating││
+│ └─────────┘ └─────────┘│
+│ grid-cols-2 gap-3       │
+│                         │
+│ 🔍 Search...            │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ ● RPi-001    🟢     │ │
+│ │ GreenFarm Bio       │ │
+│ │ v3.2.1  •  2min ago │ │
+│ │ CPU 23% MEM 41%     │ │
+│ │ ███░░░ ██████░░     │ │
+│ └─────────────────────┘ │
+│ Cards empilées, px-4    │
+│                         │
+├─────────────────────────┤
+│ 🏠  📊  ⚡  🔔  ⚙️      │
+└─────────────────────────┘
+```
+
+### Composant `<DeviceRow />`
+
+**Anatomy :**
+```
+┌─ container : bg-base-200/60 backdrop-blur-md rounded-xl border border-white/5 p-4 ──┐
+│                                                                                       │
+│  ┌─ left : flex items-center gap-3 ──────────────────────────────────────────────┐   │
+│  │ ● status dot (w-2.5 h-2.5 rounded-full)                                      │   │
+│  │   online: bg-success + animate-pulse (1.5s)                                   │   │
+│  │   offline: bg-error, pas d'animation                                          │   │
+│  │   updating: bg-warning + animate-pulse (1s)                                   │   │
+│  │                                                                                │   │
+│  │ Device name : text-sm font-semibold text-base-content                         │   │
+│  │ Org name    : text-xs text-base-content/50 ml-2                               │   │
+│  └────────────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                       │
+│  ┌─ center : flex items-center gap-6 ────────────────────────────────────────────┐   │
+│  │ Version badge : bg-base-300/50 text-xs px-2 py-0.5 rounded-md font-mono      │   │
+│  │   outdated: border border-warning/30 text-warning                             │   │
+│  │   current:  border border-success/20 text-success/80                          │   │
+│  │                                                                                │   │
+│  │ Metrics (inline, text-xs text-base-content/50) :                              │   │
+│  │   CPU {val}%  •  MEM {val}%  •  DISK {val}%  •  {temp}°C                     │   │
+│  │   Chaque métrique change de couleur si critique :                              │   │
+│  │     < 70% : text-base-content/50 (normal)                                     │   │
+│  │     70-89% : text-warning                                                     │   │
+│  │     ≥ 90% : text-error                                                        │   │
+│  └────────────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                       │
+│  ┌─ right : flex items-center gap-2 ─────────────────────────────────────────────┐   │
+│  │ "il y a Xmin" : text-xs text-base-content/40                                  │   │
+│  │                                                                                │   │
+│  │ Si outdated : [Update] btn-primary btn-xs rounded-lg h-7                      │   │
+│  │ Si updating : progress bar w-20 h-1.5 rounded-full bg-base-300               │   │
+│  │               inner: bg-primary h-full rounded-full + animate width            │   │
+│  │ Actions : ⋮ (dropdown: View details, Force update, Rollback, Reboot)          │   │
+│  │           btn-ghost btn-xs                                                     │   │
+│  └────────────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                       │
+└───────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**State Matrix :**
+
+| État | Status dot | Border card | Background | Badge version | Action |
+|------|-----------|-------------|------------|---------------|--------|
+| Online + à jour | `bg-success animate-pulse` | `border-white/5` | `bg-base-200/60` | `text-success/80 border-success/20` | `⋮` menu |
+| Online + outdated | `bg-success animate-pulse` | `border-warning/20` | `bg-base-200/60` | `text-warning border-warning/30` | `[Update]` + `⋮` |
+| Updating | `bg-warning animate-pulse (1s)` | `border-primary/30` | `bg-primary/5` | `text-primary` | progress bar |
+| Offline < 1h | `bg-error` (static) | `border-white/5` | `bg-base-200/40` | `text-base-content/40` | `⋮` menu |
+| Offline > 24h | `bg-error` (static) | `border-error/20` | `bg-error/5` | `text-error/60` | `⋮` menu |
+
+**Animations :**
+```
+MOUNT :
+  opacity: 0 → 1, y: 12px → 0
+  duration: 400ms, ease: [0.25, 0.46, 0.45, 0.94]
+  stagger: 60ms par row (index × 60ms)
+
+HOVER :
+  background: base-200/60 → base-200/80
+  border-color: white/5 → white/10
+  duration: 200ms ease-out
+  RETOUR: 150ms
+
+UPDATE PROGRESS :
+  width: 0% → {progress}%
+  transition: width 500ms ease-in-out
+  pulse subtil: opacity 0.8 → 1 → 0.8, cycle 2s, sur la barre
+
+STATUS CHANGE (ex: offline → online) :
+  scale: 1 → 1.05 → 1, duration 300ms
+  flash: border-success/50 pendant 1s puis retour normal
+```
+
+**Anti-patterns :**
+```
+⛔ NE PAS :
+  - Utiliser des icônes colorées pour les métriques (texte coloré uniquement)
+  - Mettre les métriques CPU/MEM/DISK dans des badges séparés (inline text)
+  - Utiliser un tableau HTML <table> (c'est une liste de cards, pas un tableau)
+  - Ajouter des tooltips sur chaque métrique (surcharge cognitive)
+  - Utiliser des barres de progression colorées multicolores pour CPU/MEM (text-xs suffit)
+  - Mettre un chevron ">" à droite (on est pas sur iOS Réglages)
+  - Afficher la date complète pour "last seen" (relatif : "il y a 5min", pas "2026-03-14 10:30")
+```
+
+---
+
+## 33.3 — Page Device Detail (`/fleet/{deviceId}`)
+
+### Layout Desktop
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│  ← Fleet    Raspberry-Pi-001                          ● Online          │
+│  breadcrumb  text-xl font-semibold                    LiveIndicator     │
+│  btn-ghost   GreenFarm Bio • Registered 2025-11-03                     │
+│  text-sm     text-sm text-base-content/50                              │
+│                                                                         │
+│  ┌─ Tabs : flex gap-1 bg-base-200/40 p-1 rounded-xl w-fit ──────────┐ │
+│  │  [Overview]  [Metrics]  [OTA History]  [Logs]                      │ │
+│  │  active: bg-base-100 text-base-content rounded-lg shadow-sm       │ │
+│  │  inactive: text-base-content/50 hover:text-base-content/80        │ │
+│  │  tab height: h-9, text-sm, px-4                                   │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│                                                                         │
+│  ═══ TAB: Overview ══════════════════════════════════════════════════   │
+│                                                                         │
+│  ┌────────────────────────────┐  ┌────────────────────────────────┐    │
+│  │ SYSTEM HEALTH              │  │ FIRMWARE                       │    │
+│  │                            │  │                                │    │
+│  │  CPU ████████░░░░  67%     │  │  Current: v3.2.1 (stable)     │    │
+│  │  MEM ██████░░░░░░  48%     │  │  Latest:  v3.2.1 ✓ Up to date│    │
+│  │  DSK █████████░░░  76%     │  │                                │    │
+│  │  TMP ██████░░░░░░  52°C    │  │  Channel: [Stable ▾]          │    │
+│  │                            │  │                                │    │
+│  │  Uptime: 14j 6h 23min     │  │  [Force Update]  [Rollback]   │    │
+│  │  Latency: 34ms            │  │  btn-outline btn-sm            │    │
+│  └────────────────────────────┘  └────────────────────────────────┘    │
+│  grid grid-cols-2 gap-6                                                │
+│                                                                         │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ RESOURCE USAGE — Last 24h                          [1h][24h][7d]│  │
+│  │                                                                  │  │
+│  │  100% ┤                                                          │  │
+│  │   80% ┤·····╭─╮·····································warning line │  │
+│  │   60% ┤   ╭─╯ ╰──╮      ╭───╮                                  │  │
+│  │   40% ┤──╯       ╰──────╯   ╰──────────────────── CPU          │  │
+│  │   20% ┤                                                          │  │
+│  │    0% ┼──────────────────────────────────────────────────────    │  │
+│  │       00:00    04:00    08:00    12:00    16:00    20:00         │  │
+│  │                                                                  │  │
+│  │  Lines: CPU=#00ff9c, MEM=#00d9ff, DISK=#ffb300                  │  │
+│  │  Warning threshold: dashed line rgba(255,179,0,0.3) at 80%      │  │
+│  │  Grid: stroke rgba(255,255,255,0.06)                            │  │
+│  │  Tooltip: bg-base-300 border border-white/10 rounded-lg p-3    │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                         │
+│  ═══ TAB: OTA History ══════════════════════════════════════════════   │
+│                                                                         │
+│  Timeline verticale (même pattern que Journal de Culture Sprint 25) :  │
+│                                                                         │
+│  ○── 2026-03-14 08:30 ─── v3.1.0 → v3.2.1 ── ✅ SUCCESS ───────     │
+│  │   Duration: 4min 23s • Checksum verified                          │
+│  │                                                                    │
+│  ○── 2026-03-01 14:15 ─── v3.0.2 → v3.1.0 ── ✅ SUCCESS ───────     │
+│  │   Duration: 3min 58s • Auto-update (stable channel)               │
+│  │                                                                    │
+│  ○── 2026-02-15 09:00 ─── v3.1.0-beta → v3.0.2 ── 🔄 ROLLED BACK   │
+│  │   Reason: Boot loop detected after 3 failed health checks         │
+│                                                                         │
+│  Timeline dot: w-3 h-3 rounded-full                                    │
+│    SUCCESS: bg-success                                                  │
+│    FAILED: bg-error                                                     │
+│    ROLLED_BACK: bg-warning                                             │
+│    PENDING/IN PROGRESS: bg-primary animate-pulse                       │
+│  Timeline line: w-0.5 bg-base-content/10                               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Layout Mobile (<768px)
+
+```
+┌─────────────────────────┐
+│ ← Fleet                 │
+│ Raspberry-Pi-001   🟢   │
+│ GreenFarm Bio           │
+│                         │
+│ [Overview][Metrics][OTA]│
+│ scroll-x, snap-x        │
+│                         │
+│ SYSTEM HEALTH           │
+│ ┌─────────────────────┐ │
+│ │ CPU ████████░░  67% │ │
+│ │ MEM ██████░░░░  48% │ │
+│ │ DSK █████████░  76% │ │
+│ │ TMP ██████░░░░  52°C│ │
+│ │ Up: 14j 6h • 34ms   │ │
+│ └─────────────────────┘ │
+│                         │
+│ FIRMWARE                │
+│ ┌─────────────────────┐ │
+│ │ v3.2.1 (stable) ✓   │ │
+│ │ [Force Update]       │ │
+│ │ [Rollback]           │ │
+│ └─────────────────────┘ │
+│ grid-cols-1, gap-4      │
+│                         │
+│ RESOURCES 24h           │
+│ ┌─────────────────────┐ │
+│ │ Chart h-48           │ │
+│ │ (touch-scroll X)     │ │
+│ └─────────────────────┘ │
+│                         │
+├─────────────────────────┤
+│ 🏠  📊  ⚡  🔔  ⚙️      │
+└─────────────────────────┘
+```
+
+### Composant `<ResourceGauge />`
+
+**Pour CPU, MEM, DISK, TEMP dans la card System Health :**
+
+```
+Anatomy :
+  ┌─ flex items-center gap-3 h-8 ──────────────┐
+  │ LABEL: w-10 text-xs font-medium             │
+  │        text-base-content/60 uppercase        │
+  │        tracking-wider                        │
+  │                                              │
+  │ BAR:   flex-1 h-2 bg-base-300/50 rounded-full│
+  │   FILL: h-full rounded-full                  │
+  │     < 60% : bg-success/70                    │
+  │     60-79%: bg-warning/70                    │
+  │     ≥ 80% : bg-error/70                      │
+  │     transition: width 800ms ease-out         │
+  │                                              │
+  │ VALUE: w-12 text-right text-xs font-mono     │
+  │        même couleur que la barre             │
+  └──────────────────────────────────────────────┘
+
+Animation au mount :
+  width: 0% → {value}%
+  duration: 800ms
+  ease: [0.34, 1.56, 0.64, 1] (spring-like overshoot léger)
+  stagger: 120ms par barre
+
+Animation update (quand la valeur change en live) :
+  width: {old}% → {new}%
+  duration: 500ms ease-out
+  Si le seuil de couleur change (ex: 79→80%) :
+    flash couleur : opacity 0.5 → 1, duration 300ms
+```
+
+---
+
+## 33.4 — Modal "New Firmware Release"
+
+```
+┌─ overlay : bg-black/60 backdrop-blur-sm ─────────────────────┐
+│                                                               │
+│   ┌─ modal : bg-base-100 rounded-2xl w-[480px] ───────────┐ │
+│   │          border border-white/5                          │ │
+│   │          shadow-2xl shadow-black/40                     │ │
+│   │          max-h-[90vh] overflow-y-auto                   │ │
+│   │                                                         │ │
+│   │  ┌─ header : p-6 pb-0 ──────────────────────────────┐ │ │
+│   │  │  New Firmware Release              ✕              │ │ │
+│   │  │  text-lg font-semibold     btn-ghost btn-sm       │ │ │
+│   │  │                            btn-circle             │ │ │
+│   │  └───────────────────────────────────────────────────┘ │ │
+│   │                                                         │ │
+│   │  ┌─ body : p-6 flex flex-col gap-4 ──────────────────┐ │ │
+│   │  │                                                    │ │ │
+│   │  │  Version *          Channel *                      │ │ │
+│   │  │  ┌────────────┐    ┌────────────────┐             │ │ │
+│   │  │  │ 3.2.2      │    │ Stable      ▾  │             │ │ │
+│   │  │  └────────────┘    └────────────────┘             │ │ │
+│   │  │  input: h-10 bg-base-200/50 border-white/5       │ │ │
+│   │  │         rounded-lg px-3 text-sm                    │ │ │
+│   │  │  focus: border-primary/50 ring-2 ring-primary/20  │ │ │
+│   │  │  error: border-error/50 + text-error text-xs mt-1 │ │ │
+│   │  │  grid grid-cols-2 gap-4                            │ │ │
+│   │  │                                                    │ │ │
+│   │  │  Binary URL *                                      │ │ │
+│   │  │  ┌────────────────────────────────────────────┐   │ │ │
+│   │  │  │ https://releases.example.com/v3.2.2.bin    │   │ │ │
+│   │  │  └────────────────────────────────────────────┘   │ │ │
+│   │  │                                                    │ │ │
+│   │  │  SHA256 Checksum *                                 │ │ │
+│   │  │  ┌────────────────────────────────────────────┐   │ │ │
+│   │  │  │ a7f3b2c...                         font-mono│   │ │ │
+│   │  │  └────────────────────────────────────────────┘   │ │ │
+│   │  │                                                    │ │ │
+│   │  │  Release Notes                                     │ │ │
+│   │  │  ┌────────────────────────────────────────────┐   │ │ │
+│   │  │  │                                     h-24   │   │ │ │
+│   │  │  │ textarea, resize-y                         │   │ │ │
+│   │  │  └────────────────────────────────────────────┘   │ │ │
+│   │  │                                                    │ │ │
+│   │  └────────────────────────────────────────────────────┘ │ │
+│   │                                                         │ │
+│   │  ┌─ footer : p-6 pt-0 flex justify-end gap-3 ────────┐ │ │
+│   │  │                [Cancel]         [Publish Release]  │ │ │
+│   │  │                btn-ghost        btn-primary        │ │ │
+│   │  │                btn-sm           btn-sm             │ │ │
+│   │  └────────────────────────────────────────────────────┘ │ │
+│   │                                                         │ │
+│   └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+
+ANIMATIONS :
+  Overlay enter: opacity 0→1, duration 200ms
+  Modal enter: opacity 0→1, scale 0.95→1, y 10px→0
+               duration 300ms, ease [0.25, 0.46, 0.45, 0.94]
+  Modal exit: opacity 1→0, scale 1→0.97, duration 150ms ease-in
+  Focus first input: delay 350ms (après animation d'entrée)
+
+VALIDATION (Zod, inline, temps réel) :
+  Version: regex /^\d+\.\d+\.\d+$/ → "Version must be SemVer (e.g., 3.2.2)"
+  Channel: required, enum ["STABLE", "BETA", "NIGHTLY"]
+  Binary URL: url() → "Must be a valid URL"
+  Checksum: regex /^[a-f0-9]{64}$/ → "Must be a valid SHA256 hash"
+  Submit disabled tant qu'il y a une erreur (btn-disabled opacity-50)
+```
+
+---
+
+## 33.5 — Composant `<OTAProgressCard />`
+
+**Affiché quand un device a un OTA job actif (remplace temporairement la section firmware dans DeviceDetail) :**
+
+```
+┌─ bg-primary/5 border border-primary/20 rounded-xl p-4 ───────────────┐
+│                                                                        │
+│  ⬆️  Updating to v3.2.2                            43%                │
+│  text-sm font-semibold text-base-content      text-sm font-mono       │
+│                                                text-primary            │
+│                                                                        │
+│  ┌─ progress track : w-full h-2 bg-base-300/50 rounded-full mt-3 ──┐ │
+│  │ ┌─ progress fill : h-full bg-primary rounded-full ─────────┐    │ │
+│  │ │  width: {progress}%                                       │    │ │
+│  │ │  transition: width 1s ease-out                            │    │ │
+│  │ │                                                           │    │ │
+│  │ │  SHIMMER EFFECT:                                          │    │ │
+│  │ │  background: linear-gradient(                             │    │ │
+│  │ │    90deg, transparent, rgba(255,255,255,0.15), transparent│    │ │
+│  │ │  )                                                        │    │ │
+│  │ │  background-size: 200% 100%                               │    │ │
+│  │ │  animation: shimmer 1.5s infinite                         │    │ │
+│  │ └───────────────────────────────────────────────────────────┘    │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+│                                                                        │
+│  Status: Downloading firmware...               [Cancel]               │
+│  text-xs text-base-content/50                  btn-ghost btn-xs       │
+│                                                text-error/70          │
+│                                                                        │
+│  Steps indicator (text-xs text-base-content/40) :                     │
+│  ✅ Checksum verified  →  📥 Downloading (43%)  →  ○ Installing      │
+│  text-success/60          text-primary             text-base-content/30│
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+ÉTATS DE LA PROGRESS BAR :
+  PENDING    : w-0, bar pulsante (opacity 0.3→0.7, 1.5s cycle), texte "Preparing..."
+  DOWNLOADING: w-{progress}%, shimmer actif, texte "Downloading firmware..."
+  INSTALLING : w-100% bg-warning, pulse opacity, texte "Installing — do not power off"
+  SUCCESS    : w-100% bg-success, confetti animation (3 particles, 500ms), puis fadeout card 2s
+  FAILED     : w-{progress}% bg-error, shake animation (300ms), texte erreur en rouge
+  ROLLED_BACK: w-100% bg-warning → texte "Rolled back to v{prev}", icône ↩️
+
+ANIMATION SUCCESS :
+  1. Bar bg-primary → bg-success, 300ms
+  2. Scale card 1→1.02→1, 300ms
+  3. Checkmark apparaît (opacity 0→1, scale 0→1, spring), 400ms
+  4. Confetti: 5 particules, colors [primary, success, secondary], 
+     trajectoire: random x ±30px, y -40px, rotation random, opacity 1→0
+     duration 800ms, ease: [0.25, 0.46, 0.45, 0.94]
+  5. Après 2s: card fadeout → remplacée par firmware info normal
+
+ANIMATION FAILED :
+  1. Bar bg-primary → bg-error, 200ms
+  2. Card: translateX 0→-4px→4px→-2px→2px→0, duration 300ms (shake)
+  3. Error message fade in, 200ms
+  4. Bouton [Retry] apparaît, scale 0→1, delay 500ms
+```
+
+---
+
+## 33.6 — Intégration & Tests
+
+- [ ] Menu Cloud : ajouter "Fleet" dans Administration (`<FeatureGate feature="fleet">`)
+- [ ] WebSocket `/ws/fleet/` : push des changements de statut OTA et métriques live
+- [ ] Hook `useDeviceMetrics(deviceId)` : WebSocket + polling fallback 30s
+- [ ] Hook `useOTAProgress(jobId)` : WebSocket pour la progression en temps réel
+- [ ] Empty state Fleet (0 devices) :
+  ```
+  ┌───────────────────────────────────────────┐
+  │                                           │
+  │          📡                               │
+  │          (opacity-30, w-16 h-16)          │
+  │                                           │
+  │    No devices registered yet              │
+  │    text-base-content/50 text-sm           │
+  │                                           │
+  │    Register your first Raspberry Pi       │
+  │    to start managing your fleet.          │
+  │    text-base-content/30 text-xs           │
+  │                                           │
+  │    [Register Device]                      │
+  │    btn-primary btn-sm                     │
+  │                                           │
+  └───────────────────────────────────────────┘
+  ```
+- [ ] Skeleton loader pour DeviceRow : 4 lignes h-[72px] avec shimmer
+- [ ] Tests Vitest : `<DeviceRow />` (tous les états), `<OTAProgressCard />` (tous les états), `<ResourceGauge />` (seuils couleur), `<FleetOverview />` (empty, loading, loaded)
+- [ ] Tests backend : OTA lifecycle, rollback, metrics collection, permissions
+- [ ] i18n : toutes les chaînes dans `fleet.json` (EN + FR)
+
+---
+
+## Récapitulatif : Pourquoi ce format marche mieux
+
+| Problème LLM classique | Solution dans ce sprint |
+|------------------------|------------------------|
+| Card générique sans personnalité | ASCII anatomy avec chaque zone dimensionnée |
+| "responsive" = juste `sm:` au pif | Layouts dessinés pour 3 breakpoints |
+| Animations = `transition-all` partout | Courbes, durées, stagger, retour spécifiés |
+| Dark mode oublié ou approximatif | Dual-mode avec hex/opacity exacts |
+| États = juste default + hover | Matrice 5-7 états avec classes Tailwind exactes |
+| Couleurs inventées | Tokens du design system référencés partout |
+| Pas de feedback sur les actions | Animations SUCCESS/FAILED/LOADING décrites frame par frame |
+| Layout empilé sans hiérarchie | Grid explicite avec gap et max-width |
+| Empty states oubliés | Dessinés dans le sprint |
+| Anti-patterns répétés | Liste ⛔ explicite par composant |
+
 ## CONVENTIONS DE CODE
 
 ### Python (Backend + Bridge)

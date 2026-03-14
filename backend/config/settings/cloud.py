@@ -26,6 +26,7 @@ CLOUD_FEATURES = {
     "crm": True,            # CRM dashboard for operators
     "impersonate": True,    # Support impersonation of client orgs
     "multi_sync": True,     # Receive sync batches from multiple edge devices
+    "fleet": True,          # OTA firmware & fleet management
 }
 
 # ---------------------------------------------------------------------------
