@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-dark-base text-white antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-md border border-white/5;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  .glass-light {
+    @apply backdrop-blur-sm border;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+  .neon-text-cyan { text-shadow: 0 0 10px rgba(0,240,255,0.8); }
+  .neon-text-pink { text-shadow: 0 0 10px rgba(255,46,151,0.8); }
+  .neon-text-green { text-shadow: 0 0 10px rgba(57,255,20,0.6); }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+}
