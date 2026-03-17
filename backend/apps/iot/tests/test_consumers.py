@@ -1,4 +1,4 @@
-"""Tests for WebSocket consumers (SensorConsumer and AlertConsumer)."""
+"""Tests for WebSocket consumers (SensorConsumer, AlertConsumer, FleetConsumer)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.iot.routing import websocket_urlpatterns
-from conftest import GreenhouseFactory, ZoneFactory
+from conftest import EdgeDeviceFactory, GreenhouseFactory, MembershipFactory, OrganizationFactory, ZoneFactory
 
 User = get_user_model()
 
@@ -205,5 +205,123 @@ class TestAlertConsumer:
         assert response["alert_id"] == 99
         assert response["severity"] == "WARNING"
         assert response["message"] == "Temperature is too high"
+
+        await communicator.disconnect()
+
+
+# ── FleetConsumer tests ──────────────────────────────────────────
+
+
+@database_sync_to_async
+def create_device_for_user(user) -> str:
+    """Create an org + membership + active EdgeDevice for user; return device_id str."""
+    from apps.api.models import Membership
+
+    org = OrganizationFactory()
+    MembershipFactory(user=user, organization=org, role=Membership.Role.OWNER)
+    device = EdgeDeviceFactory(organization=org, is_active=True)
+    return str(device.device_id)
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+class TestFleetConsumer:
+    """Tests for the FleetConsumer WebSocket endpoint (/ws/fleet/{device_id}/)."""
+
+    async def test_authenticated_member_connects(self):
+        """Authenticated org member can connect to the fleet WebSocket."""
+        user = await create_user("fleet_member")
+        device_id = await create_device_for_user(user)
+        token = str(AccessToken.for_user(user))
+
+        communicator = _communicator_for(f"/ws/fleet/{device_id}/", token)
+        connected, _ = await communicator.connect()
+
+        assert connected is True
+        await communicator.disconnect()
+
+    async def test_unauthenticated_rejected(self):
+        """Connection without a token is rejected (close code 4001)."""
+        communicator = _communicator_for("/ws/fleet/00000000-0000-0000-0000-000000000000/")
+        connected, _ = await communicator.connect()
+
+        assert connected is False
+
+    async def test_non_member_rejected(self):
+        """Authenticated user with no membership in the device's org is rejected."""
+        owner = await create_user("fleet_owner_x")
+        other = await create_user("fleet_other_x")
+        device_id = await create_device_for_user(owner)
+        token = str(AccessToken.for_user(other))
+
+        communicator = _communicator_for(f"/ws/fleet/{device_id}/", token)
+        connected, _ = await communicator.connect()
+
+        assert connected is False
+
+    async def test_receives_ota_status_update(self):
+        """Connected client receives ota_status_update events pushed to its group."""
+        user = await create_user("fleet_ota_recv")
+        device_id = await create_device_for_user(user)
+        token = str(AccessToken.for_user(user))
+
+        communicator = _communicator_for(f"/ws/fleet/{device_id}/", token)
+        connected, _ = await communicator.connect()
+        assert connected is True
+
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            f"fleet_{device_id}",
+            {
+                "type": "ota_status_update",
+                "job_id": 7,
+                "device_id": device_id,
+                "status": "DOWNLOADING",
+                "progress_percent": 43,
+                "firmware_version": "3.2.2",
+                "error_message": "",
+            },
+        )
+
+        response = await communicator.receive_json_from()
+        assert response["type"] == "ota_status_update"
+        assert response["status"] == "DOWNLOADING"
+        assert response["progress_percent"] == 43
+        assert response["firmware_version"] == "3.2.2"
+        assert response["device_id"] == device_id
+
+        await communicator.disconnect()
+
+    async def test_receives_device_metrics_update(self):
+        """Connected client receives device_metrics_update events pushed to its group."""
+        user = await create_user("fleet_metrics_recv")
+        device_id = await create_device_for_user(user)
+        token = str(AccessToken.for_user(user))
+
+        communicator = _communicator_for(f"/ws/fleet/{device_id}/", token)
+        connected, _ = await communicator.connect()
+        assert connected is True
+
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            f"fleet_{device_id}",
+            {
+                "type": "device_metrics_update",
+                "device_id": device_id,
+                "cpu_percent": 45.0,
+                "memory_percent": 60.0,
+                "disk_percent": 72.0,
+                "cpu_temperature": 52.0,
+                "uptime_seconds": 123456,
+                "network_latency_ms": 34,
+                "recorded_at": "2026-03-14T10:00:00Z",
+            },
+        )
+
+        response = await communicator.receive_json_from()
+        assert response["type"] == "device_metrics_update"
+        assert response["cpu_percent"] == 45.0
+        assert response["memory_percent"] == 60.0
+        assert response["device_id"] == device_id
 
         await communicator.disconnect()

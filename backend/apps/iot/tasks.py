@@ -1518,6 +1518,14 @@ def check_ota_timeout() -> dict:
         started_at__lte=cutoff,
     )
     timed_out = 0
+    try:
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+    except Exception:  # noqa: BLE001
+        channel_layer = None
+
     for job in stuck_jobs:
         job.status = DeviceOTAJob.Status.FAILED
         job.error_message = "OTA job timed out after 30 minutes"
@@ -1525,6 +1533,24 @@ def check_ota_timeout() -> dict:
         job.save(update_fields=["status", "error_message", "completed_at"])
         logger.warning("OTA job %d timed out for device %s", job.pk, job.edge_device.name)
         timed_out += 1
+
+        # Notify WebSocket clients about the timeout failure.
+        if channel_layer:
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    f"fleet_{job.edge_device.device_id}",
+                    {
+                        "type": "ota_status_update",
+                        "job_id": job.pk,
+                        "device_id": str(job.edge_device.device_id),
+                        "status": DeviceOTAJob.Status.FAILED,
+                        "progress_percent": job.progress_percent,
+                        "firmware_version": job.firmware_release.version,
+                        "error_message": job.error_message,
+                    },
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("check_ota_timeout: WS push failed for job %d: %s", job.pk, exc)
 
     return {"timed_out": timed_out}
 
@@ -1558,4 +1584,29 @@ def collect_device_metrics(device_id: str, payload: dict) -> dict:
         network_latency_ms=payload.get("network_latency_ms"),
         recorded_at=timezone.now(),
     )
+
+    # Push live metrics update to WebSocket clients subscribed to this device.
+    try:
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                f"fleet_{device_id}",
+                {
+                    "type": "device_metrics_update",
+                    "device_id": str(device_id),
+                    "cpu_percent": metrics.cpu_percent,
+                    "memory_percent": metrics.memory_percent,
+                    "disk_percent": metrics.disk_percent,
+                    "cpu_temperature": metrics.cpu_temperature,
+                    "uptime_seconds": metrics.uptime_seconds,
+                    "network_latency_ms": metrics.network_latency_ms,
+                    "recorded_at": metrics.recorded_at.isoformat(),
+                },
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("collect_device_metrics: WS push failed: %s", exc)
+
     return {"status": "ok", "device_metrics_id": metrics.pk}
