@@ -13,8 +13,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.development")
 
 django_asgi_app = get_asgi_application()
 
-from apps.api.authentication import JwtAuthMiddleware  # noqa: E402
-from apps.iot.routing import websocket_urlpatterns  # noqa: E402
+from apps.developer.authentication import JwtAuthMiddleware  # noqa: E402
+from apps.greenhouse.routing import websocket_urlpatterns  # noqa: E402
 
 application = ProtocolTypeRouter(
     {

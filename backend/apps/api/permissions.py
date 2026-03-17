@@ -7,7 +7,7 @@ from __future__ import annotations
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.request import Request
 
-from .models import Membership
+from apps.organizations.models import Membership
 
 
 # ---------------------------------------------------------------------------

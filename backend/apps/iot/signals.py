@@ -362,7 +362,7 @@ def log_alert_to_culture_journal(
     )
 
 
-@receiver(post_save, sender="iot.Note")
+@receiver(post_save, sender="compliance.Note")
 def log_note_to_culture_journal(
     sender: type,
     instance: object,
@@ -397,7 +397,7 @@ def log_note_to_culture_journal(
     )
 
 
-@receiver(post_save, sender="iot.CropCycle")
+@receiver(post_save, sender="compliance.CropCycle")
 def log_crop_cycle_to_culture_journal(
     sender: type,
     instance: object,

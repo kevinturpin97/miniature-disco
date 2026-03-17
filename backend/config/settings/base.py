@@ -36,9 +36,24 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_prometheus",
     "drf_spectacular",
-    # Local
+    # Legacy apps (kept for migration history — models moved to dedicated apps)
     "apps.iot",
     "apps.api",
+    # New dedicated apps
+    "apps.accounts",
+    "apps.organizations",
+    "apps.billing",
+    "apps.developer",
+    "apps.cloud",
+    "apps.greenhouse",
+    "apps.notifications",
+    "apps.schedules",
+    "apps.analytics",
+    "apps.marketplace",
+    "apps.sites",
+    "apps.compliance",
+    "apps.crop",
+    "apps.fleet",
     "rest_framework_simplejwt.token_blacklist",
 ]
 
@@ -116,7 +131,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "apps.api.authentication.APIKeyAuthentication",
+        "apps.developer.authentication.APIKeyAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

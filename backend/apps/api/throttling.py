@@ -9,7 +9,7 @@ from rest_framework.request import Request
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
-from .models import APIKey
+from apps.developer.models import APIKey
 
 
 class APIKeyRateThrottle(SimpleRateThrottle):
