@@ -29,8 +29,22 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.api.models import CloudTenant, ImpersonationToken, Membership, Organization
-from apps.iot.models import EdgeDevice, Sensor, SensorReading, SyncBatch
+from apps.cloud.models import (
+    CloudTenant,
+    ImpersonationToken,
+)
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.fleet.models import (
+    EdgeDevice,
+    SyncBatch,
+)
+from apps.greenhouse.models import (
+    Sensor,
+    SensorReading,
+)
 
 User = get_user_model()
 
@@ -305,7 +319,11 @@ class TestIngestSyncBatch:
     """Unit tests for the ingest_sync_batch Celery task."""
 
     def _make_batch_and_sensor(self):
-        from apps.iot.models import Actuator, Greenhouse, Zone
+        from apps.greenhouse.models import (
+            Actuator,
+            Greenhouse,
+            Zone,
+        )
 
         user, org = make_org_user()
         device, _ = make_edge_device(org)
@@ -367,7 +385,10 @@ class TestIngestSyncBatch:
         ingest_sync_batch(batch1.id, payload)
 
         # Create a second batch with identical data
-        from apps.iot.models import Greenhouse, Zone
+        from apps.greenhouse.models import (
+            Greenhouse,
+            Zone,
+        )
         device = batch1.edge_device
         batch2 = SyncBatch.objects.create(
             edge_device=device,

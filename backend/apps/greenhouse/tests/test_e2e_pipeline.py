@@ -15,7 +15,7 @@ from unittest.mock import patch, MagicMock
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from apps.iot.models import (
+from apps.greenhouse.models import (
     Actuator,
     Alert,
     AutomationRule,

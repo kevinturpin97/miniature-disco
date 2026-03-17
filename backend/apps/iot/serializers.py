@@ -6,34 +6,46 @@ from datetime import datetime, timedelta, timezone
 
 from rest_framework import serializers
 
-from .models import (
-    Actuator,
-    Alert,
-    AutomationRule,
-    Command,
+from apps.crop.models import (
     CropIndicatorPreference,
     CropStatus,
+)
+from apps.fleet.models import (
     DeviceMetrics,
     DeviceOTAJob,
     EdgeDevice,
     FirmwareRelease,
+)
+from apps.greenhouse.models import (
+    Actuator,
+    Alert,
+    AutomationRule,
+    Command,
     Greenhouse,
+    Sensor,
+    SensorReading,
+    Zone,
+)
+from apps.marketplace.models import (
+    Template,
+    TemplateCategory,
+    TemplateRating,
+)
+from apps.notifications.models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
     PushSubscription,
+)
+from apps.schedules.models import (
     Scenario,
     ScenarioStep,
     Schedule,
-    Sensor,
-    SensorReading,
+)
+from apps.sites.models import (
     Site,
-    Template,
-    TemplateCategory,
-    TemplateRating,
     WeatherAlert,
     WeatherData,
-    Zone,
 )
 
 
@@ -739,7 +751,7 @@ class SensorPredictionSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        from .models import SensorPrediction
+        from apps.analytics.models import SensorPrediction
 
         model = SensorPrediction
         fields = (
@@ -766,7 +778,7 @@ class AnomalyRecordSerializer(serializers.ModelSerializer):
     zone_name = serializers.CharField(source="sensor.zone.name", read_only=True)
 
     class Meta:
-        from .models import AnomalyRecord
+        from apps.analytics.models import AnomalyRecord
 
         model = AnomalyRecord
         fields = (
@@ -795,7 +807,7 @@ class SmartSuggestionSerializer(serializers.ModelSerializer):
     sensor_type = serializers.CharField(source="sensor.sensor_type", read_only=True)
 
     class Meta:
-        from .models import SmartSuggestion
+        from apps.analytics.models import SmartSuggestion
 
         model = SmartSuggestion
         fields = (
@@ -829,7 +841,7 @@ class RetentionPolicySerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        from .models import RetentionPolicy
+        from apps.analytics.models import RetentionPolicy
 
         model = RetentionPolicy
         fields = (
@@ -857,7 +869,7 @@ class DataArchiveLogSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        from .models import DataArchiveLog
+        from apps.analytics.models import DataArchiveLog
 
         model = DataArchiveLog
         fields = (
@@ -1022,7 +1034,7 @@ class CropCycleSerializer(serializers.ModelSerializer):
     created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        from .models import CropCycle
+        from apps.compliance.models import CropCycle
 
         model = CropCycle
         fields = (
@@ -1057,7 +1069,7 @@ class NoteSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username", read_only=True, default="")
 
     class Meta:
-        from .models import Note
+        from apps.compliance.models import Note
 
         model = Note
         fields = (
@@ -1088,7 +1100,7 @@ class CultureLogSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True, default="")
 
     class Meta:
-        from .models import CultureLog
+        from apps.compliance.models import CultureLog
 
         model = CultureLog
         fields = (
@@ -1115,7 +1127,7 @@ class TraceabilityReportSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        from .models import TraceabilityReport
+        from apps.compliance.models import TraceabilityReport
 
         model = TraceabilityReport
         fields = (

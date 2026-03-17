@@ -7,8 +7,15 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.api.models import Invitation, Membership, Organization
-from apps.iot.models import Greenhouse, Zone
+from apps.organizations.models import (
+    Invitation,
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
+    Greenhouse,
+    Zone,
+)
 from conftest import (
     GreenhouseFactory,
     MembershipFactory,

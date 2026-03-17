@@ -9,7 +9,11 @@ import pytest
 from django.utils import timezone
 
 from apps.iot.automation_engine import evaluate_rules_for_reading
-from apps.iot.models import AutomationRule, Command, Sensor
+from apps.greenhouse.models import (
+    AutomationRule,
+    Command,
+    Sensor,
+)
 from apps.iot.tasks import evaluate_automation_rules
 from conftest import (
     ActuatorFactory,

@@ -4,7 +4,7 @@ import factory
 import pytest
 from django.utils import timezone
 
-from apps.iot.models import (
+from apps.greenhouse.models import (
     Actuator,
     Alert,
     AutomationRule,

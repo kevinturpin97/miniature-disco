@@ -6,7 +6,7 @@ from typing import Any
 
 import structlog
 
-from apps.iot.models import AuditEvent
+from apps.analytics.models import AuditEvent
 
 logger = structlog.get_logger(__name__)
 

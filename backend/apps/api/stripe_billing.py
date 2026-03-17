@@ -16,7 +16,8 @@ import stripe
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Organization, Subscription
+from apps.billing.models import Subscription
+from apps.organizations.models import Organization
 
 logger = logging.getLogger(__name__)
 

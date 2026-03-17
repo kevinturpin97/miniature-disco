@@ -21,33 +21,46 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.api.models import Membership, Organization
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
 
-from .models import (
-    Actuator,
-    Alert,
+from apps.analytics.models import (
     AuditEvent,
-    AutomationRule,
-    Command,
     DataArchiveLog,
+    RetentionPolicy,
+)
+from apps.fleet.models import (
     DeviceMetrics,
     DeviceOTAJob,
     EdgeDevice,
     FirmwareRelease,
+    SyncBatch,
+)
+from apps.greenhouse.models import (
+    Actuator,
+    Alert,
+    AutomationRule,
+    Command,
     Greenhouse,
-    NotificationChannel,
-    NotificationLog,
-    NotificationRule,
-    RetentionPolicy,
-    Scenario,
-    Schedule,
     Sensor,
     SensorReading,
-    SyncBatch,
+    Zone,
+)
+from apps.marketplace.models import (
     Template,
     TemplateCategory,
     TemplateRating,
-    Zone,
+)
+from apps.notifications.models import (
+    NotificationChannel,
+    NotificationLog,
+    NotificationRule,
+)
+from apps.schedules.models import (
+    Scenario,
+    Schedule,
 )
 from .serializers import (
     ActuatorSerializer,
@@ -992,7 +1005,7 @@ class PushSubscriptionView(viewsets.ViewSet):
 
     def create(self, request: Request) -> Response:
         """Register a push subscription for the current user."""
-        from .models import PushSubscription
+        from apps.notifications.models import PushSubscription
         from .serializers import PushSubscriptionSerializer
 
         serializer = PushSubscriptionSerializer(data=request.data)
@@ -1010,7 +1023,7 @@ class PushSubscriptionView(viewsets.ViewSet):
 
     def destroy(self, request: Request) -> Response:
         """Remove a push subscription by endpoint URL."""
-        from .models import PushSubscription
+        from apps.notifications.models import PushSubscription
 
         endpoint = request.data.get("endpoint")
         if not endpoint:
@@ -1112,7 +1125,15 @@ def _import_template_to_zone(zone: Zone, config: dict, mode: str, user=None) -> 
     Returns:
         Summary dict with counts of created resources.
     """
-    from .models import Actuator, AutomationRule, Scenario, ScenarioStep, Sensor
+    from apps.greenhouse.models import (
+        Actuator,
+        AutomationRule,
+        Sensor,
+    )
+    from apps.schedules.models import (
+        Scenario,
+        ScenarioStep,
+    )
 
     summary = {"sensors": 0, "actuators": 0, "automation_rules": 0, "scenarios": 0}
 
@@ -1420,7 +1441,7 @@ class ZonePredictionsView(viewsets.ViewSet):
 
     def retrieve(self, request: Request, pk: int = None) -> Response:
         """Return predictions grouped by sensor for the zone."""
-        from .models import SensorPrediction
+        from apps.analytics.models import SensorPrediction
 
         org_ids = _user_org_ids(request.user)
         zone = get_object_or_404(
@@ -1475,7 +1496,7 @@ class ZoneAnomaliesView(viewsets.ViewSet):
         """Return recent anomalies for a zone's sensors."""
         from datetime import timedelta
 
-        from .models import AnomalyRecord
+        from apps.analytics.models import AnomalyRecord
 
         org_ids = _user_org_ids(request.user)
         zone = get_object_or_404(
@@ -1514,7 +1535,7 @@ class ZoneSuggestionsView(viewsets.ViewSet):
 
     def list(self, request: Request, pk: int = None) -> Response:
         """Return pending suggestions for a zone's sensors."""
-        from .models import SmartSuggestion
+        from apps.analytics.models import SmartSuggestion
 
         org_ids = _user_org_ids(request.user)
         zone = get_object_or_404(
@@ -1538,7 +1559,7 @@ class ZoneSuggestionsView(viewsets.ViewSet):
 
     def apply(self, request: Request, pk: int = None) -> Response:
         """Apply a smart suggestion to its sensor thresholds."""
-        from .models import SmartSuggestion
+        from apps.analytics.models import SmartSuggestion
 
         org_ids = _user_org_ids(request.user)
         zone = get_object_or_404(
@@ -1706,7 +1727,7 @@ class SiteViewSet(viewsets.ModelViewSet):
         return SiteSerializer
 
     def get_queryset(self):
-        from .models import Site
+        from apps.sites.models import Site
         org_ids = _user_org_ids(self.request.user)
         return Site.objects.filter(organization_id__in=org_ids)
 
@@ -1722,7 +1743,10 @@ class SiteViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], url_path="weather")
     def weather(self, request: Request, pk=None) -> Response:
         """Return current weather and forecast for a site."""
-        from .models import Site, WeatherData
+        from apps.sites.models import (
+            Site,
+            WeatherData,
+        )
         from .serializers import WeatherDataSerializer
 
         site = self.get_object()
@@ -1747,7 +1771,7 @@ class SiteViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], url_path="weather/history")
     def weather_history(self, request: Request, pk=None) -> Response:
         """Return historical weather data for a site."""
-        from .models import WeatherData
+        from apps.sites.models import WeatherData
         from .serializers import WeatherDataSerializer
 
         site = self.get_object()
@@ -1780,7 +1804,15 @@ class SiteDashboardView(viewsets.ViewSet):
 
     def list(self, request: Request) -> Response:
         """Return dashboard summary for all sites in the user's organizations."""
-        from .models import Alert, Site, WeatherAlert, WeatherData, Zone
+        from apps.greenhouse.models import (
+            Alert,
+            Zone,
+        )
+        from apps.sites.models import (
+            Site,
+            WeatherAlert,
+            WeatherData,
+        )
 
         org_ids = _user_org_ids(request.user)
         sites = Site.objects.filter(
@@ -1849,7 +1881,7 @@ class WeatherAlertViewSet(
         return WeatherAlertSerializer
 
     def get_queryset(self):
-        from .models import WeatherAlert
+        from apps.sites.models import WeatherAlert
         org_ids = _user_org_ids(self.request.user)
         qs = WeatherAlert.objects.filter(
             site__organization_id__in=org_ids,
@@ -1869,7 +1901,7 @@ class WeatherAlertViewSet(
     @action(detail=True, methods=["patch"])
     def acknowledge(self, request: Request, pk=None) -> Response:
         """Acknowledge a weather alert."""
-        from .models import WeatherAlert
+        from apps.sites.models import WeatherAlert
         from .serializers import WeatherAlertSerializer
 
         org_ids = _user_org_ids(request.user)
@@ -1898,7 +1930,11 @@ class WeatherCorrelationView(viewsets.ViewSet):
         Aligns hourly weather data with hourly sensor readings for the zone,
         so that external conditions can be compared with internal measurements.
         """
-        from .models import SensorReadingHourly, Site, WeatherData
+        from apps.analytics.models import SensorReadingHourly
+        from apps.sites.models import (
+            Site,
+            WeatherData,
+        )
 
         org_ids = _user_org_ids(request.user)
         zone = get_object_or_404(
@@ -2005,7 +2041,7 @@ class CropCycleViewSet(viewsets.ModelViewSet):
         return None
 
     def get_queryset(self):
-        from .models import CropCycle
+        from apps.compliance.models import CropCycle
         zone = self._get_zone()
         if zone:
             return CropCycle.objects.filter(zone=zone).select_related("zone")
@@ -2051,7 +2087,7 @@ class NoteViewSet(viewsets.ModelViewSet):
         return None
 
     def get_queryset(self):
-        from .models import Note
+        from apps.compliance.models import Note
         zone = self._get_zone()
         if zone:
             return Note.objects.filter(zone=zone).select_related("zone", "author")
@@ -2084,7 +2120,7 @@ class CultureLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return CultureLogSerializer
 
     def get_queryset(self):
-        from .models import CultureLog
+        from apps.compliance.models import CultureLog
         zone_id = self.kwargs.get("zone_id")
         org_ids = _user_org_ids(self.request.user)
         if zone_id:
@@ -2111,7 +2147,13 @@ class TraceabilityReportView(viewsets.ViewSet):
         """Generate a traceability PDF report for the zone."""
         from django.db.models import Avg, Count, Max, Min, StdDev
 
-        from .models import CropCycle, CultureLog, Note, SensorReading, TraceabilityReport
+        from apps.compliance.models import (
+            CropCycle,
+            CultureLog,
+            Note,
+            TraceabilityReport,
+        )
+        from apps.greenhouse.models import SensorReading
         from .serializers import TraceabilityReportRequestSerializer
 
         org_ids = _user_org_ids(request.user)
@@ -2221,7 +2263,7 @@ class TraceabilityReportView(viewsets.ViewSet):
     @action(detail=False, methods=["get"], url_path="verify")
     def verify(self, request: Request, pk: int = None) -> Response:
         """Verify a report's SHA256 hash."""
-        from .models import TraceabilityReport
+        from apps.compliance.models import TraceabilityReport
 
         report_hash = request.query_params.get("hash", "")
         if not report_hash:
@@ -2300,7 +2342,12 @@ class GlobalGAPExportView(viewsets.ViewSet):
         """Export GlobalG.A.P.-compliant JSON for a zone."""
         from django.db.models import Avg, Count, Max, Min, StdDev
 
-        from .models import CropCycle, CultureLog, Note, SensorReading
+        from apps.compliance.models import (
+            CropCycle,
+            CultureLog,
+            Note,
+        )
+        from apps.greenhouse.models import SensorReading
         from .serializers import CultureLogSerializer, NoteSerializer
 
         org_ids = _user_org_ids(request.user)
@@ -2607,7 +2654,7 @@ def _check_zone_permission(request: "Request", zone: "Zone") -> None:
     """
     from rest_framework.exceptions import PermissionDenied
 
-    from apps.api.models import Membership
+    from apps.organizations.models import Membership
 
     greenhouse = zone.greenhouse
     if greenhouse.organization_id is not None:
@@ -2636,7 +2683,7 @@ class ZoneCropStatusView(viewsets.ViewSet):
         Returns:
             Serialised CropStatus or 404 if not yet computed.
         """
-        from .models import CropStatus
+        from apps.crop.models import CropStatus
         from .serializers import CropStatusSerializer
 
         zone = get_object_or_404(Zone, pk=pk)
@@ -2665,7 +2712,7 @@ class ZoneCropIndicatorPreferenceView(viewsets.ViewSet):
 
         Missing preference rows are returned as ``enabled=True`` (default).
         """
-        from .models import CropIndicatorPreference
+        from apps.crop.models import CropIndicatorPreference
         from .serializers import CropIndicatorPreferenceSerializer
 
         zone = get_object_or_404(Zone, pk=pk)
@@ -2684,7 +2731,7 @@ class ZoneCropIndicatorPreferenceView(viewsets.ViewSet):
 
         Accepts ``{"preferences": [{"indicator": "GROWTH", "enabled": false}, ...]}``.
         """
-        from .models import CropIndicatorPreference
+        from apps.crop.models import CropIndicatorPreference
         from .serializers import CropIndicatorPreferenceBulkSerializer
 
         zone = get_object_or_404(Zone, pk=pk)

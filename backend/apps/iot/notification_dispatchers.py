@@ -19,7 +19,11 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from pywebpush import WebPushException, webpush
 
-from .models import Alert, NotificationChannel, PushSubscription
+from apps.greenhouse.models import Alert
+from apps.notifications.models import (
+    NotificationChannel,
+    PushSubscription,
+)
 
 logger = logging.getLogger(__name__)
 

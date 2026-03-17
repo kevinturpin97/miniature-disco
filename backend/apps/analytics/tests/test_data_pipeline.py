@@ -20,13 +20,13 @@ from apps.iot.data_pipeline import (
     enforce_retention_policies,
     lttb_downsample,
 )
-from apps.iot.models import (
+from apps.analytics.models import (
     DataArchiveLog,
     RetentionPolicy,
-    SensorReading,
     SensorReadingDaily,
     SensorReadingHourly,
 )
+from apps.greenhouse.models import SensorReading
 
 
 # ---------------------------------------------------------------------------

@@ -15,8 +15,8 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from .models import Zone
-from apps.api.models import Membership
+from apps.greenhouse.models import Zone
+from apps.organizations.models import Membership
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +260,7 @@ class FleetConsumer(AsyncJsonWebsocketConsumer):
     @database_sync_to_async
     def _check_device_membership(self, user_id: int, device_id: str) -> bool:
         """Return True if the user is a member of the org that owns the device."""
-        from .models import EdgeDevice
+        from apps.fleet.models import EdgeDevice
 
         return EdgeDevice.objects.filter(
             device_id=device_id,

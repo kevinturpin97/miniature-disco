@@ -17,7 +17,10 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from apps.api.models import Membership, Organization
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
 from apps.iot.ml_engine import (
     detect_anomaly_ml,
     detect_drift,
@@ -27,16 +30,18 @@ from apps.iot.ml_engine import (
     train_isolation_forest,
     train_linear_regression,
 )
-from apps.iot.models import (
-    Alert,
+from apps.analytics.models import (
     AnomalyRecord,
-    Greenhouse,
     MLModel,
-    Sensor,
     SensorPrediction,
-    SensorReading,
     SensorReadingHourly,
     SmartSuggestion,
+)
+from apps.greenhouse.models import (
+    Alert,
+    Greenhouse,
+    Sensor,
+    SensorReading,
     Zone,
 )
 

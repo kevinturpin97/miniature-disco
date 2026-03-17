@@ -29,7 +29,10 @@ def check_trial_expiry() -> int:
     Returns:
         Number of organizations notified.
     """
-    from apps.api.models import Membership, Organization
+    from apps.organizations.models import (
+        Membership,
+        Organization,
+    )
 
     now = timezone.now()
     reminder_window_start = now + timezone.timedelta(days=2)
@@ -74,7 +77,7 @@ def send_trial_expiry_reminder(org_id: int, email: str, username: str) -> None:
         email: Recipient email address.
         username: Recipient username for personalization.
     """
-    from apps.api.models import Organization
+    from apps.organizations.models import Organization
 
     try:
         org = Organization.objects.get(pk=org_id)
@@ -110,7 +113,10 @@ def send_payment_confirmation_email(org_id: int, plan: str) -> None:
         org_id: Organization primary key.
         plan: The plan the organization upgraded to.
     """
-    from apps.api.models import Membership, Organization
+    from apps.organizations.models import (
+        Membership,
+        Organization,
+    )
 
     try:
         org = Organization.objects.get(pk=org_id)
@@ -148,7 +154,10 @@ def send_payment_failed_email(org_id: int) -> None:
     Args:
         org_id: Organization primary key.
     """
-    from apps.api.models import Membership, Organization
+    from apps.organizations.models import (
+        Membership,
+        Organization,
+    )
 
     try:
         org = Organization.objects.get(pk=org_id)

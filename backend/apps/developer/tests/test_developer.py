@@ -16,13 +16,15 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.api.models import (
+from apps.developer.models import (
     APIKey,
     APIKeyLog,
-    Membership,
-    Organization,
     Webhook,
     WebhookDelivery,
+)
+from apps.organizations.models import (
+    Membership,
+    Organization,
 )
 from apps.api.tasks import deliver_webhook, dispatch_webhooks
 from conftest import (

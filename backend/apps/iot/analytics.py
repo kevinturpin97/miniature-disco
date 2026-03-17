@@ -15,11 +15,11 @@ from django.db.models import Avg, Count, Max, Min, StdDev
 from django.db.models.functions import TruncDay, TruncHour
 from django.utils import timezone
 
-from .models import (
+from apps.analytics.models import SensorReadingHourly
+from apps.greenhouse.models import (
     Alert,
     Sensor,
     SensorReading,
-    SensorReadingHourly,
     Zone,
 )
 
@@ -119,7 +119,7 @@ def compute_org_analytics_summary(org_id: int) -> dict[str, Any]:
     Returns:
         Dict with greenhouse/zone counts, total readings, active alerts, etc.
     """
-    from .models import Greenhouse
+    from apps.greenhouse.models import Greenhouse
 
     now = timezone.now()
     since_7d = now - timedelta(days=7)

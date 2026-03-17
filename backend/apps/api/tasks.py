@@ -11,7 +11,11 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
-from .models import APIKeyLog, Webhook, WebhookDelivery
+from apps.developer.models import (
+    APIKeyLog,
+    Webhook,
+    WebhookDelivery,
+)
 
 logger = logging.getLogger(__name__)
 

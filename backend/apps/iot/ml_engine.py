@@ -20,14 +20,16 @@ from django.utils import timezone
 from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LinearRegression
 
-from .models import (
-    Alert,
+from apps.analytics.models import (
     AnomalyRecord,
     MLModel,
-    Sensor,
     SensorPrediction,
-    SensorReading,
     SmartSuggestion,
+)
+from apps.greenhouse.models import (
+    Alert,
+    Sensor,
+    SensorReading,
 )
 
 logger = logging.getLogger(__name__)
@@ -100,7 +102,7 @@ def train_linear_regression(sensor: Sensor, lookback_hours: int = 168) -> MLMode
     Returns:
         The created/updated MLModel instance, or None if insufficient data.
     """
-    from .models import SensorReadingHourly
+    from apps.analytics.models import SensorReadingHourly
 
     since = timezone.now() - timedelta(hours=lookback_hours)
     hourly = list(
@@ -188,7 +190,7 @@ def generate_predictions(sensor: Sensor, hours_ahead: int = 6) -> list[SensorPre
     mae = ml_model.mean_absolute_error or 0.0
 
     # Get the latest reading time as reference
-    from .models import SensorReadingHourly
+    from apps.analytics.models import SensorReadingHourly
 
     latest_hourly = (
         SensorReadingHourly.objects.filter(sensor=sensor)
@@ -519,7 +521,7 @@ def generate_weekly_ai_report(zone_id: int) -> str:
     Returns:
         The rendered report text.
     """
-    from .models import Zone
+    from apps.greenhouse.models import Zone
 
     try:
         zone = Zone.objects.get(pk=zone_id)

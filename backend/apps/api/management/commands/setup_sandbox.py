@@ -3,8 +3,20 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from apps.api.models import APIKey, Membership, Organization, Webhook
-from apps.iot.models import Actuator, Greenhouse, Sensor, Zone
+from apps.developer.models import (
+    APIKey,
+    Webhook,
+)
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
+    Actuator,
+    Greenhouse,
+    Sensor,
+    Zone,
+)
 
 User = get_user_model()
 

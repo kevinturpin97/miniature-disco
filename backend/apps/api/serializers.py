@@ -10,7 +10,18 @@ from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import serializers
 
-from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Subscription, Webhook, WebhookDelivery
+from apps.billing.models import Subscription
+from apps.developer.models import (
+    APIKey,
+    APIKeyLog,
+    Webhook,
+    WebhookDelivery,
+)
+from apps.organizations.models import (
+    Invitation,
+    Membership,
+    Organization,
+)
 
 User = get_user_model()
 

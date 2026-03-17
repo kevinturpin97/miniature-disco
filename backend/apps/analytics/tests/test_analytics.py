@@ -9,13 +9,16 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.analytics.models import SensorReadingHourly
+from apps.greenhouse.models import (
     Alert,
     Greenhouse,
     Sensor,
     SensorReading,
-    SensorReadingHourly,
     Zone,
 )
 

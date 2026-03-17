@@ -27,13 +27,15 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
-from .models import (
-    Alert,
-    AuditEvent,
-    Command,
+from apps.analytics.models import AuditEvent
+from apps.fleet.models import (
     EdgeDevice,
-    SensorReading,
     SyncBatch,
+)
+from apps.greenhouse.models import (
+    Alert,
+    Command,
+    SensorReading,
 )
 
 logger = logging.getLogger(__name__)

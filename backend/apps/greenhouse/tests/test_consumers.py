@@ -215,7 +215,7 @@ class TestAlertConsumer:
 @database_sync_to_async
 def create_device_for_user(user) -> str:
     """Create an org + membership + active EdgeDevice for user; return device_id str."""
-    from apps.api.models import Membership
+    from apps.organizations.models import Membership
 
     org = OrganizationFactory()
     MembershipFactory(user=user, organization=org, role=Membership.Role.OWNER)

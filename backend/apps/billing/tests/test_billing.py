@@ -6,7 +6,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.api.models import Membership, Organization, Subscription
+from apps.billing.models import Subscription
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
 from conftest import MembershipFactory, OrganizationFactory, UserFactory
 
 

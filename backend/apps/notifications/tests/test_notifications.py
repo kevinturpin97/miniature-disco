@@ -22,17 +22,22 @@ from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
     Alert,
     Greenhouse,
+    Sensor,
+    SensorReading,
+    Zone,
+)
+from apps.notifications.models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
     PushSubscription,
-    Sensor,
-    SensorReading,
-    Zone,
 )
 from apps.iot.tasks import dispatch_notifications, send_daily_digest
 

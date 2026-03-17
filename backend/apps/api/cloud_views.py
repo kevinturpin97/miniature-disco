@@ -36,8 +36,22 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.iot.models import Alert, EdgeDevice, SensorReading, SyncBatch
-from .models import CloudTenant, ImpersonationToken, Membership, Organization
+from apps.fleet.models import (
+    EdgeDevice,
+    SyncBatch,
+)
+from apps.greenhouse.models import (
+    Alert,
+    SensorReading,
+)
+from apps.cloud.models import (
+    CloudTenant,
+    ImpersonationToken,
+)
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -294,7 +308,10 @@ class EdgeConfigView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        from apps.iot.models import AutomationRule, Sensor
+        from apps.greenhouse.models import (
+            AutomationRule,
+            Sensor,
+        )
         org = device.organization
 
         # Collect sensors for all greenhouses of this org
@@ -389,7 +406,7 @@ class CRMTenantListView(APIView):
             org = tenant.organization
             gh_count = getattr(org, "_greenhouse_count", None)
             if gh_count is None:
-                from apps.iot.models import Greenhouse
+                from apps.greenhouse.models import Greenhouse
                 gh_count = Greenhouse.objects.filter(organization=org).count()
 
             unsynced = SensorReading.objects.filter(
@@ -439,7 +456,12 @@ class CRMTenantDetailView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         org = tenant.organization
-        from apps.iot.models import Alert, Command, Greenhouse, Zone
+        from apps.greenhouse.models import (
+            Alert,
+            Command,
+            Greenhouse,
+            Zone,
+        )
 
         greenhouses = list(
             Greenhouse.objects.filter(organization=org, is_active=True).values("id", "name", "location")
@@ -616,7 +638,10 @@ class CRMStatsView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
 
     def get(self, request: Request) -> Response:
-        from apps.iot.models import Greenhouse, Zone
+        from apps.greenhouse.models import (
+            Greenhouse,
+            Zone,
+        )
 
         now = timezone.now()
         day_ago = now - timedelta(hours=24)

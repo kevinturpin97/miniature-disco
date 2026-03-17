@@ -23,9 +23,13 @@ from rest_framework.request import Request
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 
-from apps.api.models import Membership
+from apps.organizations.models import Membership
 
-from .models import Sensor, SensorReading, Zone
+from apps.greenhouse.models import (
+    Sensor,
+    SensorReading,
+    Zone,
+)
 
 logger = logging.getLogger(__name__)
 

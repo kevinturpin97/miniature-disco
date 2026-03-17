@@ -16,8 +16,11 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
     Actuator,
     Alert,
     AutomationRule,

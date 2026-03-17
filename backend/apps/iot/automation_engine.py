@@ -12,7 +12,11 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from .models import AutomationRule, Command, SensorReading
+from apps.greenhouse.models import (
+    AutomationRule,
+    Command,
+    SensorReading,
+)
 
 logger = logging.getLogger(__name__)
 

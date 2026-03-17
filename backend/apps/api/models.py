@@ -1,20 +1,20 @@
-"""API app models — re-exported from dedicated apps for backward compatibility.
+"""Legacy stub — all models have been moved to dedicated apps.
 
-The canonical implementations live in:
-- apps.organizations: Organization, Membership, Invitation
-- apps.developer: APIKey, APIKeyLog, Webhook, WebhookDelivery
-- apps.billing: Subscription
-- apps.cloud: CloudTenant, ImpersonationToken
+Import directly from the appropriate app:
 
-This module re-exports them to avoid breaking existing imports during migration.
+    from apps.organizations.models import Organization, Membership, Invitation
+    from apps.developer.models import APIKey, APIKeyLog, Webhook, WebhookDelivery
+    from apps.billing.models import Subscription
+    from apps.cloud.models import CloudTenant, ImpersonationToken
 """
 
-from apps.billing.models import Subscription  # noqa: F401
-from apps.cloud.models import CloudTenant, ImpersonationToken  # noqa: F401
-from apps.developer.models import APIKey, APIKeyLog, Webhook, WebhookDelivery  # noqa: F401
-from apps.organizations.models import (  # noqa: F401
-    Invitation,
-    Membership,
-    Organization,
-    _generate_invite_token,
-)
+import secrets
+
+
+def _generate_invite_token() -> str:
+    """Generate a random invitation token.
+
+    Kept here for backward compatibility with migration 0001_create_organization_models.py
+    which references apps.api.models._generate_invite_token as the default callable.
+    """
+    return secrets.token_urlsafe(32)

@@ -5,18 +5,25 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
     Actuator,
     AutomationRule,
     Greenhouse,
-    Scenario,
-    ScenarioStep,
     Sensor,
+    Zone,
+)
+from apps.marketplace.models import (
     Template,
     TemplateCategory,
     TemplateRating,
-    Zone,
+)
+from apps.schedules.models import (
+    Scenario,
+    ScenarioStep,
 )
 from apps.iot.views import _import_template_to_zone, _snapshot_zone_config
 

@@ -14,7 +14,7 @@ import pytest
 from django.test import RequestFactory, override_settings
 from django.contrib.auth import get_user_model
 
-from apps.iot.models import AuditEvent
+from apps.analytics.models import AuditEvent
 from conftest import UserFactory, GreenhouseFactory, ZoneFactory
 from utils.audit import create_audit_event
 

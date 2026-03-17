@@ -12,7 +12,7 @@ import logging
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.iot.models import EdgeDevice
+from apps.fleet.models import EdgeDevice
 from apps.iot.sync_agent import _run_sync
 
 logger = logging.getLogger(__name__)

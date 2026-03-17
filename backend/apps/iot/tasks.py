@@ -20,17 +20,19 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
 
-from .models import (
+from apps.analytics.models import SensorReadingHourly
+from apps.greenhouse.models import (
     Actuator,
     Alert,
     Command,
+    Sensor,
+    SensorReading,
+    Zone,
+)
+from apps.notifications.models import (
     NotificationChannel,
     NotificationLog,
     NotificationRule,
-    Sensor,
-    SensorReading,
-    SensorReadingHourly,
-    Zone,
 )
 
 # Sprint 20 imports (deferred in functions to avoid circular imports)
@@ -485,7 +487,7 @@ def send_daily_digest() -> dict[str, int]:
     Returns:
         Dict with ``organizations`` and ``emails_sent`` counts.
     """
-    from apps.api.models import Organization
+    from apps.organizations.models import Organization
 
     now = timezone.now()
     since = now - timedelta(hours=24)
@@ -628,7 +630,10 @@ def execute_scenario_task(scenario_id: int, user_id: int | None = None) -> dict[
     Returns:
         Dict with ``status`` and ``commands_created`` count.
     """
-    from .models import Scenario, ScenarioStep
+    from apps.schedules.models import (
+        Scenario,
+        ScenarioStep,
+    )
 
     try:
         scenario = Scenario.objects.select_related("zone").get(pk=scenario_id)
@@ -713,7 +718,7 @@ def _execute_scenario_step(step_id: int, user_id: int | None = None) -> None:
         step_id: Primary key of the ScenarioStep to execute.
         user_id: Optional user ID for command creator.
     """
-    from .models import ScenarioStep
+    from apps.schedules.models import ScenarioStep
 
     try:
         step = ScenarioStep.objects.select_related("actuator").get(pk=step_id)
@@ -768,7 +773,10 @@ def check_schedules_task() -> dict[str, int]:
     """
     import datetime as dt
 
-    from .models import Schedule, Scenario
+    from apps.schedules.models import (
+        Scenario,
+        Schedule,
+    )
 
     now = timezone.now()
     current_minute = now.minute
@@ -897,7 +905,7 @@ def generate_all_predictions() -> dict[str, int]:
         Dict with ``sensors_processed`` and ``predictions_created`` counts.
     """
     from .ml_engine import generate_predictions
-    from .models import MLModel
+    from apps.analytics.models import MLModel
 
     lr_models = MLModel.objects.filter(
         model_type=MLModel.ModelType.LINEAR_REGRESSION,
@@ -1078,7 +1086,7 @@ def archive_cold_storage_task() -> dict[str, int]:
         Dict with ``organizations_processed`` and ``total_archived`` counts.
     """
     from .data_pipeline import archive_to_cold_storage
-    from .models import RetentionPolicy
+    from apps.analytics.models import RetentionPolicy
 
     policies = RetentionPolicy.objects.filter(
         archive_to_cold_storage=True,
@@ -1149,7 +1157,11 @@ def fetch_weather_for_all_sites() -> dict[str, int]:
     Returns:
         Dict with sites_processed, readings_stored, alerts_created counts.
     """
-    from .models import Site, WeatherAlert, WeatherData
+    from apps.sites.models import (
+        Site,
+        WeatherAlert,
+        WeatherData,
+    )
     from .weather_service import (
         analyze_forecast_for_alerts,
         fetch_weather,
@@ -1251,7 +1263,7 @@ def cleanup_old_weather_data(days: int = 30) -> dict[str, int]:
     Returns:
         Dict with deleted count.
     """
-    from .models import WeatherData
+    from apps.sites.models import WeatherData
 
     cutoff = timezone.now() - timedelta(days=days)
     deleted_count, _ = WeatherData.objects.filter(
@@ -1287,7 +1299,9 @@ def ingest_sync_batch(batch_id: int, payload: dict) -> dict:
     Returns:
         Summary dict with inserted counts.
     """
-    from .models import AuditEvent, Command, SyncBatch
+    from apps.analytics.models import AuditEvent
+    from apps.fleet.models import SyncBatch
+    from apps.greenhouse.models import Command
 
     try:
         batch = SyncBatch.objects.get(pk=batch_id)
@@ -1388,7 +1402,12 @@ def calculate_crop_status(zone_id: int | None = None) -> dict:
         plant_health_score,
         yield_prediction_score,
     )
-    from .models import CropStatus, Sensor, SensorReading, Zone
+    from apps.crop.models import CropStatus
+    from apps.greenhouse.models import (
+        Sensor,
+        SensorReading,
+        Zone,
+    )
 
     now = tz.now()
 
@@ -1510,7 +1529,7 @@ def check_ota_timeout() -> dict:
     Returns:
         dict with ``timed_out`` count.
     """
-    from .models import DeviceOTAJob
+    from apps.fleet.models import DeviceOTAJob
 
     cutoff = timezone.now() - timedelta(minutes=30)
     stuck_jobs = DeviceOTAJob.objects.filter(
@@ -1566,7 +1585,10 @@ def collect_device_metrics(device_id: str, payload: dict) -> dict:
     Returns:
         dict with ``status`` and ``device_metrics_id``.
     """
-    from .models import DeviceMetrics, EdgeDevice
+    from apps.fleet.models import (
+        DeviceMetrics,
+        EdgeDevice,
+    )
 
     try:
         device = EdgeDevice.objects.get(device_id=device_id, is_active=True)

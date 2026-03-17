@@ -54,7 +54,10 @@ def user(db):
 
 @pytest.fixture
 def zone(db, user):
-    from apps.iot.models import Greenhouse, Zone
+    from apps.greenhouse.models import (
+        Greenhouse,
+        Zone,
+    )
 
     gh = Greenhouse.objects.create(name="Test GH", owner=user)
     return Zone.objects.create(
@@ -284,7 +287,7 @@ class TestCalculateCropStatusTask:
     def test_task_creates_crop_status(self, zone):
         """Task should create a CropStatus row for the zone."""
         from apps.iot.tasks import calculate_crop_status
-        from apps.iot.models import CropStatus
+        from apps.crop.models import CropStatus
 
         result = calculate_crop_status(zone_id=zone.pk)
         assert result["zones_processed"] == 1
@@ -294,7 +297,7 @@ class TestCalculateCropStatusTask:
     def test_task_upserts_on_second_call(self, zone):
         """Running twice should update, not duplicate."""
         from apps.iot.tasks import calculate_crop_status
-        from apps.iot.models import CropStatus
+        from apps.crop.models import CropStatus
 
         calculate_crop_status(zone_id=zone.pk)
         calculate_crop_status(zone_id=zone.pk)
@@ -302,7 +305,11 @@ class TestCalculateCropStatusTask:
 
     def test_task_uses_sensor_readings(self, zone, db):
         """Task should use latest sensor readings when available."""
-        from apps.iot.models import CropStatus, Sensor, SensorReading
+        from apps.crop.models import CropStatus
+        from apps.greenhouse.models import (
+            Sensor,
+            SensorReading,
+        )
         from apps.iot.tasks import calculate_crop_status
 
         sensor = Sensor.objects.create(
@@ -320,7 +327,7 @@ class TestCalculateCropStatusTask:
     def test_task_all_zones(self, zone, db):
         """Calling without zone_id processes all active zones."""
         from apps.iot.tasks import calculate_crop_status
-        from apps.iot.models import CropStatus
+        from apps.crop.models import CropStatus
 
         result = calculate_crop_status()
         assert result["zones_processed"] >= 1

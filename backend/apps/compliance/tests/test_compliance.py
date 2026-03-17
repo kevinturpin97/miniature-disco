@@ -25,13 +25,13 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone as django_tz
 
-from apps.iot.models import (
-    Alert,
+from apps.compliance.models import (
     CropCycle,
     CultureLog,
     Note,
     TraceabilityReport,
 )
+from apps.greenhouse.models import Alert
 from conftest import (
     ActuatorFactory,
     CommandFactory,
@@ -252,7 +252,7 @@ class TestCultureJournalSignals:
 
     def test_command_creates_culture_log(self, actuator, user):
         """Creating a Command triggers a CultureLog entry with entry_type COMMAND."""
-        from apps.iot.models import Command
+        from apps.greenhouse.models import Command
 
         initial_count = CultureLog.objects.filter(
             zone=actuator.zone, entry_type=CultureLog.EntryType.COMMAND
@@ -355,7 +355,7 @@ class TestCultureJournalSignals:
 
     def test_command_signal_links_active_crop_cycle(self, actuator, user, crop_cycle):
         """Command signal links the CultureLog to the active crop cycle of the zone."""
-        from apps.iot.models import Command
+        from apps.greenhouse.models import Command
 
         Command.objects.create(
             actuator=actuator,

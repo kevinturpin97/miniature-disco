@@ -4,7 +4,13 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
-from apps.iot.models import Actuator, AutomationRule, Command, Sensor, Zone
+from apps.greenhouse.models import (
+    Actuator,
+    AutomationRule,
+    Command,
+    Sensor,
+    Zone,
+)
 from conftest import (
     ActuatorFactory,
     AutomationRuleFactory,

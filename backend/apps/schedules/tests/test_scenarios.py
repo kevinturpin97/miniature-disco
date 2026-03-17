@@ -8,15 +8,20 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
     Actuator,
     Command,
     Greenhouse,
+    Zone,
+)
+from apps.schedules.models import (
     Scenario,
     ScenarioStep,
     Schedule,
-    Zone,
 )
 from apps.iot.tasks import _cron_matches, check_schedules_task, execute_scenario_task
 

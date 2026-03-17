@@ -15,8 +15,12 @@ import pytest
 from django.utils import timezone
 from rest_framework import status
 
-from apps.api.models import Membership
-from apps.iot.models import DeviceMetrics, DeviceOTAJob, FirmwareRelease
+from apps.organizations.models import Membership
+from apps.fleet.models import (
+    DeviceMetrics,
+    DeviceOTAJob,
+    FirmwareRelease,
+)
 
 from conftest import (
     DeviceMetricsFactory,

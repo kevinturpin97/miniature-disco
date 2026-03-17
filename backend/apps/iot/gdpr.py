@@ -25,14 +25,19 @@ def export_user_data(user: Any) -> dict[str, Any]:
     Returns:
         A dict containing all user data, ready for JSON serialization.
     """
-    from apps.api.models import Membership, Organization
-    from apps.iot.models import (
-        Alert,
-        Command,
+    from apps.organizations.models import (
+        Membership,
+        Organization,
+    )
+    from apps.compliance.models import (
         CropCycle,
         CultureLog,
         Note,
         TraceabilityReport,
+    )
+    from apps.greenhouse.models import (
+        Alert,
+        Command,
     )
 
     # User profile
@@ -138,7 +143,13 @@ def anonymize_user(user: Any) -> dict[str, int]:
     Returns:
         A dict with counts of affected records per category.
     """
-    from apps.iot.models import Command, CropCycle, CultureLog, Note, TraceabilityReport
+    from apps.compliance.models import (
+        CropCycle,
+        CultureLog,
+        Note,
+        TraceabilityReport,
+    )
+    from apps.greenhouse.models import Command
 
     anonymous_id = f"anon_{user.pk}"
     counts: dict[str, int] = {}

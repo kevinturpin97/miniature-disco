@@ -10,8 +10,17 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import Actuator, AutomationRule, Greenhouse, Sensor, Zone
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import (
+    Actuator,
+    AutomationRule,
+    Greenhouse,
+    Sensor,
+    Zone,
+)
 
 User = get_user_model()
 

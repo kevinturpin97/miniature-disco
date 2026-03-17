@@ -25,7 +25,14 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Actuator, Alert, Command, Sensor, SensorReading, Zone
+from apps.greenhouse.models import (
+    Actuator,
+    Alert,
+    Command,
+    Sensor,
+    SensorReading,
+    Zone,
+)
 
 logger = logging.getLogger(__name__)
 

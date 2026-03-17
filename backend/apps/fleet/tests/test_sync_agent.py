@@ -27,15 +27,20 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
-    Alert,
-    AuditEvent,
-    Command,
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.analytics.models import AuditEvent
+from apps.fleet.models import (
     EdgeDevice,
+    SyncBatch,
+)
+from apps.greenhouse.models import (
+    Alert,
+    Command,
     Sensor,
     SensorReading,
-    SyncBatch,
     Zone,
 )
 from apps.iot.sync_agent import _build_hmac_headers, _run_sync, sync_to_cloud

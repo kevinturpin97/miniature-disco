@@ -20,7 +20,11 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.iot.models import Sensor, SensorReading, Zone
+from apps.greenhouse.models import (
+    Sensor,
+    SensorReading,
+    Zone,
+)
 
 logger = logging.getLogger(__name__)
 

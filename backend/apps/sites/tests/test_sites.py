@@ -18,15 +18,20 @@ import factory
 import pytest
 from django.utils import timezone as django_tz
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.analytics.models import SensorReadingHourly
+from apps.greenhouse.models import (
     Greenhouse,
     Sensor,
-    SensorReadingHourly,
+    Zone,
+)
+from apps.sites.models import (
     Site,
     WeatherAlert,
     WeatherData,
-    Zone,
 )
 from apps.iot.weather_service import (
     analyze_forecast_for_alerts,

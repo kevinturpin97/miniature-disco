@@ -6,21 +6,26 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
-    Actuator,
-    AutomationRule,
-    Command,
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.fleet.models import (
     DeviceMetrics,
     DeviceOTAJob,
     EdgeDevice,
     FirmwareRelease,
+)
+from apps.greenhouse.models import (
+    Actuator,
+    AutomationRule,
+    Command,
     Greenhouse,
     Sensor,
     SensorReading,
-    Site,
     Zone,
 )
+from apps.sites.models import Site
 
 User = get_user_model()
 

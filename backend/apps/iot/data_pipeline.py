@@ -22,13 +22,15 @@ from django.db.models import Avg, Count, Max, Min, StdDev
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
-from .models import (
+from apps.analytics.models import (
     DataArchiveLog,
     RetentionPolicy,
-    Sensor,
-    SensorReading,
     SensorReadingDaily,
     SensorReadingHourly,
+)
+from apps.greenhouse.models import (
+    Sensor,
+    SensorReading,
 )
 
 logger = logging.getLogger(__name__)

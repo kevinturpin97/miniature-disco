@@ -8,7 +8,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.iot.models import Actuator, Alert, Command, Sensor, SensorReading, Zone
+from apps.greenhouse.models import (
+    Actuator,
+    Alert,
+    Command,
+    Sensor,
+    SensorReading,
+    Zone,
+)
 from apps.iot.mqtt_worker import MqttWorker
 from conftest import (
     ActuatorFactory,

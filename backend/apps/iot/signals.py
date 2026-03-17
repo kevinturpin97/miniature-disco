@@ -10,14 +10,18 @@ import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Alert, Command, SensorReading
+from apps.greenhouse.models import (
+    Alert,
+    Command,
+    SensorReading,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def _get_active_crop_cycle(zone_id: int):
     """Return the active crop cycle for a zone, or None."""
-    from .models import CropCycle
+    from apps.compliance.models import CropCycle
 
     return CropCycle.objects.filter(
         zone_id=zone_id, status=CropCycle.Status.ACTIVE
@@ -303,7 +307,7 @@ def log_command_to_culture_journal(
     if not created:
         return
 
-    from .models import CultureLog
+    from apps.compliance.models import CultureLog
 
     try:
         zone = instance.actuator.zone
@@ -344,7 +348,7 @@ def log_alert_to_culture_journal(
     if not created:
         return
 
-    from .models import CultureLog
+    from apps.compliance.models import CultureLog
 
     crop_cycle = _get_active_crop_cycle(instance.zone_id)
     CultureLog.objects.create(
@@ -379,7 +383,10 @@ def log_note_to_culture_journal(
     if not created:
         return
 
-    from .models import CultureLog, Note
+    from apps.compliance.models import (
+        CultureLog,
+        Note,
+    )
 
     note: Note = instance  # type: ignore[assignment]
     crop_cycle = _get_active_crop_cycle(note.zone_id)
@@ -411,7 +418,10 @@ def log_crop_cycle_to_culture_journal(
         instance: The CropCycle.
         created: True if the instance was just created.
     """
-    from .models import CropCycle, CultureLog
+    from apps.compliance.models import (
+        CropCycle,
+        CultureLog,
+    )
 
     cc: CropCycle = instance  # type: ignore[assignment]
     action = "started" if created else f"updated (status: {cc.get_status_display()})"

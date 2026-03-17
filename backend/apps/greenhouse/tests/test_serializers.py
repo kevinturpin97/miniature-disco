@@ -6,8 +6,11 @@ from unittest.mock import MagicMock
 import pytest
 from django.utils import timezone
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import Sensor
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.greenhouse.models import Sensor
 from apps.iot.serializers import (
     GreenhouseSerializer,
     SensorReadingSerializer,

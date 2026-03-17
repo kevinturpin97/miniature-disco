@@ -8,7 +8,10 @@ Usage::
 
 from django.core.management.base import BaseCommand
 
-from apps.iot.models import Template, TemplateCategory
+from apps.marketplace.models import (
+    Template,
+    TemplateCategory,
+)
 
 CATEGORIES = [
     {"name": "Vegetables", "slug": "vegetables", "icon": "leaf", "order": 1,

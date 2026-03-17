@@ -8,7 +8,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.iot.models import Alert, Command
+from apps.greenhouse.models import (
+    Alert,
+    Command,
+)
 from apps.iot.tasks import (
     detect_offline_relays,
     evaluate_sensor_thresholds,

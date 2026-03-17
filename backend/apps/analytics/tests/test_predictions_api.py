@@ -17,14 +17,19 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.api.models import Membership, Organization
-from apps.iot.models import (
+from apps.organizations.models import (
+    Membership,
+    Organization,
+)
+from apps.analytics.models import (
     AnomalyRecord,
+    SensorPrediction,
+    SmartSuggestion,
+)
+from apps.greenhouse.models import (
     Greenhouse,
     Sensor,
-    SensorPrediction,
     SensorReading,
-    SmartSuggestion,
     Zone,
 )
 

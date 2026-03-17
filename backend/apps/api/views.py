@@ -16,7 +16,17 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import APIKey, APIKeyLog, Invitation, Membership, Organization, Webhook, WebhookDelivery
+from apps.developer.models import (
+    APIKey,
+    APIKeyLog,
+    Webhook,
+    WebhookDelivery,
+)
+from apps.organizations.models import (
+    Invitation,
+    Membership,
+    Organization,
+)
 from .serializers import (
     APIKeyCreateResponseSerializer,
     APIKeyCreateSerializer,
